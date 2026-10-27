@@ -59,6 +59,11 @@
             Xem lịch ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
         </a>
 
+        <!-- Nút bật/tắt hiển thị cột Điểm (Mặc định ẩn) -->
+        <button type="button" class="toolbar-btn" id="btnToggleGrades" title="Bật/Tắt hiển thị cột Điểm và Điểm Trung Bình">
+            <span id="gradeIcon">👁️</span> <span id="gradeBtnText">Hiện cột điểm</span>
+        </button>
+
         <!-- Nút chuyển chế độ xem di động -->
         <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
             <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnViewCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
@@ -140,11 +145,11 @@
                         <span class="mobile-kv-label">Tổng tiết</span>
                         <span class="mobile-summary-num">@Model.Summary.TotalPeriods</span>
                     </div>
-                    <div class="mobile-summary-item">
+                    <div class="mobile-summary-item col-grade" style="display: none;">
                         <span class="mobile-kv-label">ĐTB cộng</span>
                         <span class="mobile-summary-num text-success">@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)</span>
                     </div>
-                    <div class="mobile-summary-item">
+                    <div class="mobile-summary-item col-grade" style="display: none;">
                         <span class="mobile-kv-label">ĐTB theo tiết</span>
                         <span class="mobile-summary-num text-primary">@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</span>
                     </div>
@@ -181,7 +186,7 @@
                                     <span class="mobile-kv-label">Thi hết môn</span>
                                     <span class="mobile-kv-value text-primary fw-bold">@item.Exam</span>
                                 </div>
-                                <div class="mobile-kv-item">
+                                <div class="mobile-kv-item col-grade" style="display: none;">
                                     <span class="mobile-kv-label">Điểm số</span>
                                     <span class="mobile-kv-value @(sub.Grade.HasValue ? "text-success fw-bold" : "text-muted")">
                                         @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "Chưa có")
@@ -252,7 +257,7 @@
                             <th style="width: 115px;" class="text-center">Bắt đầu</th>
                             <th style="width: 115px;" class="text-center">Kết thúc</th>
                             <th style="width: 115px;" class="text-center">Thi hết môn</th>
-                            <th style="width: 70px;" class="text-center">Điểm</th>
+                            <th style="width: 70px; display: none;" class="text-center col-grade">Điểm</th>
                             <th style="width: 75px;" class="text-center">Dự phòng</th>
                             <th>Ghi chú</th>
                             @if (Model.IsAdmin)
@@ -274,7 +279,7 @@
                                 <td class="text-center text-nowrap">@item.Start</td>
                                 <td class="text-center text-nowrap">@item.End</td>
                                 <td class="text-center text-nowrap fw-bold text-primary">@item.Exam</td>
-                                <td class="text-center fw-bold @(sub.Grade.HasValue ? "text-success" : "text-muted")">
+                                <td class="text-center fw-bold col-grade @(sub.Grade.HasValue ? "text-success" : "text-muted")" style="display: none;">
                                     @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "—")
                                 </td>
                                 <td class="text-center text-muted">
@@ -329,13 +334,13 @@
                             <td class="text-center text-primary">@Model.Summary.TotalPeriods</td>
                             <td class="text-center">@Model.Summary.TotalSessions</td>
                             <td colspan="3" class="text-muted small ps-2">
-                                (Đã nhập điểm: @Model.Summary.GradedSubjectCount / @Model.Items.Count môn)
+                                <span class="col-grade" style="display: none;">(Đã nhập điểm: @Model.Summary.GradedSubjectCount / @Model.Items.Count môn)</span>
                             </td>
-                            <td class="text-center text-success" title="Điểm TB cộng: @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)">
+                            <td class="text-center text-success col-grade" style="display: none;" title="Điểm TB cộng: @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)">
                                 @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)
                             </td>
                             <td colspan="@(Model.IsAdmin ? 3 : 2)" class="small text-secondary ps-2">
-                                Điểm TB theo số tiết: <strong>@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</strong>
+                                <span class="col-grade" style="display: none;">Điểm TB theo số tiết: <strong>@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</strong></span>
                             </td>
                         </tr>
                     </tfoot>
@@ -511,6 +516,34 @@
             if (savedMode === 'table') {
                 $('#btnViewTable').trigger('click');
             }
+
+            // =================================================================
+            // Bật / Tắt hiển thị cột Điểm (Mặc định: ẨN)
+            // =================================================================
+            function applyGradeVisibility(show) {
+                if (show) {
+                    $('.col-grade').show();
+                    $('#btnToggleGrades').addClass('btn-primary');
+                    $('#gradeIcon').text('👁️‍🗨️');
+                    $('#gradeBtnText').text('Ẩn cột điểm');
+                } else {
+                    $('.col-grade').hide();
+                    $('#btnToggleGrades').removeClass('btn-primary');
+                    $('#gradeIcon').text('👁️');
+                    $('#gradeBtnText').text('Hiện cột điểm');
+                }
+            }
+
+            $('#btnToggleGrades').on('click', function () {
+                var current = localStorage.getItem('kehoach_show_grades') === 'true';
+                var nextState = !current;
+                localStorage.setItem('kehoach_show_grades', nextState ? 'true' : 'false');
+                applyGradeVisibility(nextState);
+            });
+
+            // Mặc định ẩn, trừ khi người dùng đã chủ động bật trước đó
+            var initialGradeShow = localStorage.getItem('kehoach_show_grades') === 'true';
+            applyGradeVisibility(initialGradeShow);
         });
     </script>
 }
