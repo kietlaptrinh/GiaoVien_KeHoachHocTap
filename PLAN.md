@@ -49,13 +49,13 @@ KeHoachHocTap/
 **Xong khi:** test xanh. **Không sang giai đoạn 2 nếu golden test chưa xanh.**
 
 ## Giai đoạn 2 — Database (SPEC mục 5, 3.3)
-- [ ] Entity `Subject`, `Holiday`, `AppSetting`; `PlanDbContext`; dùng `UseSqlServer`; index theo SPEC.
-- [ ] Tạo migration đầu tiên; `Database:AutoMigrate` chạy `Migrate()` lúc khởi động.
-- [ ] `PlanRepository`: CRUD môn/ngày nghỉ, đổi thứ tự, đánh lại `SortOrder` (1 transaction); luật đúng 1 ngày khai giảng; CRUD cấu hình `AppSetting`.
-- [ ] `PlanImporter`: Excel → database trong 1 transaction; tuỳ chọn giữ điểm/dự phòng/ghi chú theo tên môn.
-- [ ] Seed lần đầu khi hai bảng trống và có file `Plan:SeedExcelPath`.
-- [ ] `PlanService`: lấy dữ liệu → `ScheduleCalculator` → `ScheduleResult`.
-- [ ] Test (SQL Server test, tạo database tạm cho mỗi lần chạy rồi xoá): import Excel mẫu rồi `PlanService` cho ra đúng golden 19 môn; thêm/xoá/đổi chỗ môn thì `SortOrder` liên tục và lịch đổi theo; import lần 2 giữ điểm theo tên; import lỗi giữa chừng không làm đổi dữ liệu cũ; khai giảng luôn đúng 1; lưu/đọc `AppSetting`.
+- [x] Entity `Subject`, `Holiday`, `AppSetting`; `PlanDbContext`; dùng `UseSqlServer`; index theo SPEC.
+- [x] Tạo migration đầu tiên; `Database:AutoMigrate` chạy `Migrate()` lúc khởi động.
+- [x] `PlanRepository`: CRUD môn/ngày nghỉ, đổi thứ tự, đánh lại `SortOrder` (1 transaction); luật đúng 1 ngày khai giảng; CRUD cấu hình `AppSetting`.
+- [x] `PlanImporter`: Excel → database trong 1 transaction; tuỳ chọn giữ điểm/dự phòng/ghi chú theo tên môn.
+- [x] Seed lần đầu khi hai bảng trống và có file `Plan:SeedExcelPath`.
+- [x] `PlanService`: lấy dữ liệu → `ScheduleCalculator` → `ScheduleResult`.
+- [x] Test (SQL Server test, tạo database tạm cho mỗi lần chạy rồi xoá): import Excel mẫu rồi `PlanService` cho ra đúng golden 19 môn; thêm/xoá/đổi chỗ môn thì `SortOrder` liên tục và lịch đổi theo; import lần 2 giữ điểm theo tên; import lỗi giữa chừng không làm đổi dữ liệu cũ; khai giảng luôn đúng 1; lưu/đọc `AppSetting`.
 
 **Xong khi:** test xanh; chạy app lần đầu với DB trống tự có 19 môn.
 
