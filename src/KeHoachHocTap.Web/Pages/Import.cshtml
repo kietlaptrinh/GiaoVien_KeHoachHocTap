@@ -177,29 +177,31 @@
                             <span class="text-muted small">Chưa ghi vào CSDL</span>
                         </div>
                         <div class="card-body p-0" style="max-height: 480px; overflow-y: auto;">
-                            <table class="desktop-grid table-sm table-bordered mb-0">
-                                <thead style="position: sticky; top: 0; z-index: 1;">
-                                    <tr>
-                                        <th style="width: 45px;" class="text-center">STT</th>
-                                        <th>Tên môn học</th>
-                                        <th style="width: 80px;" class="text-center">Số tiết</th>
-                                        <th style="width: 80px;" class="text-center">Số buổi</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @for (int i = 0; i < Model.PreviewSubjects.Count; i++)
-                                    {
-                                        var sub = Model.PreviewSubjects[i];
-                                        var sessions = (int)Math.Ceiling(sub.Periods / 5.0m);
+                            <div class="table-responsive">
+                                <table class="desktop-grid table-sm table-bordered mb-0">
+                                    <thead style="position: sticky; top: 0; z-index: 1;">
                                         <tr>
-                                            <td class="text-center fw-bold">@(i + 1)</td>
-                                            <td>@sub.Name</td>
-                                            <td class="text-center">@sub.Periods</td>
-                                            <td class="text-center text-muted">@sessions</td>
+                                            <th style="width: 45px;" class="text-center">STT</th>
+                                            <th>Tên môn học</th>
+                                            <th style="width: 80px;" class="text-center">Số tiết</th>
+                                            <th style="width: 80px;" class="text-center">Số buổi</th>
                                         </tr>
-                                    }
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < Model.PreviewSubjects.Count; i++)
+                                        {
+                                            var sub = Model.PreviewSubjects[i];
+                                            var sessions = (int)Math.Ceiling(sub.Periods / 5.0m);
+                                            <tr>
+                                                <td class="text-center fw-bold">@(i + 1)</td>
+                                                <td>@sub.Name</td>
+                                                <td class="text-center">@sub.Periods</td>
+                                                <td class="text-center text-muted">@sessions</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>

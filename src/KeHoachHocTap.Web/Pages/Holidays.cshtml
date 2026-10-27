@@ -43,6 +43,12 @@
             </svg>
             Làm mới
         </a>
+
+        <!-- Nút chuyển chế độ xem di động -->
+        <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
+            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnHolidaysCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
+            <button type="button" class="toolbar-btn btn-sm" id="btnHolidaysTable" title="Xem dạng bảng đầy đủ">⊞ Bảng</button>
+        </div>
     </div>
 
     <!-- Panel Body -->
@@ -74,12 +80,83 @@
         }
         else
         {
-            <div class="desktop-datagrid-container">
+            <!-- Mobile Cards View cho Ngày nghỉ -->
+            <div class="mobile-cards-container active-view" id="holidaysCardsContainer">
+                @for (int i = 0; i < Model.Holidays.Count; i++)
+                {
+                    var h = Model.Holidays[i];
+                    var dayCount = h.To.DayNumber - h.From.DayNumber + 1;
+                    <div class="mobile-card @(h.IsOpeningDay ? "border-primary" : "")">
+                        <div class="mobile-card-header">
+                            <div class="mobile-card-title">
+                                <span class="badge @(h.IsOpeningDay ? "bg-primary" : "bg-secondary")">#@(i + 1)</span>
+                                <span>@h.Name</span>
+                            </div>
+                            <div>
+                                @if (h.IsOpeningDay)
+                                {
+                                    <span class="badge bg-success">✓ Khai giảng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-light text-dark border">@dayCount ngày</span>
+                                }
+                            </div>
+                        </div>
+                        <div class="mobile-card-body">
+                            <div class="mobile-kv-grid">
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Từ ngày</span>
+                                    <span class="mobile-kv-value">@h.From.ToString("d/M/yyyy")</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Đến ngày</span>
+                                    <span class="mobile-kv-value">@h.To.ToString("d/M/yyyy")</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Tổng số ngày nghỉ</span>
+                                    <span class="mobile-kv-value text-primary fw-bold">@dayCount ngày</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Tính chất</span>
+                                    <span class="mobile-kv-value">@(h.IsOpeningDay ? "Ngày Khai giảng" : "Nghỉ lễ / Tết")</span>
+                                </div>
+                            </div>
+                        </div>
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="mobile-card-footer">
+                                <span class="small text-muted">ID: #@h.Id</span>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-holiday"
+                                            data-id="@h.Id"
+                                            data-name="@h.Name"
+                                            data-from="@h.From.ToString("yyyy-MM-dd")"
+                                            data-to="@h.To.ToString("yyyy-MM-dd")"
+                                            data-isopening="@(h.IsOpeningDay ? "true" : "false")">
+                                        ✎ Sửa
+                                    </button>
+                                    @if (!h.IsOpeningDay)
+                                    {
+                                        <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-holiday"
+                                                data-id="@h.Id"
+                                                data-name="@h.Name">
+                                            ✕ Xóa
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div class="desktop-datagrid-container hidden-mobile" id="holidaysTableContainer">
                 <table class="desktop-grid table-sm table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 45px;" class="text-center">STT</th>
-                            <th>Tên ngày nghỉ / Sự kiện</th>
+                            <th style="width: 45px;" class="text-center sticky-col-stt">STT</th>
+                            <th class="sticky-col-name">Tên ngày nghỉ / Sự kiện</th>
                             <th style="width: 130px;" class="text-center">Từ ngày</th>
                             <th style="width: 130px;" class="text-center">Đến ngày</th>
                             <th style="width: 90px;" class="text-center">Số ngày</th>
@@ -96,8 +173,8 @@
                             var h = Model.Holidays[i];
                             var dayCount = h.To.DayNumber - h.From.DayNumber + 1;
                             <tr class="@(h.IsOpeningDay ? "bg-light" : "")">
-                                <td class="text-center fw-bold">@(i + 1)</td>
-                                <td class="fw-bold @(h.IsOpeningDay ? "text-primary" : "")">
+                                <td class="text-center fw-bold sticky-col-stt">@(i + 1)</td>
+                                <td class="fw-bold sticky-col-name @(h.IsOpeningDay ? "text-primary" : "")">
                                     @h.Name
                                 </td>
                                 <td class="text-center">@h.From.ToString("d/M/yyyy")</td>
@@ -314,6 +391,28 @@
                 var modal = new bootstrap.Modal(document.getElementById('deleteHolidayModal'));
                 modal.show();
             });
+
+            // Chuyển đổi qua lại giữa Thẻ & Bảng trên thiết bị di động
+            $('#btnHolidaysCards').on('click', function () {
+                $('#holidaysCardsContainer').addClass('active-view');
+                $('#holidaysTableContainer').addClass('hidden-mobile');
+                $('#btnHolidaysCards').addClass('btn-primary');
+                $('#btnHolidaysTable').removeClass('btn-primary');
+                localStorage.setItem('holidays_view_mode', 'cards');
+            });
+
+            $('#btnHolidaysTable').on('click', function () {
+                $('#holidaysCardsContainer').removeClass('active-view');
+                $('#holidaysTableContainer').removeClass('hidden-mobile');
+                $('#btnHolidaysTable').addClass('btn-primary');
+                $('#btnHolidaysCards').removeClass('btn-primary');
+                localStorage.setItem('holidays_view_mode', 'table');
+            });
+
+            var savedMode = localStorage.getItem('holidays_view_mode');
+            if (savedMode === 'table') {
+                $('#btnHolidaysTable').trigger('click');
+            }
         });
     </script>
 }

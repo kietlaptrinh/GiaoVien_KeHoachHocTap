@@ -58,6 +58,12 @@
         <a asp-page="/Holidays" class="toolbar-btn">
             Xem lịch ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
         </a>
+
+        <!-- Nút chuyển chế độ xem di động -->
+        <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
+            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnViewCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
+            <button type="button" class="toolbar-btn btn-sm" id="btnViewTable" title="Xem dạng bảng đầy đủ">⊞ Bảng</button>
+        </div>
     </div>
 
     <!-- Panel Body -->
@@ -127,12 +133,120 @@
         }
         else if (Model.Items.Count > 0)
         {
-            <div class="desktop-datagrid-container">
+            <!-- Mobile Summary Card (Hiển thị tóm tắt trên màn hình nhỏ) -->
+            <div class="mobile-summary-card">
+                <div class="mobile-summary-grid">
+                    <div class="mobile-summary-item">
+                        <span class="mobile-kv-label">Tổng tiết</span>
+                        <span class="mobile-summary-num">@Model.Summary.TotalPeriods</span>
+                    </div>
+                    <div class="mobile-summary-item">
+                        <span class="mobile-kv-label">ĐTB cộng</span>
+                        <span class="mobile-summary-num text-success">@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)</span>
+                    </div>
+                    <div class="mobile-summary-item">
+                        <span class="mobile-kv-label">ĐTB theo tiết</span>
+                        <span class="mobile-summary-num text-primary">@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Cards View (Danh sách thẻ môn học thân thiện trên màn hình điện thoại) -->
+            <div class="mobile-cards-container active-view">
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    var item = Model.Items[i];
+                    var sub = item.Subject;
+                    <div class="mobile-card">
+                        <div class="mobile-card-header">
+                            <div class="mobile-card-title">
+                                <span class="badge bg-primary">#@item.Number</span>
+                                <span>@sub.Name</span>
+                            </div>
+                            <div>
+                                <span class="badge bg-light text-dark border">@sub.Periods tiết (@item.Sessions buổi)</span>
+                            </div>
+                        </div>
+                        <div class="mobile-card-body">
+                            <div class="mobile-kv-grid">
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Bắt đầu</span>
+                                    <span class="mobile-kv-value text-secondary">@item.Start</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Kết thúc</span>
+                                    <span class="mobile-kv-value text-secondary">@item.End</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Thi hết môn</span>
+                                    <span class="mobile-kv-value text-primary fw-bold">@item.Exam</span>
+                                </div>
+                                <div class="mobile-kv-item">
+                                    <span class="mobile-kv-label">Điểm số</span>
+                                    <span class="mobile-kv-value @(sub.Grade.HasValue ? "text-success fw-bold" : "text-muted")">
+                                        @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "Chưa có")
+                                    </span>
+                                </div>
+                                @if (sub.ReservePeriods.HasValue && sub.ReservePeriods.Value > 0)
+                                {
+                                    <div class="mobile-kv-item">
+                                        <span class="mobile-kv-label">Dự phòng</span>
+                                        <span class="mobile-kv-value">@sub.ReservePeriods.Value tiết</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(sub.Note))
+                                {
+                                    <div class="mobile-kv-item" style="grid-column: span 2;">
+                                        <span class="mobile-kv-label">Ghi chú</span>
+                                        <span class="mobile-kv-value small text-muted">@sub.Note</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="mobile-card-footer">
+                                <div class="d-flex align-items-center gap-2">
+                                    <form method="post" asp-page-handler="MoveSubject" class="d-inline m-0 p-0">
+                                        <input type="hidden" name="id" value="@sub.Id" />
+                                        <input type="hidden" name="direction" value="-1" />
+                                        <button type="submit" class="grid-btn" title="Chuyển lên" disabled="@(i == 0)">▲</button>
+                                    </form>
+                                    <form method="post" asp-page-handler="MoveSubject" class="d-inline m-0 p-0">
+                                        <input type="hidden" name="id" value="@sub.Id" />
+                                        <input type="hidden" name="direction" value="1" />
+                                        <button type="submit" class="grid-btn" title="Chuyển xuống" disabled="@(i == Model.Items.Count - 1)">▼</button>
+                                    </form>
+                                </div>
+                                <div class="d-flex align-items-center gap-1">
+                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit"
+                                            data-id="@sub.Id"
+                                            data-name="@sub.Name"
+                                            data-periods="@sub.Periods"
+                                            data-grade="@(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "")"
+                                            data-reserve="@sub.ReservePeriods"
+                                            data-note="@sub.Note">
+                                        ✎ Sửa
+                                    </button>
+                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete"
+                                            data-id="@sub.Id"
+                                            data-name="@sub.Name">
+                                        ✕ Xóa
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <!-- Full Desktop DataGrid View (có hỗ trợ Sticky cột STT & Tên khi cuộn ngang trên di động) -->
+            <div class="desktop-datagrid-container hidden-mobile">
                 <table class="desktop-grid table-sm table-bordered">
                     <thead>
                         <tr>
-                            <th style="width: 45px;" class="text-center">STT</th>
-                            <th>Tên môn học</th>
+                            <th style="width: 45px;" class="text-center sticky-col-stt">STT</th>
+                            <th class="sticky-col-name">Tên môn học</th>
                             <th style="width: 70px;" class="text-center">Số tiết</th>
                             <th style="width: 70px;" class="text-center">Số buổi</th>
                             <th style="width: 115px;" class="text-center">Bắt đầu</th>
@@ -153,8 +267,8 @@
                             var item = Model.Items[i];
                             var sub = item.Subject;
                             <tr>
-                                <td class="text-center fw-bold">@item.Number</td>
-                                <td>@sub.Name</td>
+                                <td class="text-center fw-bold sticky-col-stt">@item.Number</td>
+                                <td class="sticky-col-name">@sub.Name</td>
                                 <td class="text-center">@sub.Periods</td>
                                 <td class="text-center">@item.Sessions</td>
                                 <td class="text-center text-nowrap">@item.Start</td>
@@ -374,6 +488,29 @@
                 var deleteModal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
                 deleteModal.show();
             });
+
+            // Chuyển đổi qua lại giữa Chế độ xem Thẻ & Bảng trên thiết bị di động
+            $('#btnViewCards').on('click', function () {
+                $('.mobile-cards-container').addClass('active-view');
+                $('.desktop-datagrid-container').addClass('hidden-mobile');
+                $('#btnViewCards').addClass('btn-primary');
+                $('#btnViewTable').removeClass('btn-primary');
+                localStorage.setItem('kehoach_view_mode', 'cards');
+            });
+
+            $('#btnViewTable').on('click', function () {
+                $('.mobile-cards-container').removeClass('active-view');
+                $('.desktop-datagrid-container').removeClass('hidden-mobile');
+                $('#btnViewTable').addClass('btn-primary');
+                $('#btnViewCards').removeClass('btn-primary');
+                localStorage.setItem('kehoach_view_mode', 'table');
+            });
+
+            // Khôi phục tùy chọn xem ưa thích trước đó
+            var savedMode = localStorage.getItem('kehoach_view_mode');
+            if (savedMode === 'table') {
+                $('#btnViewTable').trigger('click');
+            }
         });
     </script>
 }

@@ -357,3 +357,299 @@ html, body {
     border-color: #991b1b;
     color: #ffffff;
 }
+
+/* ==========================================================================
+   Mobile & Responsive Enhancements (Tối ưu thiết bị di động & màn hình nhỏ)
+   ========================================================================== */
+
+/* Nút chuyển đổi chế độ xem trên di động (Thẻ / Bảng) */
+.view-mode-toggle {
+    display: none;
+}
+
+/* Thẻ Môn học trên Di động (Mobile Subject Card) */
+.mobile-cards-container {
+    display: none;
+}
+
+.mobile-card {
+    background: #ffffff;
+    border: 1px solid var(--desktop-border);
+    border-radius: 4px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+}
+
+.mobile-card-header {
+    background-color: var(--desktop-header-bg);
+    border-bottom: 1px solid #d0e2ff;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mobile-card-title {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: var(--desktop-blue-deep);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mobile-card-body {
+    padding: 10px 12px;
+}
+
+.mobile-kv-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    font-size: 12px;
+}
+
+.mobile-kv-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-kv-label {
+    font-size: 11px;
+    color: var(--desktop-text-muted);
+    margin-bottom: 1px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.mobile-kv-value {
+    font-weight: 600;
+    color: var(--desktop-text-dark);
+}
+
+.mobile-card-footer {
+    background-color: #f8fafc;
+    border-top: 1px solid var(--desktop-border);
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+}
+
+/* Summary Card trên di động */
+.mobile-summary-card {
+    display: none;
+    background: #ffffff;
+    border: 1px solid #93c5fd;
+    border-radius: 4px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background-color: #eff6ff;
+}
+
+.mobile-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    text-align: center;
+}
+
+.mobile-summary-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.mobile-summary-num {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--desktop-blue-deep);
+}
+
+/* Menu Toggle Button cho màn hình nhỏ */
+.menu-toggle-btn {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--desktop-border-dark);
+    padding: 4px 8px;
+    border-radius: 3px;
+    color: var(--desktop-text);
+}
+
+/* Media Queries cho Màn hình Tablet & Mobile (<= 768px) */
+@media (max-width: 768px) {
+    html, body {
+        font-size: 13.5px;
+    }
+
+    /* Input tối thiểu 16px font để tránh iOS tự động zoom màn hình */
+    .desktop-input,
+    .desktop-select,
+    .form-control,
+    .form-select {
+        font-size: 14px;
+        min-height: 38px;
+        padding: 6px 10px;
+    }
+
+    /* Titlebar tinh gọn */
+    .desktop-titlebar {
+        padding: 6px 10px;
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .desktop-titlebar-title {
+        font-size: 11.5px;
+        line-height: 1.3;
+    }
+
+    .desktop-titlebar-meta {
+        display: none;
+    }
+
+    /* Menubar chuyển thành dạng thanh cuốn ngang hoặc menu xếp chồng linh hoạt */
+    .desktop-menubar {
+        padding: 6px 8px;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .desktop-menubar .nav {
+        overflow-x: auto;
+        white-space: nowrap;
+        width: 100%;
+        padding-bottom: 2px;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+
+    .desktop-menubar .nav-link {
+        font-size: 12px;
+        padding: 6px 10px;
+    }
+
+    .desktop-menubar .ms-auto {
+        width: 100%;
+        margin-left: 0 !important;
+        justify-content: space-between;
+        padding-top: 4px;
+        border-top: 1px solid var(--desktop-border);
+    }
+
+    /* Toolbar trên mobile */
+    .desktop-toolbar {
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 10px;
+    }
+
+    .toolbar-btn {
+        padding: 6px 10px;
+        font-size: 12.5px;
+        min-height: 34px;
+    }
+
+    .toolbar-separator {
+        display: none;
+    }
+
+    /* Nút hiển thị chuyển đổi chế độ xem */
+    .view-mode-toggle {
+        display: inline-flex;
+    }
+
+    /* Mặc định hiển thị dạng thẻ Mobile Card View */
+    .mobile-cards-container.active-view {
+        display: block;
+    }
+
+    .desktop-datagrid-container.hidden-mobile {
+        display: none;
+    }
+
+    .mobile-summary-card {
+        display: block;
+    }
+
+    /* Phóng to nút bấm grid-btn trên mobile để chạm dễ dàng */
+    .grid-btn {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+    }
+
+    /* Cải thiện cuộn ngang của bảng DataGrid */
+    .desktop-datagrid-container {
+        -webkit-overflow-scrolling: touch;
+        border-radius: 4px;
+    }
+
+    .desktop-grid {
+        min-width: 820px;
+    }
+
+    /* Sticky frozen cột STT và Tên môn khi cuộn ngang bảng */
+    .desktop-grid th.sticky-col-stt,
+    .desktop-grid td.sticky-col-stt {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background-color: #ffffff;
+    }
+
+    .desktop-grid th.sticky-col-stt {
+        background-color: var(--desktop-header-bg);
+        z-index: 3;
+    }
+
+    .desktop-grid th.sticky-col-name,
+    .desktop-grid td.sticky-col-name {
+        position: sticky;
+        left: 45px;
+        z-index: 2;
+        background-color: #ffffff;
+        box-shadow: 2px 0 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .desktop-grid th.sticky-col-name {
+        background-color: var(--desktop-header-bg);
+        z-index: 3;
+    }
+
+    /* Workspace padding gọn hơn trên mobile */
+    .desktop-workspace {
+        padding: 8px 8px;
+    }
+
+    .desktop-panel-header {
+        padding: 8px 10px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    /* Status bar tinh gọn trên mobile */
+    .desktop-statusbar {
+        flex-wrap: wrap;
+        padding: 4px 8px;
+        gap: 4px;
+    }
+
+    .statusbar-cell {
+        border-right: none;
+        padding: 1px 4px;
+        font-size: 10.5px;
+    }
+
+    .statusbar-cell:nth-child(2),
+    .statusbar-cell:nth-child(6) {
+        display: none; /* Ẩn tên hệ CSDL và bản quyền trên màn hình nhỏ để đỡ chật */
+    }
+
+    /* Modal trên mobile */
+    .modal-dialog {
+        margin: 8px;
+    }
+}
