@@ -1,0 +1,209 @@
+@page
+@model ImportModel
+@{
+    ViewData["Title"] = "Nhập kế hoạch học tập từ Excel";
+}
+
+<div class="desktop-panel">
+    <!-- Panel Header -->
+    <div class="desktop-panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                <path d="M5.5 10.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1zm0-2h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1zm0-2h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1z"/>
+            </svg>
+            <span>NHẬP KẾ HOẠCH HỌC TẬP TỪ FILE EXCEL (.XLSX)</span>
+        </div>
+        <div>
+            <span class="text-secondary small">Trạng thái: @(Model.IsPreview ? "Xem trước dữ liệu (Preview)" : "Chọn file tải lên")</span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="desktop-toolbar">
+        <a asp-page="/Index" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Quay lại Môn học
+        </a>
+        @if (Model.IsPreview)
+        {
+            <a asp-page="/Import" class="toolbar-btn">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                    <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                    <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                </svg>
+                Tải file khác
+            </a>
+        }
+    </div>
+
+    <!-- Panel Body -->
+    <div class="desktop-panel-body p-3">
+        <!-- Thông báo lỗi / hệ thống -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
+            </div>
+        }
+
+        @if (!Model.IsPreview)
+        {
+            <!-- BƯỚC 1: FORM TẢI FILE EXCEL -->
+            <div class="row justify-content-center py-3">
+                <div class="col-md-7 col-lg-6">
+                    <div class="card border rounded-1 shadow-sm">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom">
+                            Bước 1: Chọn file Excel mẫu để kiểm tra dữ liệu
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" enctype="multipart/form-data" asp-page-handler="Preview">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Chọn file Excel (.xlsx):</label>
+                                    <input type="file" asp-for="ExcelFile" accept=".xlsx" class="form-control form-control-sm" required />
+                                    <span class="text-muted small d-block mt-1">
+                                        Giới hạn dung lượng tối đa <strong>5 MB</strong>. File được đọc hoàn toàn trong bộ nhớ (RAM), không lưu lên đĩa cứng.
+                                    </span>
+                                </div>
+
+                                <div class="alert alert-info py-2 px-3 small mb-4" style="background-color: #f0fdf4; border-color: #86efac; color: #166534;">
+                                    <strong>Quy chuẩn cấu trúc file Excel:</strong>
+                                    <ul class="mb-0 ps-3 mt-1">
+                                        <li>Sheet <code>Khung CT</code>: Cột A (STT), Cột B (Tên môn), Cột C (Số tiết). Lịch sẽ được C# tự động xếp lại.</li>
+                                        <li>Sheet <code>Ngay nghi</code>: Cột B (Tên ngày), Cột C (Từ ngày), Cột D (Đến ngày).</li>
+                                        <li>Bắt buộc phải có dòng <strong>Ngày khai giảng</strong> tại sheet <code>Ngay nghi</code>.</li>
+                                    </ul>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a asp-page="/Index" class="toolbar-btn">Hủy bỏ</a>
+                                    <button type="submit" class="toolbar-btn btn-primary px-3">
+                                        Kiểm tra &amp; Xem trước dữ liệu
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- BƯỚC 2: XEM TRƯỚC DỮ LIỆU & XÁC NHẬN IMPORT -->
+            <div class="row">
+                <!-- Tóm tắt kết quả kiểm tra -->
+                <div class="col-md-5 mb-3">
+                    <div class="card border rounded-1 shadow-sm h-100">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom">
+                            Kết quả kiểm tra dữ liệu file
+                        </div>
+                        <div class="card-body p-3">
+                            <table class="table table-sm table-borderless mb-3 small">
+                                <tr>
+                                    <td class="text-muted" style="width: 160px;">Số môn học hợp lệ:</td>
+                                    <td class="fw-bold text-success fs-6">@Model.PreviewSubjects.Count môn</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Tổng số tiết học:</td>
+                                    <td class="fw-bold text-dark">@Model.PreviewSubjects.Sum(s => s.Periods) tiết</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Số khoảng nghỉ / sự kiện:</td>
+                                    <td class="fw-bold text-primary">@Model.PreviewHolidays.Count khoảng</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Ngày khai giảng phát hiện:</td>
+                                    <td class="fw-bold text-danger">@Model.PreviewOpeningDay?.From.ToString("d/M/yyyy")</td>
+                                </tr>
+                            </table>
+
+                            @if (Model.PreviewWarnings.Count > 0)
+                            {
+                                <div class="alert alert-warning py-2 px-3 small border-1 mb-3" style="border-color: #f59e0b; background-color: #fffbeb; color: #92400e;">
+                                    <strong>Cảnh báo khi đọc file (@Model.PreviewWarnings.Count):</strong>
+                                    <ul class="mb-0 ps-3 mt-1">
+                                        @foreach (var w in Model.PreviewWarnings)
+                                        {
+                                            <li>@w</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <!-- Form xác nhận thực hiện -->
+                            <form method="post" asp-page-handler="ConfirmImport">
+                                <input type="hidden" name="importTicket" value="@Model.ImportTicket" />
+
+                                <div class="form-check p-2 border rounded bg-light mb-3">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="preserveExistingData" value="true" checked id="chkPreserve">
+                                    <label class="form-check-label fw-bold text-dark small" for="chkPreserve">
+                                        Giữ lại Điểm, Dự phòng và Ghi chú nếu trùng tên môn học cũ
+                                    </label>
+                                    <div class="text-muted small ps-4">
+                                        Khuyên dùng: Giúp bạn không bị mất điểm số và ghi chú đã nhập trước đây của các môn có tên trùng khớp.
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-danger py-2 px-3 small mb-3 border-1" style="background-color: #fef2f2; border-color: #ef4444; color: #991b1b;">
+                                    <strong>⚠️ CẢNH BÁO:</strong>
+                                    Toàn bộ danh sách môn học và ngày nghỉ hiện tại trong hệ thống sẽ được thay thế bằng dữ liệu từ file Excel này trong 1 giao dịch an toàn (Transaction).
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <a asp-page="/Import" class="toolbar-btn">Hủy bỏ / Tải file khác</a>
+                                    <button type="submit" class="toolbar-btn btn-danger px-3 py-1" onclick="return confirm('Bạn có chắc chắn muốn thay thế toàn bộ dữ liệu môn học và ngày nghỉ hiện tại bằng file Excel này?');">
+                                        Xác nhận thay thế toàn bộ
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng danh sách môn học xem trước -->
+                <div class="col-md-7 mb-3">
+                    <div class="card border rounded-1 shadow-sm h-100">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom d-flex justify-content-between align-items-center">
+                            <span>Danh sách môn học xem trước (@Model.PreviewSubjects.Count môn)</span>
+                            <span class="text-muted small">Chưa ghi vào CSDL</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 480px; overflow-y: auto;">
+                            <table class="desktop-grid table-sm table-bordered mb-0">
+                                <thead style="position: sticky; top: 0; z-index: 1;">
+                                    <tr>
+                                        <th style="width: 45px;" class="text-center">STT</th>
+                                        <th>Tên môn học</th>
+                                        <th style="width: 80px;" class="text-center">Số tiết</th>
+                                        <th style="width: 80px;" class="text-center">Số buổi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.PreviewSubjects.Count; i++)
+                                    {
+                                        var sub = Model.PreviewSubjects[i];
+                                        var sessions = (int)Math.Ceiling(sub.Periods / 5.0m);
+                                        <tr>
+                                            <td class="text-center fw-bold">@(i + 1)</td>
+                                            <td>@sub.Name</td>
+                                            <td class="text-center">@sub.Periods</td>
+                                            <td class="text-center text-muted">@sessions</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

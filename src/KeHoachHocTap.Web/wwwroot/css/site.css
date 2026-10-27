@@ -305,3 +305,55 @@ html, body {
 .status-dot.danger {
     background-color: #ef4444;
 }
+
+
+/* Button thao tác trên lưới DataGrid (Desktop Small Action Button) */
+.grid-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--desktop-text-dark);
+    background-color: #ffffff;
+    border: 1px solid var(--desktop-border-dark);
+    border-radius: 2px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.1s ease;
+}
+
+.grid-btn:hover:not(:disabled) {
+    background-color: var(--desktop-hover-bg);
+    border-color: var(--desktop-blue-primary);
+    color: var(--desktop-blue-deep);
+}
+
+.grid-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
+}
+
+.grid-btn.text-danger:hover:not(:disabled) {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #b91c1c;
+}
+
+.toolbar-btn.btn-danger {
+    background-color: #dc2626;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+.toolbar-btn.btn-danger:hover:not(:disabled) {
+    background-color: #b91c1c;
+    border-color: #991b1b;
+    color: #ffffff;
+}

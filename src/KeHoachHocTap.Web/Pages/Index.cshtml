@@ -5,63 +5,375 @@
 }
 
 <div class="desktop-panel">
+    <!-- Panel Header -->
     <div class="desktop-panel-header">
         <div class="d-flex align-items-center gap-2">
             <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
                 <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
             </svg>
-            <span>KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP - DANH SÁCH MÔN HỌC</span>
+            <span>KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP — BẢNG TỔNG HỢP MÔN HỌC</span>
         </div>
         <div>
-            <span class="text-secondary small">Trạng thái: Giai đoạn khởi tạo (Phase 0)</span>
+            @if (Model.Schedule != null)
+            {
+                <span class="text-secondary small">Khai giảng: <strong>@Model.Schedule.OpeningDay.ToString("d/M/yyyy")</strong> | Tổng: <strong>@Model.Items.Count</strong> môn</span>
+            }
         </div>
     </div>
 
-    <!-- Sub-toolbar -->
+    <!-- Toolbar -->
     <div class="desktop-toolbar">
-        <button type="button" class="toolbar-btn btn-primary" disabled>
-            + Thêm môn học
-        </button>
-        <button type="button" class="toolbar-btn" disabled>
-            Lưu thay đổi
-        </button>
+        @if (Model.IsAdmin)
+        {
+            <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubjectModal">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Thêm môn học
+            </button>
+            <a asp-page="/Import" class="toolbar-btn">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                    <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                </svg>
+                Nhập từ Excel
+            </a>
+            <span class="toolbar-separator"></span>
+        }
+        <a asp-page="/Export" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Xuất file
+        </a>
+        <a asp-page="/Index" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+            Làm mới
+        </a>
         <span class="toolbar-separator"></span>
         <a asp-page="/Holidays" class="toolbar-btn">
-            Xem ngày nghỉ
-        </a>
-        <a asp-page="/Export" class="toolbar-btn">
-            Xuất biểu mẫu Word (.docx)
-        </a>
-        <a asp-page="/Templates" class="toolbar-btn">
-            Quản lý mẫu biểu
+            Xem lịch ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
         </a>
     </div>
 
-    <div class="desktop-panel-body">
-        <div class="desktop-datagrid-container">
-            <table class="desktop-grid">
-                <thead>
-                    <tr>
-                        <th style="width: 45px;" class="text-center">STT</th>
-                        <th>Tên môn học</th>
-                        <th style="width: 80px;" class="text-center">Số tiết</th>
-                        <th style="width: 80px;" class="text-center">Số buổi</th>
-                        <th style="width: 120px;">Bắt đầu</th>
-                        <th style="width: 120px;">Kết thúc</th>
-                        <th style="width: 120px;">Thi hết môn</th>
-                        <th style="width: 70px;" class="text-center">Điểm</th>
-                        <th style="width: 80px;" class="text-center">Dự phòng</th>
-                        <th>Ghi chú</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td colspan="10" class="text-center py-4 text-muted">
-                            <em>Hệ thống đã khởi tạo thành công nền tảng .NET 8 và giao diện Desktop cổ điển. Dữ liệu môn học sẽ được tính toán và đồng bộ từ Giai đoạn 1 và 2.</em>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <!-- Panel Body -->
+    <div class="desktop-panel-body p-2">
+        <!-- Thông báo hệ thống -->
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success py-2 px-3 small border-1 mb-2" style="border-color: #10b981; background-color: #ecfdf5; color: #065f46;">
+                <strong>✓ Thành công:</strong> @Model.SuccessMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-2" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.DatabaseError))
+        {
+            <div class="alert alert-danger py-3 px-3 border-1 mb-2" style="border-color: #ef4444; background-color: #fef2f2; color: #991b1b;">
+                <h6 class="fw-bold mb-1">⚠️ LỖI KẾT NỐI CƠ SỞ DỮ LIỆU</h6>
+                <p class="mb-0 small">@Model.DatabaseError</p>
+            </div>
+        }
+
+        @if (Model.Warnings.Count > 0)
+        {
+            <div class="alert alert-warning py-2 px-3 small border-1 mb-2" style="border-color: #f59e0b; background-color: #fffbeb; color: #92400e;">
+                <div class="fw-bold mb-1">⚠️ Cảnh báo xếp lịch (@Model.Warnings.Count):</div>
+                <ul class="mb-0 ps-3">
+                    @foreach (var warning in Model.Warnings)
+                    {
+                        <li>@warning</li>
+                    }
+                </ul>
+            </div>
+        }
+
+        <!-- DataGrid Table -->
+        @if (Model.Items.Count == 0 && string.IsNullOrEmpty(Model.DatabaseError))
+        {
+            <div class="text-center py-5 bg-white border">
+                <svg width="48" height="48" fill="#9ca3af" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                </svg>
+                @if (Model.IsAdmin)
+                {
+                    <h6 class="fw-bold text-dark">Chưa có dữ liệu kế hoạch học tập</h6>
+                    <p class="text-muted small mb-3">Vui lòng bấm nút <strong>Thêm môn học</strong> hoặc <strong>Nhập từ Excel</strong> để bắt đầu tạo thời khóa biểu.</p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubjectModal">
+                            + Thêm môn học
+                        </button>
+                        <a asp-page="/Import" class="toolbar-btn">
+                            Nhập từ Excel (.xlsx)
+                        </a>
+                    </div>
+                }
+                else
+                {
+                    <h6 class="fw-bold text-dark">Chưa có dữ liệu kế hoạch học tập</h6>
+                    <p class="text-muted small mb-0">Hệ thống chưa nạp dữ liệu môn học. Vui lòng quay lại sau hoặc liên hệ Quản trị viên.</p>
+                }
+            </div>
+        }
+        else if (Model.Items.Count > 0)
+        {
+            <div class="desktop-datagrid-container">
+                <table class="desktop-grid table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px;" class="text-center">STT</th>
+                            <th>Tên môn học</th>
+                            <th style="width: 70px;" class="text-center">Số tiết</th>
+                            <th style="width: 70px;" class="text-center">Số buổi</th>
+                            <th style="width: 115px;" class="text-center">Bắt đầu</th>
+                            <th style="width: 115px;" class="text-center">Kết thúc</th>
+                            <th style="width: 115px;" class="text-center">Thi hết môn</th>
+                            <th style="width: 70px;" class="text-center">Điểm</th>
+                            <th style="width: 75px;" class="text-center">Dự phòng</th>
+                            <th>Ghi chú</th>
+                            @if (Model.IsAdmin)
+                            {
+                                <th style="width: 130px;" class="text-center">Thao tác</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Items.Count; i++)
+                        {
+                            var item = Model.Items[i];
+                            var sub = item.Subject;
+                            <tr>
+                                <td class="text-center fw-bold">@item.Number</td>
+                                <td>@sub.Name</td>
+                                <td class="text-center">@sub.Periods</td>
+                                <td class="text-center">@item.Sessions</td>
+                                <td class="text-center text-nowrap">@item.Start</td>
+                                <td class="text-center text-nowrap">@item.End</td>
+                                <td class="text-center text-nowrap fw-bold text-primary">@item.Exam</td>
+                                <td class="text-center fw-bold @(sub.Grade.HasValue ? "text-success" : "text-muted")">
+                                    @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "—")
+                                </td>
+                                <td class="text-center text-muted">
+                                    @(sub.ReservePeriods.HasValue ? sub.ReservePeriods.Value.ToString() : "—")
+                                </td>
+                                <td class="small text-muted">@sub.Note</td>
+
+                                @if (Model.IsAdmin)
+                                {
+                                    <td class="text-center text-nowrap">
+                                        <div class="d-inline-flex gap-1 align-items-center">
+                                            <!-- Move Up -->
+                                            <form method="post" asp-page-handler="MoveSubject" class="d-inline m-0 p-0">
+                                                <input type="hidden" name="id" value="@sub.Id" />
+                                                <input type="hidden" name="direction" value="-1" />
+                                                <button type="submit" class="grid-btn" title="Chuyển lên" disabled="@(i == 0)">▲</button>
+                                            </form>
+
+                                            <!-- Move Down -->
+                                            <form method="post" asp-page-handler="MoveSubject" class="d-inline m-0 p-0">
+                                                <input type="hidden" name="id" value="@sub.Id" />
+                                                <input type="hidden" name="direction" value="1" />
+                                                <button type="submit" class="grid-btn" title="Chuyển xuống" disabled="@(i == Model.Items.Count - 1)">▼</button>
+                                            </form>
+
+                                            <!-- Edit -->
+                                            <button type="button" class="grid-btn btn-edit" title="Sửa môn học"
+                                                    data-id="@sub.Id"
+                                                    data-name="@sub.Name"
+                                                    data-periods="@sub.Periods"
+                                                    data-grade="@(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "")"
+                                                    data-reserve="@sub.ReservePeriods"
+                                                    data-note="@sub.Note">
+                                                ✎
+                                            </button>
+
+                                            <!-- Delete -->
+                                            <button type="button" class="grid-btn text-danger btn-delete" title="Xóa môn học"
+                                                    data-id="@sub.Id"
+                                                    data-name="@sub.Name">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr style="border-top: 2px solid #212529; background-color: #f1f5f9;">
+                            <td colspan="2" class="text-end">TỔNG CỘNG:</td>
+                            <td class="text-center text-primary">@Model.Summary.TotalPeriods</td>
+                            <td class="text-center">@Model.Summary.TotalSessions</td>
+                            <td colspan="3" class="text-muted small ps-2">
+                                (Đã nhập điểm: @Model.Summary.GradedSubjectCount / @Model.Items.Count môn)
+                            </td>
+                            <td class="text-center text-success" title="Điểm TB cộng: @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)">
+                                @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)
+                            </td>
+                            <td colspan="@(Model.IsAdmin ? 3 : 2)" class="small text-secondary ps-2">
+                                Điểm TB theo số tiết: <strong>@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</strong>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        }
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- Modal Thêm môn học (Chỉ Admin) -->
+<!-- ========================================================================= -->
+@if (Model.IsAdmin)
+{
+    <div class="modal fade" id="addSubjectModal" tabindex="-1" aria-labelledby="addSubjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddSubject">
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="addSubjectModalLabel">THÊM MÔN HỌC MỚI</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên môn học <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Triết học Mác - Lênin" required maxlength="200" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Số tiết <span class="text-danger">*</span></label>
+                                <input type="number" name="Periods" class="desktop-input w-100" placeholder="Ví dụ: 60" required min="1" max="10000" />
+                                <span class="text-muted small">Mỗi buổi 5 tiết.</span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Điểm thi (0 - 10)</label>
+                                <input type="number" name="Grade" step="0.1" min="0" max="10" class="desktop-input w-100" placeholder="Để trống nếu chưa có" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dự phòng (tiết)</label>
+                                <input type="number" name="ReservePeriods" min="0" class="desktop-input w-100" placeholder="0" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" name="Note" maxlength="100" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu môn học</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa môn học (Chỉ Admin) -->
+    <div class="modal fade" id="editSubjectModal" tabindex="-1" aria-labelledby="editSubjectModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="UpdateSubject">
+                    <input type="hidden" id="editSubjectId" name="Id" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="editSubjectModalLabel">CHỈNH SỬA MÔN HỌC</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên môn học <span class="text-danger">*</span></label>
+                            <input type="text" id="editSubjectName" name="Name" class="desktop-input w-100" required maxlength="200" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Số tiết <span class="text-danger">*</span></label>
+                                <input type="number" id="editSubjectPeriods" name="Periods" class="desktop-input w-100" required min="1" max="10000" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Điểm thi (0 - 10)</label>
+                                <input type="number" id="editSubjectGrade" name="Grade" step="0.1" min="0" max="10" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Dự phòng (tiết)</label>
+                                <input type="number" id="editSubjectReserve" name="ReservePeriods" min="0" class="desktop-input w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận xóa môn học (Chỉ Admin) -->
+    <div class="modal fade" id="deleteSubjectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="DeleteSubject">
+                    <input type="hidden" id="deleteSubjectId" name="id" />
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h6 class="modal-title fw-bold">XÁC NHẬN XÓA</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3 text-center">
+                        <p class="mb-1">Bạn có chắc chắn muốn xóa môn học:</p>
+                        <p class="fw-bold text-danger mb-2" id="deleteSubjectName"></p>
+                        <span class="text-muted small">Lịch học các môn sau sẽ tự động tính lại.</span>
+                    </div>
+                    <div class="modal-footer p-2 bg-light justify-content-center">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('.btn-edit').on('click', function () {
+                var btn = $(this);
+                $('#editSubjectId').val(btn.data('id'));
+                $('#editSubjectName').val(btn.data('name'));
+                $('#editSubjectPeriods').val(btn.data('periods'));
+                $('#editSubjectGrade').val(btn.data('grade'));
+                $('#editSubjectReserve').val(btn.data('reserve'));
+                $('#editSubjectNote').val(btn.data('note'));
+
+                var editModal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
+                editModal.show();
+            });
+
+            $('.btn-delete').on('click', function () {
+                var btn = $(this);
+                $('#deleteSubjectId').val(btn.data('id'));
+                $('#deleteSubjectName').text(btn.data('name'));
+
+                var deleteModal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
+                deleteModal.show();
+            });
+        });
+    </script>
+}

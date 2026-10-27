@@ -60,26 +60,26 @@ KeHoachHocTap/
 **Xong khi:** test xanh; chạy app lần đầu với DB trống tự có 19 môn.
 
 ## Giai đoạn 3 — Đăng nhập quản trị (SPEC mục 12)
-- [ ] Cookie auth + policy `Admin`; trang `/Login`, nút Đăng xuất; so mật khẩu bằng `FixedTimeEquals`, sai thì chờ 1 giây.
-- [ ] `Admin:Password` trống ⇒ chế độ chỉ xem + cảnh báo.
-- [ ] Anti-forgery cho mọi form POST; mọi handler ghi gắn `[Authorize(Policy = "Admin")]`.
-- [ ] Test: chưa đăng nhập gọi handler ghi bị từ chối; đăng nhập đúng/sai mật khẩu.
+- [x] Cookie auth + policy `Admin`; trang `/Login`, nút Đăng xuất; so mật khẩu bằng `FixedTimeEquals`, sai thì chờ 1 giây.
+- [x] `Admin:Password` trống ⇒ chế độ chỉ xem + cảnh báo.
+- [x] Anti-forgery cho mọi form POST; mọi handler ghi gắn `[Authorize(Policy = "Admin")]`.
+- [x] Test: chưa đăng nhập gọi handler ghi bị từ chối; đăng nhập đúng/sai mật khẩu.
 
 **Xong khi:** khách không sửa được dữ liệu dù tự gửi request tay.
 
 ## Giai đoạn 4 — Trang Môn học & Bảng điểm (`/`) (SPEC mục 6)
-- [ ] Bảng 19 môn: Stt, Môn, Số tiết, Số buổi, Bắt đầu, Kết thúc, Thi, Điểm, Dự phòng, Ghi chú.
-- [ ] Quản trị: sửa ô tại chỗ, thêm môn, xoá (xác nhận), ▲▼ đổi thứ tự; kiểm tra hợp lệ ở server (điểm 0–10…).
-- [ ] Hàng tổng: tổng tiết, điểm TB cộng, điểm TB theo số tiết (chỉ môn có điểm).
-- [ ] Hiển thị `Warnings`; màn hình "chưa có dữ liệu"; trang lỗi thân thiện khi mất kết nối DB.
-- [ ] Test: tính điểm TB; validate.
+- [x] Bảng 19 môn: Stt, Môn, Số tiết, Số buổi, Bắt đầu, Kết thúc, Thi, Điểm, Dự phòng, Ghi chú.
+- [x] Quản trị: sửa ô tại chỗ, thêm môn, xoá (xác nhận), ▲▼ đổi thứ tự; kiểm tra hợp lệ ở server (điểm 0–10…).
+- [x] Hàng tổng: tổng tiết, điểm TB cộng, điểm TB theo số tiết (chỉ môn có điểm).
+- [x] Hiển thị `Warnings`; màn hình "chưa có dữ liệu"; trang lỗi thân thiện khi mất kết nối DB.
+- [x] Test: tính điểm TB; validate.
 
 **Xong khi:** mở `/` thấy đủ 19 môn ngày đúng golden; quản trị sửa điểm/số tiết, F5 vẫn còn và lịch đổi theo.
 
 ## Giai đoạn 5 — Ngày nghỉ & Nhập từ Excel (SPEC 6.1, 6.2)
-- [ ] `/Holidays`: bảng + thêm/sửa/xoá (quản trị), kiểm tra `Đến ≥ Từ`, đúng 1 khai giảng.
-- [ ] `/Import`: upload `.xlsx` ≤ 5 MB (xử lý trong bộ nhớ) → xem trước → xác nhận thay thế toàn bộ.
-- [ ] Test: đổi ngày nghỉ thì ngày bắt đầu/thi các môn sau dịch theo; import lỗi báo đúng thông điệp.
+- [x] `/Holidays`: bảng + thêm/sửa/xoá (quản trị), kiểm tra `Đến ≥ Từ`, đúng 1 khai giảng.
+- [x] `/Import`: upload `.xlsx` ≤ 5 MB (xử lý trong bộ nhớ) → xem trước → xác nhận thay thế toàn bộ.
+- [x] Test: đổi ngày nghỉ thì ngày bắt đầu/thi các môn sau dịch theo; import lỗi báo đúng thông điệp.
 
 **Xong khi:** thêm 1 ngày nghỉ mới → lịch trang `/` đổi đúng; import lại Excel mẫu → về đúng golden.
 

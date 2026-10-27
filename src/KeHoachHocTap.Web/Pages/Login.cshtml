@@ -5,19 +5,73 @@
 }
 
 <div class="row justify-content-center mt-4">
-    <div class="col-md-5">
+    <div class="col-md-5 col-lg-4">
         <div class="desktop-panel">
             <div class="desktop-panel-header">
-                <span>ĐĂNG NHẬP HỆ THỐNG QUẢN TRỊ</span>
-            </div>
-            <div class="desktop-panel-body">
-                <p class="text-muted small">Cơ chế xác thực quản trị viên sẽ được hoàn thiện trong Giai đoạn 3.</p>
-                <div class="mb-3">
-                    <label class="form-label">Mật khẩu quản trị</label>
-                    <input type="password" class="desktop-input w-100" placeholder="Nhập mật khẩu quản trị..." disabled />
+                <div class="d-flex align-items-center gap-2">
+                    <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM5 8h6a1 1 0 0 1 1 1v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+                    </svg>
+                    <span>XÁC THỰC QUYỀN QUẢN TRỊ VIÊN</span>
                 </div>
-                <button type="button" class="toolbar-btn btn-primary" disabled>Đăng nhập</button>
+            </div>
+
+            <div class="desktop-panel-body p-3">
+                @if (!Model.IsPasswordConfigured)
+                {
+                    <div class="alert alert-warning py-2 px-3 small border-1 mb-3" style="border-color: #f59e0b; background-color: #fffbeb;">
+                        <strong>⚠️ Chú ý:</strong> Hệ thống chưa cấu hình biến môi trường hoặc mật khẩu quản trị <code>Admin:Password</code>. Hệ thống đang hoạt động ở chế độ <strong>Chỉ xem</strong>. Mọi thao tác thêm, sửa, xóa, nhập file đều bị khóa.
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                        <div asp-validation-summary="All"></div>
+                    </div>
+                }
+
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="text-center py-3">
+                        <div class="mb-3">
+                            <span class="badge bg-success p-2 fs-6">Đã đăng nhập Quản trị viên</span>
+                        </div>
+                        <p class="text-muted small mb-3">Bạn đang có toàn quyền thực hiện các thao tác thêm, sửa, xóa môn học, ngày nghỉ và nhập dữ liệu từ Excel.</p>
+                        <form method="post" asp-page-handler="Logout" class="d-inline">
+                            <button type="submit" class="toolbar-btn btn-danger px-3">
+                                Đăng xuất khỏi hệ thống
+                            </button>
+                        </form>
+                        <a asp-page="/Index" class="toolbar-btn ms-2">Về trang chủ</a>
+                    </div>
+                }
+                else
+                {
+                    <form method="post" asp-route-returnUrl="@Model.ReturnUrl">
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label fw-bold">Mật khẩu quản trị:</label>
+                            <input asp-for="Password" type="password" class="desktop-input w-100" placeholder="Nhập mật khẩu..." autofocus autocomplete="current-password" disabled="@(!Model.IsPasswordConfigured)" />
+                            <span asp-validation-for="Password" class="text-danger small"></span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <a asp-page="/Index" class="toolbar-btn">Hủy bỏ</a>
+                            <button type="submit" class="toolbar-btn btn-primary px-3" disabled="@(!Model.IsPasswordConfigured)">
+                                Đăng nhập
+                            </button>
+                        </div>
+                    </form>
+                }
+            </div>
+
+            <div class="desktop-panel-footer p-2 text-muted small bg-light border-top">
+                <span>Phiên làm việc kéo dài 8 giờ. Hệ thống tự động chống tấn công brute-force.</span>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

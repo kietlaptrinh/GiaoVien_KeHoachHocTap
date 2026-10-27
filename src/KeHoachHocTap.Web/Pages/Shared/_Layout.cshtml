@@ -1,3 +1,4 @@
+@inject KeHoachHocTap.Web.Services.IAdminAuthService AdminAuth
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -19,6 +20,10 @@
                     <span>HỆ THỐNG QUẢN LÝ KẾ HOẠCH HỌC TẬP VÀ GIẢNG DẠY</span>
                 </div>
                 <div class="desktop-titlebar-meta">
+                    @if (!AdminAuth.IsPasswordConfigured())
+                    {
+                        <span class="badge bg-warning text-dark me-2">⚠️ Mật khẩu quản trị chưa đặt (Chế độ chỉ xem)</span>
+                    }
                     <span>Phiên bản 1.0 (.NET 8)</span>
                 </div>
             </div>
@@ -36,6 +41,14 @@
                             <strong>Ngày nghỉ</strong>
                         </a>
                     </li>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Import" ? "active" : "")" asp-area="" asp-page="/Import">
+                                <strong>Nhập từ Excel</strong>
+                            </a>
+                        </li>
+                    }
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Export" ? "active" : "")" asp-area="" asp-page="/Export">
                             <strong>Biểu mẫu Word &amp; Xuất file</strong>
@@ -52,7 +65,9 @@
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <span class="badge bg-primary" style="font-size: 11px; font-weight: normal;">Quản trị viên</span>
-                        <a class="toolbar-btn text-danger" asp-area="" asp-page="/Login" asp-page-handler="Logout">Đăng xuất</a>
+                        <form method="post" asp-page="/Login" asp-page-handler="Logout" class="d-inline m-0 p-0">
+                            <button type="submit" class="toolbar-btn text-danger border-0 bg-transparent" style="cursor: pointer;">Đăng xuất</button>
+                        </form>
                     }
                     else
                     {
@@ -72,14 +87,23 @@
         <footer class="desktop-statusbar">
             <div class="statusbar-cell">
                 <span class="status-dot"></span>
-                <span>Sẵn sàng</span>
+                <span id="statusMessage">@(ViewData["StatusMessage"] ?? "Sẵn sàng")</span>
             </div>
             <div class="statusbar-cell">
                 <span>Cơ sở dữ liệu: SQL Server</span>
             </div>
             <div class="statusbar-cell">
-                <span>Chế độ: @(User.Identity?.IsAuthenticated == true ? "Quản trị" : "Chỉ xem")</span>
+                <span>Tổng môn học: @(ViewData["TotalSubjects"] ?? "—")</span>
             </div>
+            <div class="statusbar-cell">
+                <span>Chế độ: @(User.Identity?.IsAuthenticated == true ? "Quản trị viên" : "Chỉ xem")</span>
+            </div>
+            @if (!AdminAuth.IsPasswordConfigured())
+            {
+                <div class="statusbar-cell text-warning fw-bold">
+                    <span>⚠️ Khóa ghi (Chưa đặt mật khẩu quản trị)</span>
+                </div>
+            }
             <div class="statusbar-cell">
                 <span>&copy; @DateTime.Now.Year Kế hoạch học tập</span>
             </div>

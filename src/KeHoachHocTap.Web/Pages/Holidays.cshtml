@@ -1,14 +1,319 @@
 @page
 @model HolidaysModel
 @{
-    ViewData["Title"] = "Ngày nghỉ";
+    ViewData["Title"] = "Quản lý Ngày nghỉ & Khai giảng";
 }
 
 <div class="desktop-panel">
+    <!-- Panel Header -->
     <div class="desktop-panel-header">
-        <span>QUẢN LÝ DANH SÁCH NGÀY NGHỈ &amp; KHAI GIẢNG</span>
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+            </svg>
+            <span>DANH SÁCH NGÀY NGHỈ VÀ NGÀY KHAI GIẢNG KHÓA HỌC</span>
+        </div>
+        <div>
+            <span class="text-secondary small">Tổng cộng: <strong>@Model.Holidays.Count</strong> khoảng thời gian</span>
+        </div>
     </div>
-    <div class="desktop-panel-body">
-        <p class="text-muted">Trang quản lý ngày nghỉ sẽ được hoàn thiện trong Giai đoạn 5.</p>
+
+    <!-- Toolbar -->
+    <div class="desktop-toolbar">
+        @if (Model.IsAdmin)
+        {
+            <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHolidayModal">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                </svg>
+                Thêm ngày nghỉ / sự kiện
+            </button>
+            <span class="toolbar-separator"></span>
+        }
+        <a asp-page="/Index" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Quay lại Môn học
+        </a>
+        <a asp-page="/Holidays" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+            </svg>
+            Làm mới
+        </a>
+    </div>
+
+    <!-- Panel Body -->
+    <div class="desktop-panel-body p-2">
+        <!-- Thông báo hệ thống -->
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success py-2 px-3 small border-1 mb-2" style="border-color: #10b981; background-color: #ecfdf5; color: #065f46;">
+                <strong>✓ Thành công:</strong> @Model.SuccessMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-2" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
+            </div>
+        }
+
+        @if (Model.Holidays.Count == 0)
+        {
+            <div class="text-center py-5 bg-white border">
+                <svg width="48" height="48" fill="#9ca3af" viewBox="0 0 16 16" class="mb-3">
+                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
+                </svg>
+                <h6 class="fw-bold text-dark">Chưa có thông tin ngày nghỉ hoặc khai giảng</h6>
+                <p class="text-muted small mb-0">Vui lòng thêm ít nhất một ngày khai giảng cho khóa học.</p>
+            </div>
+        }
+        else
+        {
+            <div class="desktop-datagrid-container">
+                <table class="desktop-grid table-sm table-bordered">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px;" class="text-center">STT</th>
+                            <th>Tên ngày nghỉ / Sự kiện</th>
+                            <th style="width: 130px;" class="text-center">Từ ngày</th>
+                            <th style="width: 130px;" class="text-center">Đến ngày</th>
+                            <th style="width: 90px;" class="text-center">Số ngày</th>
+                            <th style="width: 130px;" class="text-center">Khai giảng</th>
+                            @if (Model.IsAdmin)
+                            {
+                                <th style="width: 100px;" class="text-center">Thao tác</th>
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Holidays.Count; i++)
+                        {
+                            var h = Model.Holidays[i];
+                            var dayCount = h.To.DayNumber - h.From.DayNumber + 1;
+                            <tr class="@(h.IsOpeningDay ? "bg-light" : "")">
+                                <td class="text-center fw-bold">@(i + 1)</td>
+                                <td class="fw-bold @(h.IsOpeningDay ? "text-primary" : "")">
+                                    @h.Name
+                                </td>
+                                <td class="text-center">@h.From.ToString("d/M/yyyy")</td>
+                                <td class="text-center">@h.To.ToString("d/M/yyyy")</td>
+                                <td class="text-center">@dayCount ngày</td>
+                                <td class="text-center">
+                                    @if (h.IsOpeningDay)
+                                    {
+                                        <span class="badge bg-success" style="font-size: 11px;">✓ Khai giảng</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">—</span>
+                                    }
+                                </td>
+
+                                @if (Model.IsAdmin)
+                                {
+                                    <td class="text-center text-nowrap">
+                                        <div class="d-inline-flex gap-1 align-items-center">
+                                            <!-- Edit -->
+                                            <button type="button" class="grid-btn btn-edit-holiday" title="Sửa ngày nghỉ"
+                                                    data-id="@h.Id"
+                                                    data-name="@h.Name"
+                                                    data-from="@h.From.ToString("yyyy-MM-dd")"
+                                                    data-to="@h.To.ToString("yyyy-MM-dd")"
+                                                    data-isopening="@(h.IsOpeningDay ? "true" : "false")">
+                                                ✎
+                                            </button>
+
+                                            <!-- Delete -->
+                                            @if (!h.IsOpeningDay)
+                                            {
+                                                <button type="button" class="grid-btn text-danger btn-delete-holiday" title="Xóa ngày nghỉ"
+                                                        data-id="@h.Id"
+                                                        data-name="@h.Name">
+                                                    ✕
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="grid-btn" disabled title="Không thể xóa ngày khai giảng duy nhất">
+                                                    ✕
+                                                </button>
+                                            }
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
     </div>
 </div>
+
+<!-- ========================================================================= -->
+<!-- Modal Thêm Ngày nghỉ (Chỉ Admin) -->
+<!-- ========================================================================= -->
+@if (Model.IsAdmin)
+{
+    <div class="modal fade" id="addHolidayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddHoliday">
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold">THÊM NGÀY NGHỈ / SỰ KIỆN</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên ngày nghỉ / Sự kiện <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Tết Nguyên Đán, Nghỉ Lễ 30/4..." required maxlength="200" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Từ ngày <span class="text-danger">*</span></label>
+                                <input type="date" id="addFromDate" name="From" class="desktop-input w-100" required />
+                            </div>
+                            <div class="col-md-6 mb-3" id="addToDateGroup">
+                                <label class="form-label fw-bold">Đến ngày <span class="text-danger">*</span></label>
+                                <input type="date" id="addToDate" name="To" class="desktop-input w-100" required />
+                            </div>
+                        </div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="IsOpeningDay" value="true" id="addIsOpeningDay">
+                            <label class="form-check-label fw-bold text-primary" for="addIsOpeningDay">
+                                Đặt làm Ngày Khai Giảng khóa học
+                            </label>
+                            <div class="text-muted small">Nếu chọn, ngày khai giảng cũ sẽ tự động chuyển thành ngày nghỉ thông thường. Ngày khai giảng chỉ diễn ra trong đúng 1 ngày.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu ngày nghỉ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa Ngày nghỉ (Chỉ Admin) -->
+    <div class="modal fade" id="editHolidayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="UpdateHoliday">
+                    <input type="hidden" id="editHolidayId" name="Id" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold">CHỈNH SỬA NGÀY NGHỈ</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên ngày nghỉ / Sự kiện <span class="text-danger">*</span></label>
+                            <input type="text" id="editHolidayName" name="Name" class="desktop-input w-100" required maxlength="200" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Từ ngày <span class="text-danger">*</span></label>
+                                <input type="date" id="editFromDate" name="From" class="desktop-input w-100" required />
+                            </div>
+                            <div class="col-md-6 mb-3" id="editToDateGroup">
+                                <label class="form-label fw-bold">Đến ngày <span class="text-danger">*</span></label>
+                                <input type="date" id="editToDate" name="To" class="desktop-input w-100" required />
+                            </div>
+                        </div>
+                        <div class="form-check mt-1">
+                            <input class="form-check-input" type="checkbox" name="IsOpeningDay" value="true" id="editIsOpeningDay">
+                            <label class="form-check-label fw-bold text-primary" for="editIsOpeningDay">
+                                Đặt làm Ngày Khai Giảng khóa học
+                            </label>
+                            <div class="text-muted small">Hệ thống luôn đảm bảo có đúng một ngày khai giảng duy nhất.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xóa Ngày nghỉ (Chỉ Admin) -->
+    <div class="modal fade" id="deleteHolidayModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="DeleteHoliday">
+                    <input type="hidden" id="deleteHolidayId" name="id" />
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h6 class="modal-title fw-bold">XÁC NHẬN XÓA</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3 text-center">
+                        <p class="mb-1">Bạn có chắc chắn muốn xóa ngày nghỉ:</p>
+                        <p class="fw-bold text-danger mb-2" id="deleteHolidayName"></p>
+                        <span class="text-muted small">Thời khóa biểu các môn học sẽ được tự động tính toán lại.</span>
+                    </div>
+                    <div class="modal-footer p-2 bg-light justify-content-center">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Khi tick Khai giảng, tự đồng bộ Đến ngày = Từ ngày
+            $('#addIsOpeningDay').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $('#addToDate').val($('#addFromDate').val());
+                }
+            });
+            $('#addFromDate').on('change', function () {
+                if ($('#addIsOpeningDay').is(':checked')) {
+                    $('#addToDate').val($(this).val());
+                }
+            });
+
+            $('#editIsOpeningDay').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $('#editToDate').val($('#editFromDate').val());
+                }
+            });
+            $('#editFromDate').on('change', function () {
+                if ($('#editIsOpeningDay').is(':checked')) {
+                    $('#editToDate').val($(this).val());
+                }
+            });
+
+            $('.btn-edit-holiday').on('click', function () {
+                var btn = $(this);
+                $('#editHolidayId').val(btn.data('id'));
+                $('#editHolidayName').val(btn.data('name'));
+                $('#editFromDate').val(btn.data('from'));
+                $('#editToDate').val(btn.data('to'));
+                var isOpening = btn.data('isopening') === true || btn.data('isopening') === 'true';
+                $('#editIsOpeningDay').prop('checked', isOpening);
+
+                var modal = new bootstrap.Modal(document.getElementById('editHolidayModal'));
+                modal.show();
+            });
+
+            $('.btn-delete-holiday').on('click', function () {
+                var btn = $(this);
+                $('#deleteHolidayId').val(btn.data('id'));
+                $('#deleteHolidayName').text(btn.data('name'));
+
+                var modal = new bootstrap.Modal(document.getElementById('deleteHolidayModal'));
+                modal.show();
+            });
+        });
+    </script>
+}
