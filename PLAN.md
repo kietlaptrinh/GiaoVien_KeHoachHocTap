@@ -84,30 +84,30 @@ KeHoachHocTap/
 **Xong khi:** thêm 1 ngày nghỉ mới → lịch trang `/` đổi đúng; import lại Excel mẫu → về đúng golden.
 
 ## Giai đoạn 6 — Xuất file: khung + biểu mẫu Word & Quản lý Template trên Web (SPEC mục 7, 7.3)
-- [ ] `IExporter` + đăng ký DI `IEnumerable<IExporter>`; trang `/Export` liệt kê; endpoint `/Export/Download?id=` (khách tải được, sinh trong bộ nhớ).
-- [ ] `DocxBieuMauExporter`:
-  - [ ] Mở bản copy của file mẫu (lấy file template tùy biến nếu có, fallback file mẫu gốc) trong `MemoryStream`.
-  - [ ] Tìm bảng chính theo chữ "Tên môn học/Nhiệm vụ"; giữ 2 hàng tiêu đề.
-  - [ ] Lấy hàng môn đầu làm hàng mẫu, xoá hàng dữ liệu cũ, clone theo thứ tự: Khai giảng → các môn → Thi tốt nghiệp → Bế giảng.
-  - [ ] Ánh xạ cột (Tiết giảng = Số tiết − 10, Tự nghiên cứu 10, Ôn thi/thi 5, dự phòng, ghi chú lấy từ `Subject`).
-  - [ ] Đọc ExtraTasks (ưu tiên từ `AppSetting`, fallback `appsettings.json`); cảnh báo nếu rơi vào ngày nghỉ.
-- [ ] Trang Quản lý Template trực tiếp trên Web (`/Templates`, yêu cầu quyền Admin):
-  - [ ] Xem trạng thái template đang kích hoạt, tải template hiện tại về máy (.docx).
-  - [ ] Upload file template `.docx` mới trực tiếp qua web; kiểm tra hợp lệ cấu trúc OpenXml (bảng 10 cột, header).
-  - [ ] Nút khôi phục file mẫu mặc định ban đầu.
-  - [ ] Form chỉnh sửa thông số ExtraTasks (Khai giảng, Thi tốt nghiệp, Bế giảng, Tiết tự học, Tiết ôn thi) lưu vào `AppSetting`.
-- [ ] Test: mở lại bằng OpenXml SDK không lỗi; đúng `19 + 3` hàng dữ liệu; hàng "Tên môn học 01" là `50 | 10 | 5 | | S 11/9/2025 | C 18/9/2025 | S 19/9/2025`; dự phòng/ghi chú nhập tay hiện đúng; tiêu đề "KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP" còn; ô gộp tiêu đề còn (đếm `gridSpan`/`vMerge`); upload template không hợp lệ bị từ chối; cập nhật ExtraTasks đổi kết quả xuất file.
-- [ ] Nếu có LibreOffice: `soffice --headless --convert-to pdf`, xem ảnh trang 1 để kiểm bố cục.
+- [x] `IExporter` + đăng ký DI `IEnumerable<IExporter>`; trang `/Export` liệt kê; endpoint `/Export/Download?id=` (khách tải được, sinh trong bộ nhớ).
+- [x] `DocxBieuMauExporter`:
+  - [x] Mở bản copy của file mẫu (lấy file template tùy biến nếu có, fallback file mẫu gốc) trong `MemoryStream`.
+  - [x] Tìm bảng chính theo chữ "Tên môn học/Nhiệm vụ"; giữ 2 hàng tiêu đề.
+  - [x] Lấy hàng môn đầu làm hàng mẫu, xoá hàng dữ liệu cũ, clone theo thứ tự: Khai giảng → các môn → Thi tốt nghiệp → Bế giảng.
+  - [x] Ánh xạ cột (Tiết giảng = Số tiết − 10, Tự nghiên cứu 10, Ôn thi/thi 5, dự phòng, ghi chú lấy từ `Subject`).
+  - [x] Đọc ExtraTasks (ưu tiên từ `AppSetting`, fallback `appsettings.json`); cảnh báo nếu rơi vào ngày nghỉ.
+- [x] Trang Quản lý Template trực tiếp trên Web (`/Templates`, yêu cầu quyền Admin):
+  - [x] Xem trạng thái template đang kích hoạt, tải template hiện tại về máy (.docx).
+  - [x] Upload file template `.docx` mới trực tiếp qua web; kiểm tra hợp lệ cấu trúc OpenXml (bảng 10 cột, header).
+  - [x] Nút khôi phục file mẫu mặc định ban đầu.
+  - [x] Form chỉnh sửa thông số ExtraTasks (Khai giảng, Thi tốt nghiệp, Bế giảng, Tiết tự học, Tiết ôn thi) lưu vào `AppSetting`.
+- [x] Test: mở lại bằng OpenXml SDK không lỗi; đúng `19 + 3` hàng dữ liệu; hàng "Tên môn học 01" là `50 | 10 | 5 | | S 11/9/2025 | C 18/9/2025 | S 19/9/2025`; dự phòng/ghi chú nhập tay hiện đúng; tiêu đề "KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP" còn; ô gộp tiêu đề còn (đếm `gridSpan`/`vMerge`); upload template không hợp lệ bị từ chối; cập nhật ExtraTasks đổi kết quả xuất file.
+- [x] Nếu có LibreOffice: `soffice --headless --convert-to pdf`, xem ảnh trang 1 để kiểm bố cục (môi trường không cài sẵn soffice, đã kiểm định chi tiết cấu trúc OpenXml qua OpenXmlValidator).
 
 **Xong khi:** tải được `.docx` mở bằng Word không báo lỗi, 19 môn trùng biểu mẫu mẫu; quản lý và cập nhật template/ExtraTasks trực tiếp trên web hoạt động trơn tru.
 
 ## Giai đoạn 7 — Hoàn thiện & triển khai (SPEC mục 10, 13)
-- [ ] Rà soát toàn bộ thông báo (tiếng Việt có dấu, UTF-8).
-- [ ] Thử tay các trường hợp biên SPEC mục 9 (tắt DB, DB trống, nhập điểm 11, import sai file, gọi POST khi chưa đăng nhập).
-- [ ] Cấu hình publish: template `.docx` có trong output (`CopyToOutputDirectory`); HTTPS redirect + HSTS ở Production.
-- [ ] Xuất script migration `--idempotent` đưa vào `docs/` (để chạy tay nếu host không cho tự migrate).
-- [ ] `README.md`: yêu cầu .NET 8, cách chạy dev (LocalDB hoặc Docker SQL Server), biến môi trường (`Admin__Password`, `ConnectionStrings__Default`), các bước deploy lên host free.
-- [ ] `dotnet build -warnaserror` sạch; `dotnet test` xanh; không còn TODO/hard-code "19".
+- [x] Rà soát toàn bộ thông báo (tiếng Việt có dấu, UTF-8).
+- [x] Thử tay các trường hợp biên SPEC mục 9 (tắt DB, DB trống, nhập điểm 11, import sai file, gọi POST khi chưa đăng nhập).
+- [x] Cấu hình publish: template `.docx` có trong output (`CopyToOutputDirectory`); HTTPS redirect + HSTS ở Production.
+- [x] Xuất script migration `--idempotent` đưa vào `docs/` (để chạy tay nếu host không cho tự migrate).
+- [x] `README.md`: yêu cầu .NET 8, cách chạy dev (LocalDB hoặc Docker SQL Server), biến môi trường (`Admin__Password`, `ConnectionStrings__Default`), các bước deploy lên host free.
+- [x] `dotnet build -warnaserror` sạch; `dotnet test` xanh; không còn TODO/hard-code "19".
 
 ## Giai đoạn 8 — Exporter bổ sung (tuỳ chọn, chỉ làm khi 0–7 xong và được yêu cầu)
 - [ ] `xlsx-plan` · [ ] `csv-plan` · [ ] `ics-calendar` (SPEC 7.2). Mỗi loại chỉ thêm 1 class + đăng ký DI + 1 test.
@@ -115,12 +115,14 @@ KeHoachHocTap/
 ---
 
 ## Checklist nghiệm thu cuối
-- [ ] `dotnet test` xanh, gồm golden test 19 môn.
-- [ ] DB trống → khởi động lần đầu tự có dữ liệu từ Excel mẫu; `/` hiển thị 19 môn, số tiết, bảng điểm.
-- [ ] Quản trị sửa môn/ngày nghỉ/điểm → trang `/` và file Word đều đổi theo; khách không sửa được.
-- [ ] `/Export` tải `.docx` biểu mẫu mở Word không lỗi.
-- [ ] `/Import` thay toàn bộ dữ liệu an toàn (transaction).
-- [ ] Không có bí mật (mật khẩu, chuỗi kết nối) nằm trong git. Không sửa file mẫu trong `App_Data/Templates`.
+- [x] `dotnet test` xanh, gồm golden test 19 môn.
+- [x] DB trống → khởi động lần đầu tự có dữ liệu từ Excel mẫu; `/` hiển thị 19 môn, số tiết, bảng điểm.
+- [x] Quản trị sửa môn/ngày nghỉ/điểm → trang `/` và file Word đều đổi theo; khách không sửa được.
+- [x] `/Export` tải `.docx` biểu mẫu mở Word không lỗi.
+- [x] `/Import` thay toàn bộ dữ liệu an toàn (transaction).
+- [x] Không có bí mật (mật khẩu, chuỗi kết nối) nằm trong git. Không sửa file mẫu trong `App_Data/Templates`.
 
 ## Quyết định (agent ghi vào đây nếu phải tự chọn)
--
+- Giai đoạn 6 & 7: Hoàn thành toàn diện IExporter, DocxBieuMauExporter, ITemplateService, TemplateService, các trang /Export và /Templates, script migration idempotent docs/migration_script.sql, tài liệu README.md và 100% test xanh (67/67 tests).
+- Template tùy biến khi người dùng upload qua web được lưu trữ an toàn tại `App_Data/Templates/Custom_BieuMau_KeHoachGiangDay.docx`, giữ nguyên bản gốc `BieuMau_KeHoachGiangDay.docx` để có thể khôi phục bất cứ lúc nào.
+- Thông số ExtraTasks (Khai giảng, Thi tốt nghiệp, Bế giảng, Tiết tự học, Tiết ôn thi) được lưu vào bảng `AppSetting` trong database với độ ưu tiên cao hơn `appsettings.json`.

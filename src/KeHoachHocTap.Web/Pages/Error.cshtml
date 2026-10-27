@@ -1,26 +1,40 @@
-﻿@page
+@page
 @model ErrorModel
 @{
-    ViewData["Title"] = "Error";
+    ViewData["Title"] = "Thông báo sự cố";
 }
 
-<h1 class="text-danger">Error.</h1>
-<h2 class="text-danger">An error occurred while processing your request.</h2>
+<div class="desktop-panel">
+    <div class="desktop-panel-header">
+        <div class="d-flex align-items-center gap-2 text-danger">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M7.938 2.016A.13.13 0 0 1 8.002 2a.13.13 0 0 1 .063.016.146.146 0 0 1 .054.057l6.857 11.667c.036.06.035.124.002.183a.163.163 0 0 1-.054.06.116.116 0 0 1-.066.017H1.146a.115.115 0 0 1-.066-.017.163.163 0 0 1-.054-.06.176.176 0 0 1 .002-.183L7.884 2.073a.147.147 0 0 1 .054-.057zm1.044-.45a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566z"/>
+                <path d="M7.002 12a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 5.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0z"/>
+            </svg>
+            <span>THÔNG BÁO SỰ CỐ HỆ THỐNG</span>
+        </div>
+    </div>
 
-@if (Model.ShowRequestId)
-{
-    <p>
-        <strong>Request ID:</strong> <code>@Model.RequestId</code>
-    </p>
-}
+    <div class="desktop-panel-body p-4">
+        <div class="alert alert-danger py-3 px-3 border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+            <h6 class="fw-bold mb-2">✕ @(Model.IsDatabaseError ? "Không kết nối được cơ sở dữ liệu" : "Đã xảy ra lỗi trong quá trình xử lý")</h6>
+            <p class="mb-0 small">@Model.ErrorMessage</p>
+        </div>
 
-<h3>Development Mode</h3>
-<p>
-    Swapping to the <strong>Development</strong> environment displays detailed information about the error that occurred.
-</p>
-<p>
-    <strong>The Development environment shouldn't be enabled for deployed applications.</strong>
-    It can result in displaying sensitive information from exceptions to end users.
-    For local debugging, enable the <strong>Development</strong> environment by setting the <strong>ASPNETCORE_ENVIRONMENT</strong> environment variable to <strong>Development</strong>
-    and restarting the app.
-</p>
+        @if (Model.ShowRequestId)
+        {
+            <div class="text-secondary small mb-3">
+                <span>Mã yêu cầu (Request ID): <code>@Model.RequestId</code></span>
+            </div>
+        }
+
+        <div class="d-flex gap-2">
+            <a asp-page="/Index" class="btn btn-primary btn-sm fw-bold px-3">
+                Quay về trang Kế hoạch học tập
+            </a>
+            <button type="button" class="btn btn-outline-secondary btn-sm px-3" onclick="window.location.reload();">
+                Thử lại
+            </button>
+        </div>
+    </div>
+</div>

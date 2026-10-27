@@ -169,6 +169,18 @@ public class AuthTests
         Assert.Equal(8.5m, stubRepo.AddedSubjects[0].Grade);
     }
 
+    [Fact]
+    public void TemplatesModel_ShouldRequireAdminPolicy()
+    {
+        var authorizeAttr = typeof(TemplatesModel)
+            .GetCustomAttributes(typeof(AuthorizeAttribute), inherit: true)
+            .Cast<AuthorizeAttribute>()
+            .FirstOrDefault();
+
+        Assert.NotNull(authorizeAttr);
+        Assert.Equal("Admin", authorizeAttr.Policy);
+    }
+
     // Helper stubs
     private static PageContext CreatePageContext(ClaimsPrincipal user)
     {

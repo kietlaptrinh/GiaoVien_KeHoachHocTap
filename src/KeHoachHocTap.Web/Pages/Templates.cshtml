@@ -1,14 +1,261 @@
 @page
 @model TemplatesModel
 @{
-    ViewData["Title"] = "Quản lý Mẫu biểu";
+    ViewData["Title"] = "Quản lý Mẫu biểu Word";
 }
 
 <div class="desktop-panel">
+    <!-- Panel Header -->
     <div class="desktop-panel-header">
-        <span>QUẢN LÝ MẪU BIỂU WORD (.DOCX) &amp; CẤU HÌNH NHIỆM VỤ</span>
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                <path d="M4 4h8v2H4V4zm0 3h8v2H4V7zm0 3h5v2H4v-2z"/>
+            </svg>
+            <span>QUẢN LÝ MẪU BIỂU WORD (.DOCX) &amp; CẤU HÌNH NHIỆM VỤ</span>
+        </div>
+        <div>
+            <span class="badge bg-primary" style="font-size: 11px;">Quản trị viên</span>
+        </div>
     </div>
-    <div class="desktop-panel-body">
-        <p class="text-muted">Chức năng quản lý file mẫu và ExtraTasks trực tiếp trên web sẽ được hoàn thiện trong Giai đoạn 6.</p>
+
+    <!-- Toolbar -->
+    <div class="desktop-toolbar">
+        <a asp-page="/Index" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+            </svg>
+            Quay lại Môn học
+        </a>
+        <a asp-page="/Export" class="toolbar-btn">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Đi đến Xuất file
+        </a>
+        <span class="toolbar-separator"></span>
+        <a asp-page="/Templates" asp-page-handler="DownloadCurrent" class="toolbar-btn text-primary">
+            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+            </svg>
+            Tải file mẫu hiện tại (.docx)
+        </a>
+        @if (Model.CurrentTemplate.IsCustom)
+        {
+            <form method="post" asp-page-handler="RestoreDefault" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa file mẫu tùy biến và khôi phục về mẫu gốc mặc định của hệ thống?');">
+                <button type="submit" class="toolbar-btn text-danger border-0 bg-transparent" style="cursor: pointer;">
+                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                    </svg>
+                    Khôi phục mẫu gốc mặc định
+                </button>
+            </form>
+        }
+    </div>
+
+    <!-- Panel Body -->
+    <div class="desktop-panel-body p-3">
+        <!-- Thông báo hệ thống -->
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success py-2 px-3 small border-1 mb-3" style="border-color: #10b981; background-color: #ecfdf5; color: #065f46;">
+                <strong>✓ Thành công:</strong> @Model.SuccessMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
+            </div>
+        }
+
+        <div class="row g-3">
+            <!-- Cột trái: Quản lý File Template Word -->
+            <div class="col-lg-6">
+                <!-- 1. Trạng thái Template hiện hành -->
+                <div class="desktop-card p-3 bg-white border mb-3" style="border-color: #dee2e6;">
+                    <h6 class="fw-bold mb-3" style="color: #1d4ed8; font-size: 13px; text-transform: uppercase;">
+                        1. Thông tin Mẫu biểu Word hiện hành
+                    </h6>
+
+                    <table class="table table-sm table-bordered small mb-3">
+                        <tbody>
+                            <tr>
+                                <td class="bg-light text-secondary" style="width: 40%;">Tên file đang dùng</td>
+                                <td class="fw-bold">@Model.CurrentTemplate.FileName</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-secondary">Trạng thái áp dụng</td>
+                                <td>
+                                    @if (Model.CurrentTemplate.IsCustom)
+                                    {
+                                        <span class="badge bg-success">Tùy biến của trường (Đang hoạt động)</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Mẫu gốc chuẩn của hệ thống</span>
+                                    }
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-secondary">Dung lượng file</td>
+                                <td>@((Model.CurrentTemplate.FileSizeBytes / 1024.0).ToString("N1")) KB</td>
+                            </tr>
+                            <tr>
+                                <td class="bg-light text-secondary">Cập nhật lần cuối</td>
+                                <td>
+                                    @(Model.CurrentTemplate.LastModified != DateTime.MinValue 
+                                        ? Model.CurrentTemplate.LastModified.ToString("dd/MM/yyyy HH:mm:ss") 
+                                        : "—")
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex gap-2">
+                        <a asp-page="/Templates" asp-page-handler="DownloadCurrent" class="btn btn-outline-primary btn-sm fw-bold">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Tải file mẫu này về máy
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. Tải lên Template mới -->
+                <div class="desktop-card p-3 bg-white border" style="border-color: #dee2e6;">
+                    <h6 class="fw-bold mb-3" style="color: #1d4ed8; font-size: 13px; text-transform: uppercase;">
+                        2. Tải lên (Upload) Mẫu biểu Word tùy biến mới
+                    </h6>
+
+                    <p class="text-secondary small mb-2">
+                        Bạn có thể tải file mẫu hiện tại về máy, dùng Microsoft Word chỉnh sửa quốc hiệu, tên trường/đơn vị hoặc logo, sau đó tải lên lại tại đây.
+                    </p>
+
+                    <form method="post" asp-page-handler="UploadTemplate" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Chọn file Microsoft Word (.docx, tối đa 10 MB):</label>
+                            <input type="file" name="templateFile" class="form-control form-control-sm" accept=".docx" required />
+                        </div>
+
+                        <div class="alert alert-info py-2 px-3 small border-1 mb-3" style="border-color: #93c5fd; background-color: #eff6ff; color: #1e40af;">
+                            <strong>Quy định kiểm tra cấu trúc hợp lệ (SPEC mục 7.3):</strong>
+                            <ul class="mb-0 ps-3 mt-1">
+                                <li>File Word .docx chuẩn, không bị mã hóa mật khẩu.</li>
+                                <li>Phải chứa bảng có ô chứa chữ: <code>Tên môn học/Nhiệm vụ</code>.</li>
+                                <li>Bảng phải có ít nhất 2 hàng tiêu đề và đủ 10 cột dữ liệu.</li>
+                            </ul>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
+                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
+                            </svg>
+                            Tải lên và Kích hoạt áp dụng
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Cột phải: Cấu hình thông số nhiệm vụ & Tiết học -->
+            <div class="col-lg-6">
+                <div class="desktop-card p-3 bg-white border" style="border-color: #dee2e6;">
+                    <h6 class="fw-bold mb-3" style="color: #1d4ed8; font-size: 13px; text-transform: uppercase;">
+                        3. Cấu hình Nhiệm vụ đặc biệt &amp; Thông số Biểu mẫu
+                    </h6>
+
+                    <p class="text-secondary small mb-3">
+                        Các thông số này được lưu trữ trong cơ sở dữ liệu và tự động điền vào các dòng Khai giảng, Thi tốt nghiệp, Bế giảng khi xuất file.
+                    </p>
+
+                    <form method="post" asp-page-handler="SaveExtraTasks">
+                        <!-- Tiết mặc định -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label asp-for="Options.SelfStudyPeriods" class="form-label small fw-bold">Tiết tự nghiên cứu mặc định:</label>
+                                <div class="input-group input-group-sm">
+                                    <input asp-for="Options.SelfStudyPeriods" type="number" min="0" class="form-control" required />
+                                    <span class="input-group-text">tiết</span>
+                                </div>
+                                <span class="text-muted small" style="font-size: 11px;">Mặc định 10 (trừ vào tổng số tiết)</span>
+                            </div>
+                            <div class="col-sm-6">
+                                <label asp-for="Options.ExamPeriods" class="form-label small fw-bold">Tiết ôn thi / thi mặc định:</label>
+                                <div class="input-group input-group-sm">
+                                    <input asp-for="Options.ExamPeriods" type="number" min="0" class="form-control" required />
+                                    <span class="input-group-text">tiết</span>
+                                </div>
+                                <span class="text-muted small" style="font-size: 11px;">Mặc định 5 (tương đương 1 buổi thi)</span>
+                            </div>
+                        </div>
+
+                        <hr class="my-3" style="border-color: #e2e8f0;" />
+
+                        <!-- Nhiệm vụ Thi tốt nghiệp -->
+                        <h6 class="fw-bold small text-dark mb-2">A. Nhiệm vụ "Thi tốt nghiệp":</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-sm-8">
+                                <label asp-for="Options.Graduation.Name" class="form-label small">Tên hiển thị:</label>
+                                <input asp-for="Options.Graduation.Name" type="text" class="form-control form-control-sm" required />
+                            </div>
+                            <div class="col-sm-4">
+                                <label asp-for="Options.Graduation.Periods" class="form-label small">Số tiết:</label>
+                                <input asp-for="Options.Graduation.Periods" type="number" min="0" class="form-control form-control-sm" required />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label asp-for="Options.Graduation.Start" class="form-label small">Bắt đầu:</label>
+                                <input asp-for="Options.Graduation.Start" type="text" placeholder="vd: S 22/02/2026" class="form-control form-control-sm" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label asp-for="Options.Graduation.End" class="form-label small">Kết thúc:</label>
+                                <input asp-for="Options.Graduation.End" type="text" placeholder="vd: S 24/02/2026" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+
+                        <hr class="my-3" style="border-color: #e2e8f0;" />
+
+                        <!-- Nhiệm vụ Bế giảng -->
+                        <h6 class="fw-bold small text-dark mb-2">B. Nhiệm vụ "Bế giảng":</h6>
+                        <div class="row g-2 mb-2">
+                            <div class="col-sm-8">
+                                <label asp-for="Options.Closing.Name" class="form-label small">Tên hiển thị:</label>
+                                <input asp-for="Options.Closing.Name" type="text" class="form-control form-control-sm" required />
+                            </div>
+                            <div class="col-sm-4">
+                                <label asp-for="Options.Closing.Periods" class="form-label small">Số tiết:</label>
+                                <input asp-for="Options.Closing.Periods" type="number" min="0" class="form-control form-control-sm" required />
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-3">
+                            <div class="col-sm-6">
+                                <label asp-for="Options.Closing.Start" class="form-label small">Bắt đầu:</label>
+                                <input asp-for="Options.Closing.Start" type="text" placeholder="vd: S 20/4/2026" class="form-control form-control-sm" />
+                            </div>
+                            <div class="col-sm-6">
+                                <label asp-for="Options.Closing.End" class="form-label small">Kết thúc (nếu có):</label>
+                                <input asp-for="Options.Closing.End" type="text" placeholder="(Để trống nếu 1 buổi)" class="form-control form-control-sm" />
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
+                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
+                                    <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z"/>
+                                </svg>
+                                Lưu cấu hình nhiệm vụ vào Database
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>

@@ -1,4 +1,5 @@
 using KeHoachHocTap.Web.Data;
+using KeHoachHocTap.Web.Export;
 using KeHoachHocTap.Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -59,6 +60,10 @@ builder.Services.AddTransient<IExcelPlanReader, ExcelPlanReader>();
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();
 builder.Services.AddScoped<IPlanImporter, PlanImporter>();
 builder.Services.AddScoped<IPlanService, PlanService>();
+
+// Đăng ký dịch vụ xuất file và quản lý template (SPEC mục 7, 7.3)
+builder.Services.AddSingleton<IExporter, DocxBieuMauExporter>();
+builder.Services.AddScoped<ITemplateService, TemplateService>();
 
 var app = builder.Build();
 
