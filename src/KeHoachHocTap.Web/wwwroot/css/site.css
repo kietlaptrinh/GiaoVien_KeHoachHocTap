@@ -1,0 +1,307 @@
+/* ==========================================================================
+   Classic Desktop App Style (Giao diện Quản lý Đào tạo Desktop Cổ Điển)
+   Bảng màu: Trắng (#FFFFFF, #F8F9FA), Đen/Xám (#212529, #333333, #DEE2E6 1px),
+   Điểm nhấn: Xanh dương nhạt (#EBF3FC, #D0E2FF, #0D6EFD, #1D4ED8).
+   ========================================================================== */
+
+:root {
+    --desktop-bg: #f0f2f5;
+    --desktop-surface: #ffffff;
+    --desktop-subtle: #f8f9fa;
+    --desktop-header-bg: #ebf3fc;
+    --desktop-hover-bg: #e2edfb;
+    --desktop-selected-bg: #d0e2ff;
+    --desktop-border: #dee2e6;
+    --desktop-border-dark: #ced4da;
+    --desktop-text: #212529;
+    --desktop-text-dark: #333333;
+    --desktop-text-muted: #6c757d;
+    --desktop-blue-primary: #0d6efd;
+    --desktop-blue-deep: #1d4ed8;
+    --desktop-font: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, Arial, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: var(--desktop-font);
+    font-size: 13px;
+    line-height: 1.45;
+    color: var(--desktop-text);
+    background-color: var(--desktop-bg);
+}
+
+/* Layout container */
+.desktop-app {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Window Titlebar (Classic Application Frame) */
+.desktop-titlebar {
+    background: linear-gradient(180deg, #1d4ed8 0%, #1e3a8a 100%);
+    color: #ffffff;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #172554;
+    user-select: none;
+}
+
+.desktop-titlebar-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: 0.2px;
+}
+
+.desktop-titlebar-meta {
+    font-size: 11px;
+    opacity: 0.85;
+}
+
+/* Classic Menubar */
+.desktop-menubar {
+    background-color: var(--desktop-subtle);
+    border-bottom: 1px solid var(--desktop-border);
+    padding: 2px 8px;
+    display: flex;
+    align-items: center;
+    user-select: none;
+}
+
+.desktop-menubar .nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    gap: 2px;
+}
+
+.desktop-menubar .nav-link {
+    color: var(--desktop-text);
+    font-size: 12.5px;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
+}
+
+.desktop-menubar .nav-link:hover {
+    background-color: var(--desktop-header-bg);
+    border-color: #b8d5f8;
+    color: var(--desktop-blue-deep);
+}
+
+.desktop-menubar .nav-link.active {
+    background-color: var(--desktop-selected-bg);
+    border-color: #93c5fd;
+    color: var(--desktop-blue-deep);
+    font-weight: 600;
+}
+
+/* Classic Toolbar */
+.desktop-toolbar {
+    background-color: #ffffff;
+    border-bottom: 1px solid var(--desktop-border);
+    padding: 4px 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.toolbar-btn {
+    font-size: 12px;
+    padding: 3px 8px;
+    border: 1px solid var(--desktop-border-dark);
+    background-color: #ffffff;
+    color: var(--desktop-text-dark);
+    border-radius: 2px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    line-height: 1.4;
+}
+
+.toolbar-btn:hover {
+    background-color: var(--desktop-header-bg);
+    border-color: #b8d5f8;
+    color: var(--desktop-blue-deep);
+}
+
+.toolbar-btn.btn-primary {
+    background-color: var(--desktop-blue-primary);
+    border-color: var(--desktop-blue-deep);
+    color: #ffffff;
+}
+
+.toolbar-btn.btn-primary:hover {
+    background-color: var(--desktop-blue-deep);
+}
+
+.toolbar-separator {
+    width: 1px;
+    height: 18px;
+    background-color: var(--desktop-border);
+    margin: 0 4px;
+}
+
+/* Main Workspace */
+.desktop-workspace {
+    flex: 1;
+    padding: 10px 14px;
+    background-color: var(--desktop-bg);
+    overflow-y: auto;
+}
+
+/* Classic Window/Card Panel */
+.desktop-panel {
+    background-color: var(--desktop-surface);
+    border: 1px solid var(--desktop-border);
+    border-radius: 2px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+    margin-bottom: 10px;
+}
+
+.desktop-panel-header {
+    background-color: var(--desktop-header-bg);
+    border-bottom: 1px solid #d0e2ff;
+    padding: 6px 12px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--desktop-blue-deep);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.desktop-panel-body {
+    padding: 12px;
+}
+
+/* Classic DataGrid */
+.desktop-datagrid-container {
+    border: 1px solid var(--desktop-border);
+    background-color: #ffffff;
+    overflow-x: auto;
+}
+
+.desktop-grid {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+    background-color: #ffffff;
+}
+
+.desktop-grid th {
+    background-color: var(--desktop-header-bg);
+    border: 1px solid var(--desktop-border);
+    color: var(--desktop-blue-deep);
+    font-weight: 600;
+    padding: 6px 8px;
+    text-align: left;
+    white-space: nowrap;
+}
+
+.desktop-grid td {
+    border: 1px solid var(--desktop-border);
+    padding: 5px 8px;
+    vertical-align: middle;
+    color: var(--desktop-text-dark);
+}
+
+.desktop-grid tbody tr:nth-child(even) {
+    background-color: #fafbfc;
+}
+
+.desktop-grid tbody tr:hover {
+    background-color: var(--desktop-hover-bg);
+}
+
+.desktop-grid tbody tr.selected {
+    background-color: var(--desktop-selected-bg);
+}
+
+.desktop-grid .text-center {
+    text-align: center;
+}
+
+.desktop-grid .text-end {
+    text-align: right;
+}
+
+/* Classic Form Controls */
+.desktop-input,
+.desktop-select {
+    padding: 3px 6px;
+    font-size: 12.5px;
+    border: 1px solid var(--desktop-border-dark);
+    border-radius: 2px;
+    background-color: #ffffff;
+    color: var(--desktop-text);
+}
+
+.desktop-input:focus,
+.desktop-select:focus {
+    border-color: var(--desktop-blue-primary);
+    outline: none;
+    box-shadow: 0 0 0 1px var(--desktop-blue-primary);
+}
+
+/* Classic StatusBar */
+.desktop-statusbar {
+    background-color: #f1f3f5;
+    border-top: 1px solid var(--desktop-border);
+    padding: 2px 10px;
+    font-size: 11.5px;
+    color: var(--desktop-text-muted);
+    display: flex;
+    align-items: center;
+    user-select: none;
+    min-height: 24px;
+}
+
+.statusbar-cell {
+    padding: 1px 8px;
+    border-right: 1px solid var(--desktop-border);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.statusbar-cell:last-child {
+    border-right: none;
+    margin-left: auto;
+}
+
+.status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    display: inline-block;
+}
+
+.status-dot.warning {
+    background-color: #f59e0b;
+}
+
+.status-dot.danger {
+    background-color: #ef4444;
+}

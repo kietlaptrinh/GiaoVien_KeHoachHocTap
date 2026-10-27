@@ -1,0 +1,67 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "Kế hoạch học tập & Bảng điểm";
+}
+
+<div class="desktop-panel">
+    <div class="desktop-panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M0 2a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V2zm15 2h-4v3h4V4zm0 4h-4v3h4V8zm0 4h-4v3h3a1 1 0 0 0 1-1v-2zm-5 3v-3H6v3h4zm-5 0v-3H1v2a1 1 0 0 0 1 1h3zm-4-4h4V8H1v3zm0-4h4V4H1v3zm5-3v3h4V4H6zm4 4H6v3h4V8z"/>
+            </svg>
+            <span>KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP - DANH SÁCH MÔN HỌC</span>
+        </div>
+        <div>
+            <span class="text-secondary small">Trạng thái: Giai đoạn khởi tạo (Phase 0)</span>
+        </div>
+    </div>
+
+    <!-- Sub-toolbar -->
+    <div class="desktop-toolbar">
+        <button type="button" class="toolbar-btn btn-primary" disabled>
+            + Thêm môn học
+        </button>
+        <button type="button" class="toolbar-btn" disabled>
+            Lưu thay đổi
+        </button>
+        <span class="toolbar-separator"></span>
+        <a asp-page="/Holidays" class="toolbar-btn">
+            Xem ngày nghỉ
+        </a>
+        <a asp-page="/Export" class="toolbar-btn">
+            Xuất biểu mẫu Word (.docx)
+        </a>
+        <a asp-page="/Templates" class="toolbar-btn">
+            Quản lý mẫu biểu
+        </a>
+    </div>
+
+    <div class="desktop-panel-body">
+        <div class="desktop-datagrid-container">
+            <table class="desktop-grid">
+                <thead>
+                    <tr>
+                        <th style="width: 45px;" class="text-center">STT</th>
+                        <th>Tên môn học</th>
+                        <th style="width: 80px;" class="text-center">Số tiết</th>
+                        <th style="width: 80px;" class="text-center">Số buổi</th>
+                        <th style="width: 120px;">Bắt đầu</th>
+                        <th style="width: 120px;">Kết thúc</th>
+                        <th style="width: 120px;">Thi hết môn</th>
+                        <th style="width: 70px;" class="text-center">Điểm</th>
+                        <th style="width: 80px;" class="text-center">Dự phòng</th>
+                        <th>Ghi chú</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="10" class="text-center py-4 text-muted">
+                            <em>Hệ thống đã khởi tạo thành công nền tảng .NET 8 và giao diện Desktop cổ điển. Dữ liệu môn học sẽ được tính toán và đồng bộ từ Giai đoạn 1 và 2.</em>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

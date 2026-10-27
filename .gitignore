@@ -1,0 +1,26 @@
+## .NET build artifacts
+bin/
+obj/
+TestResults/
+
+## Visual Studio & VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## JetBrains
+.idea/
+
+## Database & Secret files
+*.db
+*.db-shm
+*.db-wal
+appsettings.Production.json
+appsettings.*.Production.json
+
+## OS generated
+.DS_Store
+Thumbs.db

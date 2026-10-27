@@ -1,0 +1,23 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "Đăng nhập Quản trị";
+}
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-5">
+        <div class="desktop-panel">
+            <div class="desktop-panel-header">
+                <span>ĐĂNG NHẬP HỆ THỐNG QUẢN TRỊ</span>
+            </div>
+            <div class="desktop-panel-body">
+                <p class="text-muted small">Cơ chế xác thực quản trị viên sẽ được hoàn thiện trong Giai đoạn 3.</p>
+                <div class="mb-3">
+                    <label class="form-label">Mật khẩu quản trị</label>
+                    <input type="password" class="desktop-input w-100" placeholder="Nhập mật khẩu quản trị..." disabled />
+                </div>
+                <button type="button" class="toolbar-btn btn-primary" disabled>Đăng nhập</button>
+            </div>
+        </div>
+    </div>
+</div>
