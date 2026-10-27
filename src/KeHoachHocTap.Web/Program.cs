@@ -1,7 +1,13 @@
+using KeHoachHocTap.Web.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
+
+// Đăng ký dịch vụ lõi tính toán và đọc Excel
+builder.Services.AddSingleton<IScheduleCalculator, ScheduleCalculator>();
+builder.Services.AddTransient<IExcelPlanReader, ExcelPlanReader>();
 
 var app = builder.Build();
 

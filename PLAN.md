@@ -39,12 +39,12 @@ KeHoachHocTap/
 **Xong khi:** `dotnet run` mở trang trống có menu; `dotnet test` chạy được.
 
 ## Giai đoạn 1 — Thuật toán xếp lịch + đọc Excel (làm TEST trước)
-- [ ] `ScheduleCalculator.Calculate(subjects, holidays)` hàm thuần (SPEC mục 4): bung khoảng nghỉ, `NextWorkday`, `Advance`, tính từng môn. Nhận các `Subject`/`Holiday` đối tượng thường (không cần database).
-- [ ] `ExcelPlanReader` (SPEC 3.1–3.2, 9): đọc `Khung CT` A–C và `Ngay nghi` A–D, tìm khai giảng, gom `Warnings`; mở bằng stream.
-- [ ] Test:
-  - [ ] Đọc đúng **19 môn**, tổng **895 tiết**, **6 khoảng nghỉ** (Excel mẫu), bung ra đúng **18 ngày**.
-  - [ ] **Golden test**: 19 dòng Bắt đầu/Kết thúc/Thi khớp bảng SPEC mục 4.
-  - [ ] Test biên: môn bắt đầu buổi chiều; kỳ nghỉ Tết 12–22/2 bị nhảy qua; số tiết không chia hết 5; tiết trống; khoảng nghỉ chồng nhau; thiếu khai giảng.
+- [x] `ScheduleCalculator.Calculate(subjects, holidays)` hàm thuần (SPEC mục 4): bung khoảng nghỉ, `NextWorkday`, `Advance`, tính từng môn. Nhận các `Subject`/`Holiday` đối tượng thường (không cần database).
+- [x] `ExcelPlanReader` (SPEC 3.1–3.2, 9): đọc `Khung CT` A–C và `Ngay nghi` A–D, tìm khai giảng, gom `Warnings`; mở bằng stream.
+- [x] Test:
+  - [x] Đọc đúng **19 môn**, tổng **895 tiết**, **6 khoảng nghỉ** (Excel mẫu), bung ra đúng **18 ngày**.
+  - [x] **Golden test**: 19 dòng Bắt đầu/Kết thúc/Thi khớp bảng SPEC mục 4.
+  - [x] Test biên: môn bắt đầu buổi chiều; kỳ nghỉ Tết 12–22/2 bị nhảy qua; số tiết không chia hết 5; tiết trống; khoảng nghỉ chồng nhau; thiếu khai giảng.
 
 **Xong khi:** test xanh. **Không sang giai đoạn 2 nếu golden test chưa xanh.**
 
