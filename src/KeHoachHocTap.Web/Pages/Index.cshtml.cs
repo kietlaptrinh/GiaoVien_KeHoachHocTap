@@ -299,11 +299,12 @@ public class IndexModel : PageModel
 
         try
         {
+            var isClosing = !input.AfterSubjectId.HasValue || input.AfterSubjectId.Value <= 0;
             var activity = new PlanActivity
             {
                 Name = input.Name.Trim(),
-                Type = input.Type,
-                AfterSubjectId = input.Type == PlanActivityType.Interim ? input.AfterSubjectId : null,
+                Type = isClosing ? PlanActivityType.Closing : PlanActivityType.Interim,
+                AfterSubjectId = isClosing ? null : input.AfterSubjectId,
                 FromDate = input.FromDate,
                 ToDate = input.ToDate,
                 Sessions = input.Sessions,
@@ -352,9 +353,10 @@ public class IndexModel : PageModel
                 return RedirectToPage();
             }
 
+            var isClosing = !input.AfterSubjectId.HasValue || input.AfterSubjectId.Value <= 0;
             existing.Name = input.Name.Trim();
-            existing.Type = input.Type;
-            existing.AfterSubjectId = input.Type == PlanActivityType.Interim ? input.AfterSubjectId : null;
+            existing.Type = isClosing ? PlanActivityType.Closing : PlanActivityType.Interim;
+            existing.AfterSubjectId = isClosing ? null : input.AfterSubjectId;
             existing.FromDate = input.FromDate;
             existing.ToDate = input.ToDate;
             existing.Sessions = input.Sessions;
