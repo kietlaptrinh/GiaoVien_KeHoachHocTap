@@ -132,33 +132,30 @@
                 <thead>
                     <tr style="background-color: #EBF3FC; position: sticky; top: 0; z-index: 10;">
                         <!-- Sticky Left Columns -->
-                        <th class="text-center sticky-col" style="left: 0; width: 45px; z-index: 11; background-color: #EBF3FC;">STT</th>
-                        <th class="text-center sticky-col" style="left: 45px; width: 100px; z-index: 11; background-color: #EBF3FC;">Mã HV</th>
-                        <th class="sticky-col" style="left: 145px; width: 140px; z-index: 11; background-color: #EBF3FC;">Họ và tên đệm</th>
-                        <th class="sticky-col" style="left: 285px; width: 75px; z-index: 11; background-color: #EBF3FC;">Tên</th>
-                        <th class="text-center" style="width: 85px;">Ngày sinh</th>
-                        <th class="text-center" style="width: 50px;">Phái</th>
+                        <th class="text-center sticky-col" style="left: 0; width: 45px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">STT</th>
+                        <th class="text-center sticky-col" style="left: 45px; width: 95px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Mã số</th>
+                        <th class="sticky-col" style="left: 140px; width: 140px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Họ lót</th>
+                        <th class="sticky-col" style="left: 280px; width: 75px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Tên</th>
+                        <th class="text-center" style="width: 85px; vertical-align: bottom; padding-bottom: 10px;">Ngày sinh</th>
+                        <th class="text-center" style="width: 45px; vertical-align: bottom; padding-bottom: 10px;">Phái</th>
 
-                        <!-- Dynamic Subjects Columns -->
+                        <!-- Dynamic Subjects Columns (Vertical Header - Classic Academic Style) -->
                         @for (int j = 0; j < Model.Subjects.Count; j++)
                         {
                             var sub = Model.Subjects[j];
-                            <th class="text-center text-truncate" style="min-width: 65px; max-width: 110px;" title="@sub.Name (@sub.Periods tiết)">
-                                <div style="font-size: 11px; line-height: 1.2;">
-                                    <span class="text-muted d-block" style="font-size: 9px;">Môn @(j + 1)</span>
-                                    <span>@sub.Name</span>
-                                </div>
+                            <th class="th-subject-vertical" title="@sub.Name (@sub.Periods tiết)">
+                                <span class="th-vertical-text">@sub.Name</span>
                             </th>
                         }
 
                         <!-- Sticky Right Columns -->
-                        <th class="text-center sticky-col-right" style="width: 65px; background-color: #EBF3FC;">Số môn</th>
-                        <th class="text-center sticky-col-right" style="width: 70px; background-color: #EBF3FC;">ĐTB</th>
-                        <th class="sticky-col-right" style="width: 170px; background-color: #EBF3FC;">ĐTB bằng chữ</th>
-                        <th class="text-center sticky-col-right" style="width: 100px; background-color: #EBF3FC;">Xếp loại</th>
+                        <th class="text-center sticky-col-right" style="width: 55px; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Số môn</th>
+                        <th class="text-center sticky-col-right" style="width: 65px; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">ĐTB</th>
+                        <th class="sticky-col-right" style="width: 170px; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">ĐTB bằng chữ</th>
+                        <th class="text-center sticky-col-right" style="width: 90px; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Xếp loại</th>
                         @if (Model.IsAdmin)
                         {
-                            <th class="text-center" style="width: 80px;">Thao tác</th>
+                            <th class="text-center" style="width: 70px; vertical-align: bottom; padding-bottom: 10px;">Thao tác</th>
                         }
                     </tr>
                 </thead>
@@ -181,8 +178,8 @@
                                 <!-- Sticky Left -->
                                 <td class="text-center fw-bold sticky-col" style="left: 0; background-color: #fff;">@summary.Stt</td>
                                 <td class="text-center sticky-col text-secondary" style="left: 45px; background-color: #fff;">@st.StudentCode</td>
-                                <td class="sticky-col" style="left: 145px; background-color: #fff;">@st.LastName</td>
-                                <td class="sticky-col fw-bold text-primary" style="left: 285px; background-color: #fff;">@st.FirstName</td>
+                                <td class="sticky-col" style="left: 140px; background-color: #fff;">@st.LastName</td>
+                                <td class="sticky-col fw-bold text-primary" style="left: 280px; background-color: #fff;">@st.FirstName</td>
                                 <td class="text-center text-muted">@(st.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</td>
                                 <td class="text-center text-muted">@(st.Gender ?? "—")</td>
 
@@ -190,17 +187,16 @@
                                 @for (int j = 0; j < summary.SubjectGrades.Count; j++)
                                 {
                                     var gItem = summary.SubjectGrades[j];
-                                    <td class="text-center p-1" style="min-width: 65px;">
+                                    <td class="cell-grade-compact">
                                         @if (Model.IsAdmin)
                                         {
                                             <input type="text"
                                                    class="grade-cell text-center desktop-input p-0 m-0 w-100"
-                                                   style="font-size: 12px; height: 26px; border: 1px solid #DEE2E6;"
                                                    value="@(gItem.Score.HasValue ? gItem.Score.Value.ToString("0.00") : "")"
                                                    placeholder="—"
                                                    data-student-id="@st.Id"
                                                    data-subject-id="@gItem.SubjectId"
-                                                   title="Nhấn Tab/Enter để lưu và chuyển ô" />
+                                                   title="@Model.Subjects[j].Name: Nhấn Tab/Enter để lưu và chuyển ô" />
                                         }
                                         else
                                         {

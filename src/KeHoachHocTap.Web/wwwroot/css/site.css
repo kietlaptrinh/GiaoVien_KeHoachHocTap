@@ -812,3 +812,52 @@ html, body {
 .toast-warning .toast-dropdown-progress-bar { background-color: #f59e0b; }
 .toast-info .toast-dropdown-progress-bar { background-color: #0d6efd; }
 
+/* =========================================================================
+   Vertical Subject Headers for Grades DataGrid (Classic Academic Style)
+   ========================================================================= */
+.desktop-grid th.th-subject-vertical {
+    height: 145px;
+    vertical-align: bottom !important;
+    text-align: center;
+    padding: 6px 2px 10px 2px !important;
+    width: 38px;
+    min-width: 38px;
+    max-width: 42px;
+    background-color: #EBF3FC;
+    border: 1px solid var(--desktop-border);
+}
+
+.desktop-grid th.th-subject-vertical .th-vertical-text {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--desktop-blue-deep);
+    letter-spacing: 0.2px;
+    display: inline-block;
+    max-height: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+    cursor: default;
+}
+
+.desktop-grid td.cell-grade-compact {
+    width: 38px;
+    min-width: 38px;
+    max-width: 42px;
+    padding: 2px 1px !important;
+    text-align: center;
+}
+
+.desktop-grid td.cell-grade-compact .grade-cell {
+    font-size: 11.5px;
+    height: 24px;
+    padding: 0 1px;
+    text-align: center;
+    border: 1px solid var(--desktop-border);
+    font-weight: 500;
+}
+
+
