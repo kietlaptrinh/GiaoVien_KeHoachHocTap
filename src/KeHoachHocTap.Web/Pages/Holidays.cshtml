@@ -43,6 +43,26 @@
             </svg>
             Làm mới
         </a>
+        <span class="toolbar-separator"></span>
+        @if (Model.IsAdmin)
+        {
+            <form method="post" asp-page-handler="SetFirstSessionHalf" class="d-inline-flex align-items-center gap-1 my-0 py-0" title="Chọn buổi bắt đầu học môn 1 sau khai giảng">
+                <span class="small fw-bold text-secondary text-nowrap">Môn 1 bắt đầu:</span>
+                <select name="firstSessionHalf" class="desktop-input form-select-sm" style="height: 26px; padding: 1px 6px; font-size: 12px; font-weight: bold; background-color: #fff;" onchange="this.form.submit()">
+                    <option value="S" selected="@(Model.FirstSessionHalf == "S")">Buổi Sáng (S)</option>
+                    <option value="C" selected="@(Model.FirstSessionHalf == "C")">Buổi Chiều (C)</option>
+                </select>
+            </form>
+        }
+        else
+        {
+            <div class="d-inline-flex align-items-center gap-1">
+                <span class="small text-secondary">Môn 1 bắt đầu:</span>
+                <span class="badge @(Model.FirstSessionHalf == "C" ? "bg-warning text-dark" : "bg-primary")" style="font-size: 11px;">
+                    @(Model.FirstSessionHalf == "C" ? "Buổi Chiều (C)" : "Buổi Sáng (S)")
+                </span>
+            </div>
+        }
 
         <!-- Nút chuyển chế độ xem di động -->
         <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
@@ -96,6 +116,7 @@
                                 @if (h.IsOpeningDay)
                                 {
                                     <span class="badge bg-success">✓ Khai giảng</span>
+                                    <span class="badge bg-light text-dark border ms-1" title="Buổi bắt đầu học môn 1">Môn 1: @(Model.FirstSessionHalf == "C" ? "Chiều (C)" : "Sáng (S)")</span>
                                 }
                                 else
                                 {
@@ -184,6 +205,7 @@
                                     @if (h.IsOpeningDay)
                                     {
                                         <span class="badge bg-success" style="font-size: 11px;">✓ Khai giảng</span>
+                                        <span class="badge bg-light text-dark border ms-1" style="font-size: 10px;" title="Buổi bắt đầu học môn 1">Môn 1: @(Model.FirstSessionHalf == "C" ? "Chiều (C)" : "Sáng (S)")</span>
                                     }
                                     else
                                     {
@@ -265,7 +287,7 @@
                             <label class="form-check-label fw-bold text-primary" for="addIsOpeningDay">
                                 Đặt làm Ngày Khai Giảng khóa học
                             </label>
-                            <div class="text-muted small">Nếu chọn, ngày khai giảng cũ sẽ tự động chuyển thành ngày nghỉ thông thường. Ngày khai giảng chỉ diễn ra trong đúng 1 ngày.</div>
+                            <div class="text-muted small">Nếu chọn, ngày khai giảng cũ sẽ tự động chuyển thành ngày nghỉ thông thường. Ngày khai giảng có thể diễn ra trong 1 hoặc nhiều ngày (Từ ngày → Đến ngày).</div>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
@@ -307,7 +329,7 @@
                             <label class="form-check-label fw-bold text-primary" for="editIsOpeningDay">
                                 Đặt làm Ngày Khai Giảng khóa học
                             </label>
-                            <div class="text-muted small">Hệ thống luôn đảm bảo có đúng một ngày khai giảng duy nhất.</div>
+                            <div class="text-muted small">Hệ thống luôn đảm bảo có đúng một sự kiện khai giảng duy nhất (có thể kéo dài 1 hoặc nhiều ngày).</div>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
@@ -347,29 +369,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Khi tick Khai giảng, tự đồng bộ Đến ngày = Từ ngày
-            $('#addIsOpeningDay').on('change', function () {
-                if ($(this).is(':checked')) {
-                    $('#addToDate').val($('#addFromDate').val());
-                }
-            });
-            $('#addFromDate').on('change', function () {
-                if ($('#addIsOpeningDay').is(':checked')) {
-                    $('#addToDate').val($(this).val());
-                }
-            });
-
-            $('#editIsOpeningDay').on('change', function () {
-                if ($(this).is(':checked')) {
-                    $('#editToDate').val($('#editFromDate').val());
-                }
-            });
-            $('#editFromDate').on('change', function () {
-                if ($('#editIsOpeningDay').is(':checked')) {
-                    $('#editToDate').val($(this).val());
-                }
-            });
-
             $('.btn-edit-holiday').on('click', function () {
                 var btn = $(this);
                 $('#editHolidayId').val(btn.data('id'));

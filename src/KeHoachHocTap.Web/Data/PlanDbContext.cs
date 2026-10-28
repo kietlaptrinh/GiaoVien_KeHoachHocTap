@@ -29,6 +29,12 @@ public class PlanDbContext : DbContext
                 .HasPrecision(4, 1);
             entity.Property(e => e.Note)
                 .HasMaxLength(100);
+            entity.Property(e => e.ExamMode)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("Immediately");
+            entity.Property(e => e.CustomExamSlot)
+                .HasMaxLength(100);
             entity.HasIndex(e => e.SortOrder);
         });
 

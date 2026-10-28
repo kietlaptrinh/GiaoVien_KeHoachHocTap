@@ -277,4 +277,50 @@ public class DocxExporterTests : IClassFixture<TestDatabaseFixture>
         Assert.NotEmpty(warnings);
         Assert.Contains(warnings, w => w.Contains("Thi tốt nghiệp") && w.Contains("ngày nghỉ"));
     }
+
+    [Fact]
+    public void Export_WithDelayedAndCustomExams_ExportsCalculatedExamSlotsAccurately()
+    {
+        var calculator = new ScheduleCalculator();
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn Hoãn Thi", Periods = 10, ExamMode = "Delayed" },
+            new() { SortOrder = 2, Name = "Môn Thi Thường", Periods = 10, ExamMode = "Immediately" }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var schedule = calculator.Calculate(subjects, holidays);
+        var exporter = new DocxBieuMauExporter();
+        var options = new ExportOptions
+        {
+            TemplatePath = GetTemplatePath()
+        };
+
+        var bytes = exporter.Export(schedule, options);
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+
+        Assert.NotNull(doc.MainDocumentPart?.Document?.Body);
+        var body = doc.MainDocumentPart!.Document.Body;
+        var table = body.Elements<Table>().First(t =>
+            t.Elements<TableRow>().Any(row =>
+                row.Elements<TableCell>().Any(cell =>
+                    cell.InnerText.Contains("Tên môn học/Nhiệm vụ"))));
+
+        var dataRows = table.Elements<TableRow>().Skip(2).ToList();
+        var mon1Cells = dataRows[1].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        var mon2Cells = dataRows[2].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+
+        // Môn 1 (Hoãn thi) thi dồn vào: S 15/9/2025
+        Assert.Equal("Môn Hoãn Thi", mon1Cells[1]);
+        Assert.Equal(schedule.Items[0].Exam.ToString(), mon1Cells[8]);
+
+        // Môn 2 (Immediately) thi vào: C 15/9/2025
+        Assert.Equal("Môn Thi Thường", mon2Cells[1]);
+        Assert.Equal(schedule.Items[1].Exam.ToString(), mon2Cells[8]);
+    }
 }

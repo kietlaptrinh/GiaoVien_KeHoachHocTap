@@ -64,6 +64,12 @@ public class IndexModel : PageModel
 
         [StringLength(100, ErrorMessage = "Ghi chú tối đa 100 ký tự.")]
         public string? Note { get; set; }
+
+        [StringLength(50, ErrorMessage = "Chế độ thi tối đa 50 ký tự.")]
+        public string ExamMode { get; set; } = "Immediately";
+
+        [StringLength(100, ErrorMessage = "Buổi thi tùy chỉnh tối đa 100 ký tự.")]
+        public string? CustomExamSlot { get; set; }
     }
 
     public async Task OnGetAsync()
@@ -112,6 +118,8 @@ public class IndexModel : PageModel
                 Grade = input.Grade,
                 ReservePeriods = input.ReservePeriods,
                 Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim(),
+                ExamMode = string.IsNullOrWhiteSpace(input.ExamMode) ? "Immediately" : input.ExamMode.Trim(),
+                CustomExamSlot = string.IsNullOrWhiteSpace(input.CustomExamSlot) ? null : input.CustomExamSlot.Trim(),
                 SortOrder = 0 // Repository sẽ tự động xếp vào cuối
             };
 
@@ -161,6 +169,8 @@ public class IndexModel : PageModel
             existing.Grade = input.Grade;
             existing.ReservePeriods = input.ReservePeriods;
             existing.Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim();
+            existing.ExamMode = string.IsNullOrWhiteSpace(input.ExamMode) ? "Immediately" : input.ExamMode.Trim();
+            existing.CustomExamSlot = string.IsNullOrWhiteSpace(input.CustomExamSlot) ? null : input.CustomExamSlot.Trim();
 
             await _planRepository.UpdateSubjectAsync(existing);
             SuccessMessage = $"Đã cập nhật thành công môn học '{existing.Name}'.";
@@ -276,6 +286,12 @@ public class IndexModel : PageModel
         if (input.Note?.Length > 100)
         {
             errorMessage = "Ghi chú không được vượt quá 100 ký tự.";
+            return false;
+        }
+
+        if (input.CustomExamSlot?.Length > 100)
+        {
+            errorMessage = "Buổi thi tùy chỉnh không được vượt quá 100 ký tự.";
             return false;
         }
 

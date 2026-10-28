@@ -1,5 +1,6 @@
 using KeHoachHocTap.Web.Data;
 using KeHoachHocTap.Web.Domain;
+using Half = KeHoachHocTap.Web.Domain.Half;
 
 namespace KeHoachHocTap.Web.Services;
 
@@ -23,8 +24,10 @@ public class PlanService : IPlanService
     {
         var subjects = await _repository.GetSubjectsAsync(cancellationToken);
         var holidays = await _repository.GetHolidaysAsync(cancellationToken);
+        var firstHalfSetting = await _repository.GetSettingAsync("Plan:FirstSessionHalf", "S", cancellationToken);
+        var firstSessionHalf = "C".Equals(firstHalfSetting, StringComparison.OrdinalIgnoreCase) ? Half.C : Half.S;
 
-        return _calculator.Calculate(subjects, holidays);
+        return _calculator.Calculate(subjects, holidays, firstSessionHalf);
     }
 
     public async Task<IReadOnlyList<Subject>> GetSubjectsAsync(CancellationToken cancellationToken = default)

@@ -130,20 +130,25 @@ class Subject {
   decimal? Grade;                     // điểm 0–10, 1 chữ số thập phân
   int? ReservePeriods;                // dự phòng (tiết) ≥ 0
   string? Note;                       // ≤ 100
+  string ExamMode;                    // "Immediately" (mặc định), "Delayed" (hoãn thi, dồn thi), "Custom" (tùy chỉnh)
+  string? CustomExamSlot;             // Buổi thi tùy chỉnh (≤ 100, vd: "S 20/10/2025")
 }
 class Holiday {
   int Id; string Name;                // ≤ 200
-  DateOnly From; DateOnly To;         // To ≥ From
-  bool IsOpeningDay;                  // đúng 1 dòng = true, và From = To
+  DateOnly From; DateOnly To;         // To ≥ From; Ngày khai giảng có thể là 1 ngày hoặc khoảng nhiều ngày
+  bool IsOpeningDay;                  // đúng 1 dòng = true
 }
 class AppSetting {
-  string Key;                         // Khóa cấu hình (PK, ≤ 100)
+  string Key;                         // Khóa cấu hình (PK, ≤ 100, vd: "Plan:FirstSessionHalf")
   string Value;                       // Giá trị cấu hình
 }
 ```
 
 - Index: `Subject(SortOrder)`, `Holiday(From)`. Dùng Migrations; `PlanDbContext` dùng `UseSqlServer`.
-- Bảng `AppSetting` lưu các tùy chọn động: đường dẫn file template tùy biến, các thông số ExtraTasks (Thi tốt nghiệp, Bế giảng) được chỉnh sửa trực tiếp trên Web.
+- Bảng `AppSetting` lưu các tùy chọn động: buổi bắt đầu học môn 1 (`Plan:FirstSessionHalf`), đường dẫn file template tùy biến, các thông số ExtraTasks (Thi tốt nghiệp, Bế giảng) được chỉnh sửa trực tiếp trên Web.
+- **Tính toán lịch linh hoạt**:
+  + Khai giảng: Hỗ trợ khoảng ngày `From` đến `To`. Ngày học đầu tiên = `NextWorkday(openingHoliday.To)`. Buổi bắt đầu học môn 1 có thể chọn Sáng (S) hoặc Chiều (C).
+  + Lịch thi: Hỗ trợ 3 chế độ (`Immediately` - thi ngay; `Delayed` - hoãn thi, môn sau học luôn, dồn thi 2 môn; `Custom` - chỉ định buổi thi). Thi xong học luôn buổi tiếp theo.
 - **Không lưu kết quả lịch** xuống database. Luôn tính lại từ `Subject` + `Holiday` (19 môn tính < 50 ms).
 - Xoá hoặc đổi chỗ môn ⇒ đánh lại `SortOrder` liên tục 1..n trong cùng transaction.
 - Ràng buộc "đúng 1 ngày khai giảng" kiểm ở tầng service (không dựa riêng vào database).

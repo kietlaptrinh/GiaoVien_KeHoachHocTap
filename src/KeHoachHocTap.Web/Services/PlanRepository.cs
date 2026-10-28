@@ -230,7 +230,6 @@ public class PlanRepository : IPlanRepository
         {
             if (holiday.IsOpeningDay)
             {
-                holiday.To = holiday.From;
                 var existingOpenings = await _context.Holidays
                     .Where(h => h.IsOpeningDay)
                     .ToListAsync(cancellationToken);
@@ -273,7 +272,6 @@ public class PlanRepository : IPlanRepository
         {
             if (holiday.IsOpeningDay)
             {
-                holiday.To = holiday.From;
                 var otherOpenings = await _context.Holidays
                     .Where(h => h.IsOpeningDay && h.Id != holiday.Id)
                     .ToListAsync(cancellationToken);

@@ -184,7 +184,17 @@
                                 </div>
                                 <div class="mobile-kv-item">
                                     <span class="mobile-kv-label">Thi hết môn</span>
-                                    <span class="mobile-kv-value text-primary fw-bold">@item.Exam</span>
+                                    <span class="mobile-kv-value text-primary fw-bold">
+                                        @item.Exam
+                                        @if (string.Equals(sub.ExamMode, "Delayed", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">Dồn thi</span>
+                                        }
+                                        else if (string.Equals(sub.ExamMode, "Custom", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <span class="badge bg-info text-dark ms-1" style="font-size: 10px;">Tùy chỉnh</span>
+                                        }
+                                    </span>
                                 </div>
                                 <div class="mobile-kv-item col-grade" style="display: none;">
                                     <span class="mobile-kv-label">Điểm số</span>
@@ -230,7 +240,9 @@
                                             data-periods="@sub.Periods"
                                             data-grade="@(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "")"
                                             data-reserve="@sub.ReservePeriods"
-                                            data-note="@sub.Note">
+                                            data-note="@sub.Note"
+                                            data-exammode="@sub.ExamMode"
+                                            data-customexamslot="@sub.CustomExamSlot">
                                         ✎ Sửa
                                     </button>
                                     <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete"
@@ -278,7 +290,17 @@
                                 <td class="text-center">@item.Sessions</td>
                                 <td class="text-center text-nowrap">@item.Start</td>
                                 <td class="text-center text-nowrap">@item.End</td>
-                                <td class="text-center text-nowrap fw-bold text-primary">@item.Exam</td>
+                                <td class="text-center text-nowrap fw-bold text-primary">
+                                    @item.Exam
+                                    @if (string.Equals(sub.ExamMode, "Delayed", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="badge bg-warning text-dark ms-1" style="font-size: 10px;">Dồn thi</span>
+                                    }
+                                    else if (string.Equals(sub.ExamMode, "Custom", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <span class="badge bg-info text-dark ms-1" style="font-size: 10px;">Tùy chỉnh</span>
+                                    }
+                                </td>
                                 <td class="text-center fw-bold col-grade @(sub.Grade.HasValue ? "text-success" : "text-muted")" style="display: none;">
                                     @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "—")
                                 </td>
@@ -312,7 +334,9 @@
                                                     data-periods="@sub.Periods"
                                                     data-grade="@(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "")"
                                                     data-reserve="@sub.ReservePeriods"
-                                                    data-note="@sub.Note">
+                                                    data-note="@sub.Note"
+                                                    data-exammode="@sub.ExamMode"
+                                                    data-customexamslot="@sub.CustomExamSlot">
                                                 ✎
                                             </button>
 
@@ -389,6 +413,21 @@
                                 <input type="text" name="Note" maxlength="100" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chế độ thi</label>
+                                <select name="ExamMode" id="addExamMode" class="desktop-input w-100">
+                                    <option value="Immediately" selected>Thi ngay sau khi kết thúc môn (Mặc định)</option>
+                                    <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
+                                    <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3" id="addCustomExamSlotGroup" style="display: none;">
+                                <label class="form-label fw-bold">Buổi thi tùy chỉnh</label>
+                                <input type="text" name="CustomExamSlot" id="addCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
+                                <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
@@ -434,6 +473,21 @@
                                 <input type="text" id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" />
                             </div>
                         </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label fw-bold">Chế độ thi</label>
+                                <select name="ExamMode" id="editExamMode" class="desktop-input w-100">
+                                    <option value="Immediately">Thi ngay sau khi kết thúc môn (Mặc định)</option>
+                                    <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
+                                    <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3" id="editCustomExamSlotGroup" style="display: none;">
+                                <label class="form-label fw-bold">Buổi thi tùy chỉnh</label>
+                                <input type="text" name="CustomExamSlot" id="editCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
+                                <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
@@ -472,6 +526,22 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
+            $('#addExamMode').on('change', function () {
+                if ($(this).val() === 'Custom') {
+                    $('#addCustomExamSlotGroup').show();
+                } else {
+                    $('#addCustomExamSlotGroup').hide();
+                }
+            });
+
+            $('#editExamMode').on('change', function () {
+                if ($(this).val() === 'Custom') {
+                    $('#editCustomExamSlotGroup').show();
+                } else {
+                    $('#editCustomExamSlotGroup').hide();
+                }
+            });
+
             $('.btn-edit').on('click', function () {
                 var btn = $(this);
                 $('#editSubjectId').val(btn.data('id'));
@@ -480,6 +550,15 @@
                 $('#editSubjectGrade').val(btn.data('grade'));
                 $('#editSubjectReserve').val(btn.data('reserve'));
                 $('#editSubjectNote').val(btn.data('note'));
+
+                var examMode = btn.data('exammode') || 'Immediately';
+                $('#editExamMode').val(examMode);
+                $('#editCustomExamSlot').val(btn.data('customexamslot') || '');
+                if (examMode === 'Custom') {
+                    $('#editCustomExamSlotGroup').show();
+                } else {
+                    $('#editCustomExamSlotGroup').hide();
+                }
 
                 var editModal = new bootstrap.Modal(document.getElementById('editSubjectModal'));
                 editModal.show();

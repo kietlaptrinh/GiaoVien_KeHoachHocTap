@@ -13,7 +13,10 @@ public class ScheduleCalculator : IScheduleCalculator
     private const int MaxSafetyDays = 365 * MaxSafetyYears;
     private const int MaxSafetySlots = MaxSafetyDays * 2;
 
-    public ScheduleResult Calculate(IEnumerable<Subject> subjects, IEnumerable<Holiday> holidays)
+    public ScheduleResult Calculate(
+        IEnumerable<Subject> subjects,
+        IEnumerable<Holiday> holidays,
+        Half firstSessionHalf = Half.S)
     {
         var subjectList = subjects?.ToList() ?? new List<Subject>();
         var holidayList = holidays?.ToList() ?? new List<Holiday>();
@@ -32,9 +35,18 @@ public class ScheduleCalculator : IScheduleCalculator
         }
 
         var openingDay = openingHoliday.From;
+        var openingEnd = openingHoliday.To >= openingHoliday.From ? openingHoliday.To : openingHoliday.From;
 
-        // 2. Bung tập ngày nghỉ (bao gồm cả ngày khai giảng là ngày không học)
-        var holidayDates = new HashSet<DateOnly> { openingDay };
+        // 2. Bung tập ngày nghỉ (bao gồm cả các ngày khai giảng là ngày không học môn)
+        var holidayDates = new HashSet<DateOnly>();
+
+        var curOpening = openingDay;
+        while (curOpening <= openingEnd)
+        {
+            holidayDates.Add(curOpening);
+            if (curOpening == DateOnly.MaxValue) break;
+            curOpening = curOpening.AddDays(1);
+        }
 
         foreach (var h in holidayList)
         {
@@ -110,18 +122,30 @@ public class ScheduleCalculator : IScheduleCalculator
             return new Slot(curDate, curHalf);
         }
 
-        // 3. Xếp lịch từng môn theo SortOrder
+        // 3. Ngày làm việc đầu tiên sau khai giảng: NextWorkday(openingHoliday.To). Nếu From == To thì hành vi trùng khớp 100% như cũ.
+        DateOnly firstWorkday;
+        try
+        {
+            firstWorkday = NextWorkday(openingEnd);
+        }
+        catch (InvalidOperationException ex)
+        {
+            warnings.Add($"Không tìm thấy ngày làm việc hợp lệ sau khai giảng: {ex.Message}");
+            return new ScheduleResult(openingDay, holidayList, Array.Empty<ScheduledSubject>(), warnings);
+        }
+
+        // 4. Lọc môn hợp lệ theo SortOrder
         var orderedSubjects = subjectList.OrderBy(s => s.SortOrder).ToList();
-        var scheduledItems = new List<ScheduledSubject>();
-        Slot? previousExam = null;
-        int displayNumber = 1;
+        var validSubjects = new List<Subject>();
+        int displayNumberCounter = 1;
+        var subjectDisplayNumbers = new Dictionary<Subject, int>();
 
         foreach (var subject in orderedSubjects)
         {
             if (subject.Periods <= 0)
             {
-                warnings.Add($"Môn học '{subject.Name}' (Stt {displayNumber}) có số tiết không hợp lệ ({subject.Periods} <= 0). Đã bỏ qua môn này.");
-                displayNumber++;
+                warnings.Add($"Môn học '{subject.Name}' (Stt {displayNumberCounter}) có số tiết không hợp lệ ({subject.Periods} <= 0). Đã bỏ qua môn này.");
+                displayNumberCounter++;
                 continue;
             }
 
@@ -130,38 +154,107 @@ public class ScheduleCalculator : IScheduleCalculator
                 warnings.Add($"Môn học '{subject.Name}' có số tiết ({subject.Periods}) không chia hết cho 5 (được làm tròn lên buổi).");
             }
 
+            subjectDisplayNumbers[subject] = displayNumberCounter++;
+            validSubjects.Add(subject);
+        }
+
+        // 5. Xếp lịch từng môn
+        var scheduledItems = new List<ScheduledSubject>();
+        var pendingExams = new List<(Subject Subject, int Number, int Sessions, Slot Start, Slot End)>();
+        Slot currentStart = new Slot(firstWorkday, firstSessionHalf);
+
+        for (int i = 0; i < validSubjects.Count; i++)
+        {
+            var subject = validSubjects[i];
+            int displayNumber = subjectDisplayNumbers[subject];
             int sessions = (int)Math.Ceiling(subject.Periods / 5.0);
+            bool isLast = (i == validSubjects.Count - 1);
 
             try
             {
-                Slot start;
-                if (previousExam == null)
+                var start = currentStart;
+                var end = Advance(start, sessions - 1);
+                var examMode = subject.ExamMode?.Trim() ?? "Immediately";
+
+                if (string.Equals(examMode, "Delayed", StringComparison.OrdinalIgnoreCase) && !isLast)
                 {
-                    // Môn đầu tiên: Bắt đầu từ buổi Sáng của ngày làm việc đầu tiên sau ngày khai giảng
-                    var firstDay = NextWorkday(openingDay);
-                    start = new Slot(firstDay, Half.S);
+                    // Hoãn thi: Cho môn này vào pendingExams, môn tiếp theo vào học luôn ngay buổi kế tiếp sau buổi học cuối
+                    pendingExams.Add((subject, displayNumber, sessions, start, end));
+                    currentStart = Advance(end, 1);
+                }
+                else if (string.Equals(examMode, "Custom", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Custom: Buổi thi do người dùng chỉ định
+                    Slot examSlot;
+                    if (Slot.TryParse(subject.CustomExamSlot, out var customSlot))
+                    {
+                        examSlot = customSlot;
+                    }
+                    else
+                    {
+                        examSlot = Advance(end, 1);
+                    }
+
+                    scheduledItems.Add(new ScheduledSubject(subject, displayNumber, sessions, start, end, examSlot));
+
+                    if (!isLast)
+                    {
+                        // Môn sau bắt đầu sau end (hoặc sau exam)
+                        currentStart = Advance(end, 1);
+                    }
                 }
                 else
                 {
-                    // Môn tiếp theo: Bắt đầu ngay buổi kế tiếp sau buổi thi môn trước
-                    start = Advance(previousExam.Value, 1);
+                    // "Immediately" (hoặc là môn cuối):
+                    // Xếp lịch thi:
+                    // + Đầu tiên xếp thi cho các môn trong pendingExams (mỗi môn 1 buổi)
+                    // + Sau đó xếp thi cho môn hiện tại (1 buổi)
+                    // + Sau khi thi xong hết, môn tiếp theo bắt đầu ngay buổi kế tiếp: "thi xong học luôn buổi tiếp theo"!
+                    var examCursor = Advance(end, 1);
+
+                    foreach (var pending in pendingExams)
+                    {
+                        scheduledItems.Add(new ScheduledSubject(pending.Subject, pending.Number, pending.Sessions, pending.Start, pending.End, examCursor));
+                        examCursor = Advance(examCursor, 1);
+                    }
+                    pendingExams.Clear();
+
+                    scheduledItems.Add(new ScheduledSubject(subject, displayNumber, sessions, start, end, examCursor));
+
+                    if (!isLast)
+                    {
+                        currentStart = Advance(examCursor, 1);
+                    }
                 }
-
-                var end = Advance(start, sessions - 1);
-                var exam = Advance(end, 1);
-
-                scheduledItems.Add(new ScheduledSubject(subject, displayNumber, sessions, start, end, exam));
-                previousExam = exam;
             }
             catch (InvalidOperationException ex)
             {
                 warnings.Add($"Đã dừng xếp lịch do vượt giới hạn an toàn: {ex.Message}");
                 break;
             }
-
-            displayNumber++;
         }
 
-        return new ScheduleResult(openingDay, holidayList, scheduledItems, warnings);
+        // Đảm bảo không còn môn nào bị sót trong pendingExams (nếu có)
+        if (pendingExams.Count > 0 && scheduledItems.Count > 0)
+        {
+            try
+            {
+                var lastExam = scheduledItems.Max(s => s.Exam);
+                var examCursor = Advance(lastExam, 1);
+                foreach (var pending in pendingExams)
+                {
+                    scheduledItems.Add(new ScheduledSubject(pending.Subject, pending.Number, pending.Sessions, pending.Start, pending.End, examCursor));
+                    examCursor = Advance(examCursor, 1);
+                }
+                pendingExams.Clear();
+            }
+            catch (InvalidOperationException ex)
+            {
+                warnings.Add($"Không thể hoàn tất xếp lịch thi cho các môn hoãn thi: {ex.Message}");
+            }
+        }
+
+        var sortedItems = scheduledItems.OrderBy(s => s.Number).ToList();
+        return new ScheduleResult(openingDay, holidayList, sortedItems, warnings);
     }
 }

@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -89,3 +89,36 @@ GO
 COMMIT;
 GO
 
+BEGIN TRANSACTION;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028022453_AddFlexibleExamAndOpeningDay'
+)
+BEGIN
+    ALTER TABLE [Subjects] ADD [CustomExamSlot] nvarchar(100) NULL;
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028022453_AddFlexibleExamAndOpeningDay'
+)
+BEGIN
+    ALTER TABLE [Subjects] ADD [ExamMode] nvarchar(50) NOT NULL DEFAULT N'Immediately';
+END;
+GO
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261028022453_AddFlexibleExamAndOpeningDay'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261028022453_AddFlexibleExamAndOpeningDay', N'8.0.11');
+END;
+GO
+
+COMMIT;
+GO

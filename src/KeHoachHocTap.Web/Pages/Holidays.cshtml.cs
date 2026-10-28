@@ -27,6 +27,7 @@ public class HolidaysModel : PageModel
     }
 
     public IReadOnlyList<Holiday> Holidays { get; private set; } = Array.Empty<Holiday>();
+    public string FirstSessionHalf { get; private set; } = "S";
     public bool IsAdmin => User.Identity?.IsAuthenticated == true;
     public bool IsPasswordConfigured => _authService.IsPasswordConfigured();
 
@@ -56,7 +57,28 @@ public class HolidaysModel : PageModel
     public async Task OnGetAsync()
     {
         Holidays = await _planRepository.GetHolidaysAsync();
+        FirstSessionHalf = await _planRepository.GetSettingAsync("Plan:FirstSessionHalf", "S") ?? "S";
         ViewData["TotalHolidays"] = Holidays.Count;
+    }
+
+    public async Task<IActionResult> OnPostSetFirstSessionHalfAsync(string firstSessionHalf)
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded)
+        {
+            return Forbid();
+        }
+
+        if (!IsPasswordConfigured)
+        {
+            ErrorMessage = "Hệ thống đang ở chế độ chỉ xem do chưa thiết lập mật khẩu quản trị.";
+            return RedirectToPage();
+        }
+
+        var val = "C".Equals(firstSessionHalf?.Trim(), StringComparison.OrdinalIgnoreCase) ? "C" : "S";
+        await _planRepository.SetSettingAsync("Plan:FirstSessionHalf", val);
+        SuccessMessage = $"Đã cập nhật buổi bắt đầu học môn 1 sau khai giảng thành: {(val == "C" ? "Buổi Chiều (C)" : "Buổi Sáng (S)")}.";
+        return RedirectToPage();
     }
 
     public async Task<IActionResult> OnPostAddHolidayAsync(HolidayInputModel input)
@@ -79,11 +101,7 @@ public class HolidaysModel : PageModel
             return RedirectToPage();
         }
 
-        if (input.IsOpeningDay)
-        {
-            input.To = input.From;
-        }
-        else if (input.To < input.From)
+        if (input.To < input.From)
         {
             ErrorMessage = "Đến ngày phải lớn hơn hoặc bằng Từ ngày.";
             return RedirectToPage();
@@ -131,11 +149,7 @@ public class HolidaysModel : PageModel
             return RedirectToPage();
         }
 
-        if (input.IsOpeningDay)
-        {
-            input.To = input.From;
-        }
-        else if (input.To < input.From)
+        if (input.To < input.From)
         {
             ErrorMessage = "Đến ngày phải lớn hơn hoặc bằng Từ ngày.";
             return RedirectToPage();

@@ -144,14 +144,22 @@ Khi khởi chạy lần đầu tiên với cơ sở dữ liệu trống, hệ th
   - Buổi bắt đầu, Buổi kết thúc, Buổi thi hết môn.
   - Điểm tổng kết (thang điểm 10, hiển thị 1 chữ số thập phân).
   - Số tiết dự phòng và Ghi chú.
+- **Linh hoạt chế độ thi hết môn:**
+  - *Thi ngay sau khi kết thúc môn* (Mặc định): Học xong buổi cuối $\rightarrow$ Buổi tiếp theo thi $\rightarrow$ Môn sau học ngay sau buổi thi.
+  - *Hoãn thi (Dồn thi)*: Môn sau vào học luôn ngay buổi tiếp theo sau buổi học cuối; đợt thi được dồn sau khi môn kế tiếp kết thúc (thi lần lượt 2 môn rồi môn thứ 3 học tiếp ngay).
+  - *Chỉ định buổi thi tùy chỉnh*: Nhập slot thi cụ thể (ví dụ: `S 20/10/2025`).
+- **Nút bật/tắt cột Điểm:** Mặc định ẩn cột Điểm để bảng gọn gàng tập trung vào kế hoạch giảng dạy; khi cần nhập điểm tổng kết có thể bấm nút **"👁️ Hiện cột điểm"** để xem và nhập điểm, tự động tính Điểm TB cộng & Điểm TB gia quyền.
 - **Thống kê tổng hợp:** Dòng chân trang tự động tính Tổng số tiết (895 tiết), Điểm trung bình cộng và Điểm trung bình gia quyền theo số tiết (chỉ tính cho các môn đã có điểm).
 - **Thao tác quản trị viên:**
-  - Nhập điểm trực tiếp tại ô; chỉnh sửa số tiết, dự phòng, ghi chú.
+  - Nhập điểm trực tiếp tại ô; chỉnh sửa số tiết, dự phòng, ghi chú, chế độ thi.
   - Di chuyển thứ tự môn học (▲ lên / ▼ xuống) — lịch học toàn khóa học tự động tính lại ngay lập tức.
   - Thêm môn học mới hoặc xóa môn học (có hộp thoại xác nhận).
 
 ### 5.2. Trang Ngày nghỉ & Khai giảng (`/Holidays`)
 - Quản lý các sự kiện nghỉ lễ, nghỉ Tết và sự kiện khai giảng.
+- **Khai giảng linh hoạt:**
+  - Cho phép ngày Khai giảng kéo dài nhiều ngày (`Từ ngày → Đến ngày`), toàn bộ khoảng thời gian này được tính là ngày lễ/nghỉ khóa học.
+  - **Linh hoạt buổi bắt đầu môn 1:** Tùy chọn bắt đầu vào buổi **Sáng (S)** hoặc buổi **Chiều (C)** sau đợt khai giảng.
 - Ràng buộc toàn vẹn dữ liệu: `Đến ngày >= Từ ngày`.
 - Hệ thống luôn bảo đảm có duy nhất đúng 1 ngày khai giảng khóa học. Khi chuyển cờ khai giảng sang ngày khác, cờ ở ngày cũ sẽ tự động bị hủy.
 - Mỗi khi thay đổi ngày nghỉ, lịch của tất cả các môn học phía sau tự động dịch chuyển tương ứng.

@@ -307,4 +307,153 @@ public class ScheduleCalculatorTests
     }
 
     #endregion
+
+    #region 4. Flexible Opening Day & Exam Scheduling Tests
+
+    [Fact]
+    public void Calculate_MultiDayOpening_StartsOnNextWorkdayAfterToDate()
+    {
+        // Khai giảng kéo dài 3 ngày: Thứ Tư 10/9/2025 -> Thứ Sáu 12/9/2025
+        // Thứ Bảy 13/9 và Chủ Nhật 14/9 là ngày nghỉ cuối tuần
+        // Ngày làm việc đầu tiên sau khai giảng phải là Thứ Hai 15/9/2025
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn 1", Periods = 10 } // 2 buổi
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Tuần lễ Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 12), IsOpeningDay = true }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays);
+
+        var item = Assert.Single(result.Items);
+        Assert.Equal("S 15/9/2025", item.Start.ToString());
+        Assert.Equal("C 15/9/2025", item.End.ToString());
+        Assert.Equal("S 16/9/2025", item.Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_FirstSessionHalfAfternoon_StartsSubject1InAfternoon()
+    {
+        // Khai giảng ngày 10/9/2025 (T4)
+        // Ngày làm việc đầu tiên: 11/9/2025 (T5)
+        // firstSessionHalf = Half.C -> Môn 1 bắt đầu vào C 11/9/2025
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn 1", Periods = 10 } // 2 buổi: C 11/9, S 12/9 -> Thi: C 12/9
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays, Half.C);
+
+        var item = Assert.Single(result.Items);
+        Assert.Equal("C 11/9/2025", item.Start.ToString());
+        Assert.Equal("S 12/9/2025", item.End.ToString());
+        Assert.Equal("C 12/9/2025", item.Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_DelayedExam_BatchesExamsAndNextSubjectStartsImmediately()
+    {
+        // Khai giảng: 10/9/2025 (T4)
+        // Ngày làm việc đầu tiên: 11/9/2025 (T5)
+        // Môn 1 (10 tiết = 2 buổi, ExamMode = "Delayed"):
+        //   Học: S 11/9, C 11/9 (End: C 11/9/2025)
+        //   Hoãn thi -> Môn 2 vào học luôn ngay buổi tiếp theo (S 12/9/2025)
+        // Môn 2 (10 tiết = 2 buổi, ExamMode = "Immediately"):
+        //   Học: S 12/9, C 12/9 (End: C 12/9/2025)
+        //   Tổ chức thi lần lượt môn 1 rồi môn 2:
+        //   13/9, 14/9 nghỉ cuối tuần -> Môn 1 thi: S 15/9/2025; Môn 2 thi: C 15/9/2025
+        // Môn 3 (10 tiết = 2 buổi, ExamMode = "Immediately"):
+        //   Học luôn buổi tiếp theo sau các buổi thi: S 16/9/2025
+        //   Học: S 16/9, C 16/9 -> Thi: S 17/9/2025
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn 1", Periods = 10, ExamMode = "Delayed" },
+            new() { SortOrder = 2, Name = "Môn 2", Periods = 10, ExamMode = "Immediately" },
+            new() { SortOrder = 3, Name = "Môn 3", Periods = 10, ExamMode = "Immediately" }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays);
+
+        Assert.Equal(3, result.Items.Count);
+
+        // Môn 1
+        var item1 = result.Items[0];
+        Assert.Equal("S 11/9/2025", item1.Start.ToString());
+        Assert.Equal("C 11/9/2025", item1.End.ToString());
+        Assert.Equal("S 15/9/2025", item1.Exam.ToString());
+
+        // Môn 2
+        var item2 = result.Items[1];
+        Assert.Equal("S 12/9/2025", item2.Start.ToString());
+        Assert.Equal("C 12/9/2025", item2.End.ToString());
+        Assert.Equal("C 15/9/2025", item2.Exam.ToString());
+
+        // Môn 3
+        var item3 = result.Items[2];
+        Assert.Equal("S 16/9/2025", item3.Start.ToString());
+        Assert.Equal("C 16/9/2025", item3.End.ToString());
+        Assert.Equal("S 17/9/2025", item3.Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_CustomExamMode_UsesSpecifiedSlot()
+    {
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn Custom", Periods = 10, ExamMode = "Custom", CustomExamSlot = "S 22/9/2025" }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays);
+
+        var item = Assert.Single(result.Items);
+        Assert.Equal("S 11/9/2025", item.Start.ToString());
+        Assert.Equal("C 11/9/2025", item.End.ToString());
+        Assert.Equal("S 22/9/2025", item.Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_LastSubjectDelayed_SchedulesExamAtEndSafely()
+    {
+        var subjects = new List<Subject>
+        {
+            new() { SortOrder = 1, Name = "Môn 1", Periods = 10, ExamMode = "Delayed" },
+            new() { SortOrder = 2, Name = "Môn 2", Periods = 10, ExamMode = "Delayed" }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays);
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Equal("S 11/9/2025", result.Items[0].Start.ToString());
+        Assert.Equal("C 11/9/2025", result.Items[0].End.ToString());
+        Assert.Equal("S 15/9/2025", result.Items[0].Exam.ToString());
+
+        Assert.Equal("S 12/9/2025", result.Items[1].Start.ToString());
+        Assert.Equal("C 12/9/2025", result.Items[1].End.ToString());
+        Assert.Equal("C 15/9/2025", result.Items[1].Exam.ToString());
+    }
+
+    #endregion
 }

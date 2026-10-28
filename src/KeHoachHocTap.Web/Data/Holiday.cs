@@ -23,7 +23,7 @@ public class Holiday
     public DateOnly To { get; set; }
 
     /// <summary>
-    /// Đánh dấu là ngày khai giảng khóa học (đúng 1 dòng = true, From == To).
+    /// Đánh dấu là ngày khai giảng khóa học (đúng 1 sự kiện = true, có thể kéo dài nhiều ngày Từ ngày -> Đến ngày).
     /// </summary>
     public bool IsOpeningDay { get; set; }
 }

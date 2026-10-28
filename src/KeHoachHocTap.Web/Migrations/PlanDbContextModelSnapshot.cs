@@ -74,6 +74,17 @@ namespace KeHoachHocTap.Web.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CustomExamSlot")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ExamMode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Immediately");
+
                     b.Property<decimal?>("Grade")
                         .HasPrecision(4, 1)
                         .HasColumnType("decimal(4,1)");

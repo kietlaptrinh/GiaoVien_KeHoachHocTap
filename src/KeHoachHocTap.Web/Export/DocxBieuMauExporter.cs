@@ -77,8 +77,13 @@ public class DocxBieuMauExporter : IExporter
             // 6. Thêm các hàng dữ liệu mới theo thứ tự chuẩn: Khai giảng → Các môn học → Thi tốt nghiệp → Bế giảng
             // Dòng 1: Khai giảng (TT = 1)
             var openingRow = (TableRow)templateRow.CloneNode(true);
-            var openingStart = $"S {result.OpeningDay.Day}/{result.OpeningDay.Month}/{result.OpeningDay.Year}";
-            var openingEnd = $"C {result.OpeningDay.Day}/{result.OpeningDay.Month}/{result.OpeningDay.Year}";
+            var openingHoliday = result.Holidays?.FirstOrDefault(h => h.IsOpeningDay);
+            var openingStartDay = openingHoliday?.From ?? result.OpeningDay;
+            var openingEndDay = (openingHoliday != null && openingHoliday.To >= openingHoliday.From)
+                ? openingHoliday.To
+                : openingStartDay;
+            var openingStart = $"S {openingStartDay.Day}/{openingStartDay.Month}/{openingStartDay.Year}";
+            var openingEnd = $"C {openingEndDay.Day}/{openingEndDay.Month}/{openingEndDay.Year}";
             SetRowCells(openingRow, [
                 "1",
                 "Khai giảng",

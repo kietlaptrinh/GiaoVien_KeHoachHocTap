@@ -36,4 +36,14 @@ public class Subject
     /// Ghi chú (tối đa 100 ký tự).
     /// </summary>
     public string? Note { get; set; }
+
+    /// <summary>
+    /// Chế độ thi: "Immediately" (thi ngay sau khi học xong), "Delayed" (hoãn thi, học tiếp môn sau), "Custom" (chỉ định).
+    /// </summary>
+    public string ExamMode { get; set; } = "Immediately";
+
+    /// <summary>
+    /// Buổi thi chỉ định hoặc ghi chú thi dồn khi ExamMode là "Custom".
+    /// </summary>
+    public string? CustomExamSlot { get; set; }
 }

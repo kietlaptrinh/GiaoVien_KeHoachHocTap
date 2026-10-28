@@ -60,7 +60,7 @@ public class HolidayValidationTests : IAsyncLifetime
     }
 
     [Fact]
-    public async Task AddHoliday_OpeningDay_ShouldEnsureToDateEqualsFromDate_AndUnsetPreviousOpening()
+    public async Task AddHoliday_OpeningDay_ShouldSupportDateRange_AndUnsetPreviousOpening()
     {
         // 1. Tạo ngày khai giảng ban đầu
         var initialOpening = new Holiday
@@ -72,7 +72,7 @@ public class HolidayValidationTests : IAsyncLifetime
         };
         await _repository.AddHolidayAsync(initialOpening);
 
-        // 2. Thêm ngày khai giảng mới với To khác From
+        // 2. Thêm ngày khai giảng mới với To khác From (khoảng ngày kéo dài nhiều ngày)
         var newOpening = new Holiday
         {
             Name = "Ngày khai giảng điều chỉnh",
@@ -82,12 +82,12 @@ public class HolidayValidationTests : IAsyncLifetime
         };
         await _repository.AddHolidayAsync(newOpening);
 
-        // 3. Kiểm tra: Ngày mới phải có To == From và IsOpeningDay == true
+        // 3. Kiểm tra: Ngày mới giữ nguyên khoảng ngày To >= From và IsOpeningDay == true
         var openingInDb = await _repository.GetOpeningDayAsync();
         Assert.NotNull(openingInDb);
         Assert.Equal("Ngày khai giảng điều chỉnh", openingInDb.Name);
         Assert.Equal(new DateOnly(2025, 9, 15), openingInDb.From);
-        Assert.Equal(new DateOnly(2025, 9, 15), openingInDb.To); // To phải tự động bằng From
+        Assert.Equal(new DateOnly(2025, 9, 20), openingInDb.To); // To được hỗ trợ kéo dài nhiều ngày
 
         // 4. Ngày khai giảng cũ phải bị hủy đánh dấu IsOpeningDay
         var oldOpeningInDb = await _repository.GetHolidayByIdAsync(initialOpening.Id);

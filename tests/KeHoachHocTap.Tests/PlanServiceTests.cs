@@ -104,4 +104,19 @@ public class PlanServiceTests : IAsyncLifetime
         Assert.Equal("C 19/9/2025", sub1.End.ToString());
         Assert.Equal("S 22/9/2025", sub1.Exam.ToString());
     }
+
+    [Fact]
+    public async Task GetScheduleAsync_WithFirstSessionHalfAfternoon_StartsSubject1InAfternoon()
+    {
+        // Cấu hình buổi bắt đầu môn 1 là Buổi Chiều (C)
+        await _repository.SetSettingAsync("Plan:FirstSessionHalf", "C");
+
+        var schedule = await _planService.GetScheduleAsync();
+
+        var sub1 = schedule.Items[0];
+        // Khai giảng: 10/9/2025 (T4)
+        // Ngày làm việc kế tiếp: 11/9/2025 (T5)
+        // Với firstSessionHalf = C: Bắt đầu vào C 11/9/2025
+        Assert.Equal("C 11/9/2025", sub1.Start.ToString());
+    }
 }

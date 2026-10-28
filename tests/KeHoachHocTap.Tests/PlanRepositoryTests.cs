@@ -210,4 +210,31 @@ public class PlanRepositoryTests : IAsyncLifetime
         Assert.Equal("final.docx", allSettings["TemplatePath"]);
         Assert.Equal("5", allSettings["ExamPeriods"]);
     }
+
+    [Fact]
+    public async Task Subject_ExamModeAndCustomExamSlot_ArePersistedCorrectly()
+    {
+        var sub = new Subject
+        {
+            Name = "An toàn thông tin",
+            Periods = 30,
+            ExamMode = "Delayed",
+            CustomExamSlot = null
+        };
+        await _repository.AddSubjectAsync(sub);
+
+        var list = await _repository.GetSubjectsAsync();
+        var saved = Assert.Single(list);
+        Assert.Equal("Delayed", saved.ExamMode);
+        Assert.Null(saved.CustomExamSlot);
+
+        saved.ExamMode = "Custom";
+        saved.CustomExamSlot = "S 20/10/2025";
+        await _repository.UpdateSubjectAsync(saved);
+
+        var updated = await _repository.GetSubjectByIdAsync(saved.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("Custom", updated.ExamMode);
+        Assert.Equal("S 20/10/2025", updated.CustomExamSlot);
+    }
 }
