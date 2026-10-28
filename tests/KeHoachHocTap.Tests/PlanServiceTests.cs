@@ -119,4 +119,36 @@ public class PlanServiceTests : IAsyncLifetime
         // Với firstSessionHalf = C: Bắt đầu vào C 11/9/2025
         Assert.Equal("C 11/9/2025", sub1.Start.ToString());
     }
+
+    [Fact]
+    public async Task GetScheduleAsync_WithInterimAndClosingActivities_CalculatesCompleteSchedule()
+    {
+        var subjects = await _repository.GetSubjectsAsync();
+        var sub1 = subjects[0];
+
+        // Thêm hoạt động xen kẽ sau môn 1
+        await _repository.AddActivityAsync(new PlanActivity
+        {
+            Name = "Đi nghiên cứu thực tế",
+            Type = PlanActivityType.Interim,
+            AfterSubjectId = sub1.Id,
+            Sessions = 2,
+            Periods = 10
+        });
+
+        // Thêm hoạt động cuối khóa
+        await _repository.AddActivityAsync(new PlanActivity
+        {
+            Name = "Ôn thi tốt nghiệp",
+            Type = PlanActivityType.Closing,
+            Sessions = 3,
+            Periods = 15
+        });
+
+        var schedule = await _planService.GetScheduleAsync();
+
+        Assert.Equal(2, schedule.Activities.Count);
+        Assert.Contains(schedule.Activities, a => a.Activity.Name == "Đi nghiên cứu thực tế");
+        Assert.Contains(schedule.Activities, a => a.Activity.Name == "Ôn thi tốt nghiệp");
+    }
 }

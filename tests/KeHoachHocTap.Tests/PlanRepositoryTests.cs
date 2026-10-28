@@ -237,4 +237,75 @@ public class PlanRepositoryTests : IAsyncLifetime
         Assert.Equal("Custom", updated.ExamMode);
         Assert.Equal("S 20/10/2025", updated.CustomExamSlot);
     }
+
+    [Fact]
+    public async Task PlanActivity_CRUD_WorksCorrectly()
+    {
+        // Add
+        var act = new PlanActivity
+        {
+            Name = "Đi nghiên cứu thực tế tại cơ sở",
+            Type = PlanActivityType.Interim,
+            Sessions = 2,
+            Periods = 10,
+            Note = "Nghiên cứu nông thôn mới"
+        };
+        await _repository.AddActivityAsync(act);
+
+        var list = await _repository.GetActivitiesAsync();
+        Assert.Single(list);
+        Assert.Equal("Đi nghiên cứu thực tế tại cơ sở", list[0].Name);
+        Assert.Equal(PlanActivityType.Interim, list[0].Type);
+
+        // Update
+        var fetched = await _repository.GetActivityByIdAsync(list[0].Id);
+        Assert.NotNull(fetched);
+        fetched.Name = "Nghỉ viết bài thu hoạch môn học";
+        await _repository.UpdateActivityAsync(fetched);
+
+        var updated = await _repository.GetActivityByIdAsync(fetched.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("Nghỉ viết bài thu hoạch môn học", updated.Name);
+
+        // Delete
+        await _repository.DeleteActivityAsync(fetched.Id);
+        var afterDelete = await _repository.GetActivitiesAsync();
+        Assert.Empty(afterDelete);
+    }
+
+    [Fact]
+    public async Task Student_And_Grade_Operations_WorkCorrectly()
+    {
+        var sub = new Subject { Name = "Triết học Mác - Lênin", Periods = 60, SortOrder = 1 };
+        await _repository.AddSubjectAsync(sub);
+        var savedSub = (await _repository.GetSubjectsAsync())[0];
+
+        var student = new Student
+        {
+            SortOrder = 1,
+            StudentCode = "K75A56.0101",
+            LastName = "Đặng Thị Hội",
+            FirstName = "An",
+            DateOfBirth = new DateOnly(1982, 4, 14),
+            Gender = "Nữ"
+        };
+        await _repository.AddStudentAsync(student);
+
+        var students = await _repository.GetStudentsWithGradesAsync();
+        Assert.Single(students);
+        Assert.Equal("Đặng Thị Hội An", students[0].FullName);
+
+        // Update single grade
+        await _repository.UpdateSingleGradeAsync(students[0].Id, savedSub.Id, 8.25m, "Tốt");
+
+        var updatedStudents = await _repository.GetStudentsWithGradesAsync();
+        var grade = Assert.Single(updatedStudents[0].Grades);
+        Assert.Equal(8.25m, grade.Score);
+        Assert.Equal("Tốt", grade.Note);
+
+        // Delete Student cascades grades
+        await _repository.DeleteStudentAsync(students[0].Id);
+        var remaining = await _repository.GetStudentsWithGradesAsync();
+        Assert.Empty(remaining);
+    }
 }

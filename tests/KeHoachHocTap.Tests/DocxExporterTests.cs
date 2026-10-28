@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Validation;
 using DocumentFormat.OpenXml.Wordprocessing;
 using KeHoachHocTap.Web.Data;
 using KeHoachHocTap.Web.Domain;
+using Half = KeHoachHocTap.Web.Domain.Half;
 using KeHoachHocTap.Web.Export;
 using KeHoachHocTap.Web.Services;
 using Microsoft.EntityFrameworkCore;
@@ -322,5 +323,177 @@ public class DocxExporterTests : IClassFixture<TestDatabaseFixture>
         // Môn 2 (Immediately) thi vào: C 15/9/2025
         Assert.Equal("Môn Thi Thường", mon2Cells[1]);
         Assert.Equal(schedule.Items[1].Exam.ToString(), mon2Cells[8]);
+    }
+
+    [Fact]
+    public void Export_WithInterimActivities_InsertsRowsCorrectlyInDocx()
+    {
+        var calculator = new ScheduleCalculator();
+        var subjects = new List<Subject>
+        {
+            new() { Id = 1, SortOrder = 1, Name = "Môn 1", Periods = 10 },
+            new() { Id = 2, SortOrder = 2, Name = "Môn 2", Periods = 10 }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 10,
+                Name = "Đi nghiên cứu thực tế tại cơ sở",
+                Type = PlanActivityType.Interim,
+                AfterSubjectId = 1,
+                FromDate = new DateOnly(2025, 9, 15),
+                ToDate = new DateOnly(2025, 9, 19),
+                Periods = 10,
+                Note = "Thực tế tại cơ sở"
+            }
+        };
+
+        var schedule = calculator.Calculate(subjects, holidays, Half.S, activities);
+        var exporter = new DocxBieuMauExporter();
+        var options = new ExportOptions
+        {
+            TemplatePath = GetTemplatePath()
+        };
+
+        var bytes = exporter.Export(schedule, options);
+        Assert.NotNull(bytes);
+
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+
+        var validator = new OpenXmlValidator(FileFormatVersions.Office2019);
+        Assert.Empty(validator.Validate(doc));
+
+        Assert.NotNull(doc.MainDocumentPart?.Document?.Body);
+        var body = doc.MainDocumentPart.Document.Body;
+        var table = body.Elements<Table>().First(t =>
+            t.Elements<TableRow>().Any(row =>
+                row.Elements<TableCell>().Any(cell =>
+                    cell.InnerText.Contains("Tên môn học/Nhiệm vụ"))));
+
+        var dataRows = table.Elements<TableRow>().Skip(2).ToList();
+        // 1 Khai giảng + 1 Môn 1 + 1 Hoạt động xen kẽ + 1 Môn 2 + 1 Thi TN + 1 Bế giảng = 6 hàng
+        Assert.Equal(6, dataRows.Count);
+
+        // Hàng 0: Khai giảng (TT = 1)
+        var row0Cells = dataRows[0].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("1", row0Cells[0]);
+        Assert.Equal("Khai giảng", row0Cells[1]);
+
+        // Hàng 1: Môn 1 (TT = 2)
+        var row1Cells = dataRows[1].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("2", row1Cells[0]);
+        Assert.Equal("Môn 1", row1Cells[1]);
+
+        // Hàng 2: Hoạt động xen kẽ (TT = 3)
+        var row2Cells = dataRows[2].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("3", row2Cells[0]);
+        Assert.Equal("Đi nghiên cứu thực tế tại cơ sở", row2Cells[1]);
+        Assert.Equal("10", row2Cells[2]);
+        Assert.Equal("S 15/9/2025", row2Cells[6]);
+        Assert.Equal("C 19/9/2025", row2Cells[7]);
+        Assert.Equal(string.Empty, row2Cells[8]); // Không có thi
+        Assert.Equal("Thực tế tại cơ sở", row2Cells[9]);
+
+        // Hàng 3: Môn 2 (TT = 4)
+        var row3Cells = dataRows[3].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("4", row3Cells[0]);
+        Assert.Equal("Môn 2", row3Cells[1]);
+
+        // Hàng 4: Thi tốt nghiệp (TT = 5)
+        var row4Cells = dataRows[4].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("5", row4Cells[0]);
+        Assert.Equal("Thi tốt nghiệp", row4Cells[1]);
+
+        // Hàng 5: Bế giảng (TT = 6)
+        var row5Cells = dataRows[5].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("6", row5Cells[0]);
+        Assert.Equal("Bế giảng", row5Cells[1]);
+    }
+
+    [Fact]
+    public void Export_WithClosingActivities_ReplacesDefaultGraduationAndClosingRows()
+    {
+        var calculator = new ScheduleCalculator();
+        var subjects = new List<Subject>
+        {
+            new() { Id = 1, SortOrder = 1, Name = "Môn Duy Nhất", Periods = 10 }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 1,
+                SortOrder = 1,
+                Name = "Ôn thi tốt nghiệp",
+                Type = PlanActivityType.Closing,
+                Periods = 15
+            },
+            new()
+            {
+                Id = 2,
+                SortOrder = 2,
+                Name = "Bế giảng khóa học",
+                Type = PlanActivityType.Closing,
+                Periods = 5,
+                Note = "Lễ tốt nghiệp"
+            }
+        };
+
+        var schedule = calculator.Calculate(subjects, holidays, Half.S, activities);
+        var exporter = new DocxBieuMauExporter();
+        var options = new ExportOptions
+        {
+            TemplatePath = GetTemplatePath()
+        };
+
+        var bytes = exporter.Export(schedule, options);
+        Assert.NotNull(bytes);
+
+        using var ms = new MemoryStream(bytes);
+        using var doc = WordprocessingDocument.Open(ms, false);
+
+        Assert.NotNull(doc.MainDocumentPart?.Document?.Body);
+        var body = doc.MainDocumentPart.Document.Body;
+        var table = body.Elements<Table>().First(t =>
+            t.Elements<TableRow>().Any(row =>
+                row.Elements<TableCell>().Any(cell =>
+                    cell.InnerText.Contains("Tên môn học/Nhiệm vụ"))));
+
+        var dataRows = table.Elements<TableRow>().Skip(2).ToList();
+        // 1 Khai giảng + 1 Môn + 2 Closing = 4 hàng
+        Assert.Equal(4, dataRows.Count);
+
+        var r0 = dataRows[0].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("1", r0[0]);
+        Assert.Equal("Khai giảng", r0[1]);
+
+        var r1 = dataRows[1].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("2", r1[0]);
+        Assert.Equal("Môn Duy Nhất", r1[1]);
+
+        var r2 = dataRows[2].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("3", r2[0]);
+        Assert.Equal("Ôn thi tốt nghiệp", r2[1]);
+        Assert.Equal("15", r2[2]);
+
+        var r3 = dataRows[3].Elements<TableCell>().Select(c => c.InnerText.Trim()).ToList();
+        Assert.Equal("4", r3[0]);
+        Assert.Equal("Bế giảng khóa học", r3[1]);
+        Assert.Equal("5", r3[2]);
+        Assert.Equal("Lễ tốt nghiệp", r3[9]);
     }
 }

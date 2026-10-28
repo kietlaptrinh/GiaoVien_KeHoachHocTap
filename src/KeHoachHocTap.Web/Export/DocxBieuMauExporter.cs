@@ -1,6 +1,7 @@
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using KeHoachHocTap.Web.Data;
 using KeHoachHocTap.Web.Domain;
 using Microsoft.AspNetCore.Hosting;
 
@@ -74,7 +75,9 @@ public class DocxBieuMauExporter : IExporter
                 oldRow.Remove();
             }
 
-            // 6. Thêm các hàng dữ liệu mới theo thứ tự chuẩn: Khai giảng → Các môn học → Thi tốt nghiệp → Bế giảng
+            // 6. Thêm các hàng dữ liệu mới theo thứ tự chuẩn: Khai giảng → Các môn học (kèm hoạt động xen kẽ) → Chuỗi hoạt động sau môn cuối (hoặc mặc định Thi tốt nghiệp → Bế giảng)
+            int currentTt = 1;
+
             // Dòng 1: Khai giảng (TT = 1)
             var openingRow = (TableRow)templateRow.CloneNode(true);
             var openingHoliday = result.Holidays?.FirstOrDefault(h => h.IsOpeningDay);
@@ -85,7 +88,7 @@ public class DocxBieuMauExporter : IExporter
             var openingStart = $"S {openingStartDay.Day}/{openingStartDay.Month}/{openingStartDay.Year}";
             var openingEnd = $"C {openingEndDay.Day}/{openingEndDay.Month}/{openingEndDay.Year}";
             SetRowCells(openingRow, [
-                "1",
+                (currentTt++).ToString(),
                 "Khai giảng",
                 "10",
                 string.Empty,
@@ -98,12 +101,12 @@ public class DocxBieuMauExporter : IExporter
             ]);
             targetTable.AppendChild(openingRow);
 
-            // Dòng 2..n+1: Các môn học (TT = 2..n+1)
+            // Dòng các môn học và hoạt động xen kẽ
             for (int i = 0; i < result.Items.Count; i++)
             {
                 var item = result.Items[i];
                 var subjectRow = (TableRow)templateRow.CloneNode(true);
-                var tt = (i + 2).ToString();
+                var tt = (currentTt++).ToString();
 
                 var teachingPeriods = Math.Max(0, item.Subject.Periods - options.SelfStudyPeriods);
                 var reserveStr = item.Subject.ReservePeriods.HasValue && item.Subject.ReservePeriods.Value > 0
@@ -123,43 +126,110 @@ public class DocxBieuMauExporter : IExporter
                     item.Subject.Note ?? string.Empty
                 ]);
                 targetTable.AppendChild(subjectRow);
+
+                // Kiểm tra hoạt động xen kẽ sau môn học này
+                if (result.Activities != null)
+                {
+                    var interimActivities = result.Activities
+                        .Where(a => a.Activity.Type == PlanActivityType.Interim &&
+                                    (a.Activity.AfterSubjectId == item.Subject.Id || (item.Subject.Id == 0 && a.Activity.AfterSubjectId == item.Subject.SortOrder)))
+                        .OrderBy(a => a.Activity.SortOrder)
+                        .ToList();
+
+                    foreach (var act in interimActivities)
+                    {
+                        var interimRow = (TableRow)templateRow.CloneNode(true);
+                        var actTt = (currentTt++).ToString();
+                        var periodsOrSessions = act.Activity.Periods.HasValue
+                            ? act.Activity.Periods.Value.ToString()
+                            : (act.Activity.Sessions.HasValue ? act.Activity.Sessions.Value.ToString() : string.Empty);
+
+                        SetRowCells(interimRow, [
+                            actTt,
+                            act.Activity.Name,
+                            periodsOrSessions,
+                            string.Empty,
+                            string.Empty,
+                            string.Empty,
+                            act.Start?.ToString() ?? string.Empty,
+                            act.End?.ToString() ?? string.Empty,
+                            string.Empty,
+                            act.Activity.Note ?? string.Empty
+                        ]);
+                        targetTable.AppendChild(interimRow);
+                    }
+                }
             }
 
-            // Dòng n+2: Thi tốt nghiệp
-            var gradRow = (TableRow)templateRow.CloneNode(true);
-            var gradTt = (result.Items.Count + 2).ToString();
-            var gradPeriods = options.Graduation.Periods > 0 ? options.Graduation.Periods.ToString() : string.Empty;
-            SetRowCells(gradRow, [
-                gradTt,
-                options.Graduation.Name,
-                gradPeriods,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                options.Graduation.Start ?? string.Empty,
-                options.Graduation.End ?? string.Empty,
-                string.Empty,
-                string.Empty
-            ]);
-            targetTable.AppendChild(gradRow);
+            // Chuỗi hoạt động sau môn cuối cùng (Closing Activities)
+            var closingActivities = result.Activities?
+                .Where(a => a.Activity.Type == PlanActivityType.Closing)
+                .OrderBy(a => a.Activity.SortOrder)
+                .ToList();
 
-            // Dòng n+3: Bế giảng
-            var closingRow = (TableRow)templateRow.CloneNode(true);
-            var closingTt = (result.Items.Count + 3).ToString();
-            var closingPeriods = options.Closing.Periods > 0 ? options.Closing.Periods.ToString() : string.Empty;
-            SetRowCells(closingRow, [
-                closingTt,
-                options.Closing.Name,
-                closingPeriods,
-                string.Empty,
-                string.Empty,
-                string.Empty,
-                options.Closing.Start ?? string.Empty,
-                options.Closing.End ?? string.Empty,
-                string.Empty,
-                string.Empty
-            ]);
-            targetTable.AppendChild(closingRow);
+            if (closingActivities != null && closingActivities.Count > 0)
+            {
+                foreach (var act in closingActivities)
+                {
+                    var closingActRow = (TableRow)templateRow.CloneNode(true);
+                    var actTt = (currentTt++).ToString();
+                    var periodsOrSessions = act.Activity.Periods.HasValue
+                        ? act.Activity.Periods.Value.ToString()
+                        : (act.Activity.Sessions.HasValue ? act.Activity.Sessions.Value.ToString() : string.Empty);
+
+                    SetRowCells(closingActRow, [
+                        actTt,
+                        act.Activity.Name,
+                        periodsOrSessions,
+                        string.Empty,
+                        string.Empty,
+                        string.Empty,
+                        act.Start?.ToString() ?? string.Empty,
+                        act.End?.ToString() ?? string.Empty,
+                        string.Empty,
+                        act.Activity.Note ?? string.Empty
+                    ]);
+                    targetTable.AppendChild(closingActRow);
+                }
+            }
+            else
+            {
+                // Dòng Thi tốt nghiệp (fallback options.Graduation)
+                var gradRow = (TableRow)templateRow.CloneNode(true);
+                var gradTt = (currentTt++).ToString();
+                var gradPeriods = options.Graduation.Periods > 0 ? options.Graduation.Periods.ToString() : string.Empty;
+                SetRowCells(gradRow, [
+                    gradTt,
+                    options.Graduation.Name,
+                    gradPeriods,
+                    string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    options.Graduation.Start ?? string.Empty,
+                    options.Graduation.End ?? string.Empty,
+                    string.Empty,
+                    string.Empty
+                ]);
+                targetTable.AppendChild(gradRow);
+
+                // Dòng Bế giảng (fallback options.Closing)
+                var closingRow = (TableRow)templateRow.CloneNode(true);
+                var closingTt = (currentTt++).ToString();
+                var closingPeriods = options.Closing.Periods > 0 ? options.Closing.Periods.ToString() : string.Empty;
+                SetRowCells(closingRow, [
+                    closingTt,
+                    options.Closing.Name,
+                    closingPeriods,
+                    string.Empty,
+                    string.Empty,
+                    string.Empty,
+                    options.Closing.Start ?? string.Empty,
+                    options.Closing.End ?? string.Empty,
+                    string.Empty,
+                    string.Empty
+                ]);
+                targetTable.AppendChild(closingRow);
+            }
 
             // Lưu thay đổi vào stream
             wordDoc.MainDocumentPart.Document.Save();

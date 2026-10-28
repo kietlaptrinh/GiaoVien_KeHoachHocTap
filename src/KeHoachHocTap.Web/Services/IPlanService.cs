@@ -9,10 +9,10 @@ namespace KeHoachHocTap.Web.Services;
 public interface IPlanService
 {
     /// <summary>
-    /// Lấy kết quả xếp lịch hoàn chỉnh cho toàn bộ môn học dựa trên cơ sở dữ liệu hiện tại.
+    /// Lấy kết quả xếp lịch hoàn chỉnh cho toàn bộ môn học và hoạt động đào tạo dựa trên cơ sở dữ liệu hiện tại.
     /// </summary>
     /// <param name="cancellationToken">CancellationToken.</param>
-    /// <returns>Kết quả tính toán lịch học bao gồm ngày khai giảng, các kỳ nghỉ, chi tiết từng môn và cảnh báo.</returns>
+    /// <returns>Kết quả tính toán lịch học bao gồm ngày khai giảng, các kỳ nghỉ, chi tiết từng môn, hoạt động đào tạo và cảnh báo.</returns>
     Task<ScheduleResult> GetScheduleAsync(CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -29,4 +29,9 @@ public interface IPlanService
     /// Lấy thông tin ngày khai giảng khóa học.
     /// </summary>
     Task<Holiday?> GetOpeningDayAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy danh sách toàn bộ hoạt động đào tạo (xen kẽ và cuối khóa).
+    /// </summary>
+    Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default);
 }

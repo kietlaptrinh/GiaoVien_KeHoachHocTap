@@ -1,0 +1,523 @@
+@page
+@model GradesModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@{
+    ViewData["Title"] = "Bảng điểm tổng hợp học viên";
+    var token = Xsrf.GetAndStoreTokens(HttpContext).RequestToken;
+}
+
+<div class="desktop-panel">
+    <!-- Panel Header -->
+    <div class="desktop-panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M4 11H2v1h2v-1zm5-4H2v1h7V7zm5-4H2v1h12V3zm-2 8h-1v1h1v-1zm3 0h-2v1h2v-1zM2 15h12v-1H2v1zm0-12v12h12V3H2zm13-1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h14z"/>
+            </svg>
+            <span>BẢNG ĐIỂM TỔNG HỢP HỌC VIÊN — QUẢN LÝ ĐÀO TẠO KHÓA HỌC</span>
+        </div>
+        <div>
+            <span class="text-secondary small">
+                Tổng số học viên: <strong>@Model.TotalStudents</strong> |
+                Số môn đào tạo: <strong>@Model.Subjects.Count</strong> môn
+            </span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="desktop-toolbar flex-wrap gap-2 py-2">
+        @if (Model.IsAdmin)
+        {
+            <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
+                ➕ Thêm học viên
+            </button>
+            <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#importExcelModal">
+                📥 Nạp từ Excel
+            </button>
+            <form method="post" asp-page-handler="ReloadSampleK56" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn nạp lại dữ liệu gốc chuẩn lớp K56 không? Toàn bộ điểm hiện tại sẽ được thay bằng dữ liệu chuẩn K56.');">
+                <button type="submit" class="toolbar-btn btn-outline-secondary" title="Khôi phục nguyên trạng 48 học viên và điểm chuẩn K56">
+                    🔄 Nạp lại mẫu K56
+                </button>
+            </form>
+            <span class="toolbar-separator"></span>
+        }
+
+        <a asp-page="/Grades" asp-page-handler="ExportExcel" class="toolbar-btn btn-success text-white" title="Xuất toàn bộ bảng điểm ra file Excel .xlsx">
+            📤 Xuất Excel bảng điểm
+        </a>
+
+        <a asp-page="/Grades" class="toolbar-btn">
+            Làm mới
+        </a>
+
+        <!-- Search & Filter Bar -->
+        <form method="get" class="d-flex align-items-center gap-1 ms-auto m-0 p-0">
+            <input type="text" name="search" value="@Model.Search" class="desktop-input py-1 px-2" style="width: 170px;" placeholder="Tìm tên hoặc mã HV..." />
+            <select name="rankFilter" class="desktop-input py-1 px-2" style="width: 140px;">
+                <option value="">-- Tất cả xếp loại --</option>
+                <option value="Xuất sắc" selected="@(Model.RankFilter == "Xuất sắc")">Xuất sắc</option>
+                <option value="Giỏi" selected="@(Model.RankFilter == "Giỏi")">Giỏi</option>
+                <option value="Khá" selected="@(Model.RankFilter == "Khá")">Khá</option>
+                <option value="Trung bình" selected="@(Model.RankFilter == "Trung bình")">Trung bình</option>
+                <option value="Yếu" selected="@(Model.RankFilter == "Yếu")">Yếu</option>
+                <option value="Chưa xếp loại" selected="@(Model.RankFilter == "Chưa xếp loại")">Chưa xếp loại</option>
+            </select>
+            <button type="submit" class="toolbar-btn btn-primary py-1 px-2">Lọc</button>
+            @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.RankFilter))
+            {
+                <a asp-page="/Grades" class="toolbar-btn py-1 px-2 text-danger" title="Xóa bộ lọc">✕</a>
+            }
+        </form>
+    </div>
+
+    <!-- Stats Summary Ribbon -->
+    @if (Model.GradeSheet != null && Model.TotalStudents > 0)
+    {
+        <div class="bg-light border-bottom px-3 py-2 d-flex flex-wrap align-items-center gap-3 small">
+            <span class="fw-bold text-dark">Thống kê lớp học:</span>
+            <span class="badge bg-secondary text-white">Tổng số: @Model.TotalStudents</span>
+            @foreach (var kv in Model.ClassificationStats)
+            {
+                var badgeClass = kv.Key switch
+                {
+                    "Xuất sắc" => "bg-primary text-white",
+                    "Giỏi" => "bg-success text-white",
+                    "Khá" => "bg-info text-dark",
+                    "Trung bình" => "bg-warning text-dark",
+                    "Yếu" => "bg-danger text-white",
+                    _ => "bg-light text-muted border"
+                };
+                <span class="badge @badgeClass">
+                    @kv.Key: @kv.Value (@(((decimal)kv.Value / Model.TotalStudents * 100).ToString("0.0"))%)
+                </span>
+            }
+            @if (Model.DisplayStudents.Count != Model.TotalStudents)
+            {
+                <span class="text-primary fst-italic ms-auto">Đang lọc hiển thị: @Model.DisplayStudents.Count / @Model.TotalStudents học viên</span>
+            }
+        </div>
+    }
+
+    <!-- Panel Body / DataGrid -->
+    <div class="desktop-panel-body p-2">
+        <!-- Thông báo -->
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <div class="alert alert-success py-2 px-3 small border-1 mb-2">
+                <strong>✓ Thành công:</strong> @Model.SuccessMessage
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-2">
+                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(Model.DatabaseError))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-2">
+                <strong>⚠️ Lỗi CSDL:</strong> @Model.DatabaseError
+            </div>
+        }
+
+        <div class="desktop-datagrid-container" style="overflow-x: auto; max-height: calc(100vh - 230px);">
+            <table class="desktop-grid table-sm table-bordered" id="gradesTable" style="font-size: 12px; white-space: nowrap;">
+                <thead>
+                    <tr style="background-color: #EBF3FC; position: sticky; top: 0; z-index: 10;">
+                        <!-- Sticky Left Columns -->
+                        <th class="text-center sticky-col" style="left: 0; width: 45px; z-index: 11; background-color: #EBF3FC;">STT</th>
+                        <th class="text-center sticky-col" style="left: 45px; width: 100px; z-index: 11; background-color: #EBF3FC;">Mã HV</th>
+                        <th class="sticky-col" style="left: 145px; width: 140px; z-index: 11; background-color: #EBF3FC;">Họ và tên đệm</th>
+                        <th class="sticky-col" style="left: 285px; width: 75px; z-index: 11; background-color: #EBF3FC;">Tên</th>
+                        <th class="text-center" style="width: 85px;">Ngày sinh</th>
+                        <th class="text-center" style="width: 50px;">Phái</th>
+
+                        <!-- Dynamic Subjects Columns -->
+                        @for (int j = 0; j < Model.Subjects.Count; j++)
+                        {
+                            var sub = Model.Subjects[j];
+                            <th class="text-center text-truncate" style="min-width: 65px; max-width: 110px;" title="@sub.Name (@sub.Periods tiết)">
+                                <div style="font-size: 11px; line-height: 1.2;">
+                                    <span class="text-muted d-block" style="font-size: 9px;">Môn @(j + 1)</span>
+                                    <span>@sub.Name</span>
+                                </div>
+                            </th>
+                        }
+
+                        <!-- Sticky Right Columns -->
+                        <th class="text-center sticky-col-right" style="width: 65px; background-color: #EBF3FC;">Số môn</th>
+                        <th class="text-center sticky-col-right" style="width: 70px; background-color: #EBF3FC;">ĐTB</th>
+                        <th class="sticky-col-right" style="width: 170px; background-color: #EBF3FC;">ĐTB bằng chữ</th>
+                        <th class="text-center sticky-col-right" style="width: 100px; background-color: #EBF3FC;">Xếp loại</th>
+                        @if (Model.IsAdmin)
+                        {
+                            <th class="text-center" style="width: 80px;">Thao tác</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.DisplayStudents.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@(6 + Model.Subjects.Count + (Model.IsAdmin ? 5 : 4))" class="text-center py-4 text-muted">
+                                <em>Không có dữ liệu học viên phù hợp với điều kiện tìm kiếm.</em>
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        for (int i = 0; i < Model.DisplayStudents.Count; i++)
+                        {
+                            var summary = Model.DisplayStudents[i];
+                            var st = summary.Student;
+                            <tr id="row-student-@st.Id">
+                                <!-- Sticky Left -->
+                                <td class="text-center fw-bold sticky-col" style="left: 0; background-color: #fff;">@summary.Stt</td>
+                                <td class="text-center sticky-col text-secondary" style="left: 45px; background-color: #fff;">@st.StudentCode</td>
+                                <td class="sticky-col" style="left: 145px; background-color: #fff;">@st.LastName</td>
+                                <td class="sticky-col fw-bold text-primary" style="left: 285px; background-color: #fff;">@st.FirstName</td>
+                                <td class="text-center text-muted">@(st.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</td>
+                                <td class="text-center text-muted">@(st.Gender ?? "—")</td>
+
+                                <!-- Subject Scores -->
+                                @for (int j = 0; j < summary.SubjectGrades.Count; j++)
+                                {
+                                    var gItem = summary.SubjectGrades[j];
+                                    <td class="text-center p-1" style="min-width: 65px;">
+                                        @if (Model.IsAdmin)
+                                        {
+                                            <input type="text"
+                                                   class="grade-cell text-center desktop-input p-0 m-0 w-100"
+                                                   style="font-size: 12px; height: 26px; border: 1px solid #DEE2E6;"
+                                                   value="@(gItem.Score.HasValue ? gItem.Score.Value.ToString("0.00") : "")"
+                                                   placeholder="—"
+                                                   data-student-id="@st.Id"
+                                                   data-subject-id="@gItem.SubjectId"
+                                                   title="Nhấn Tab/Enter để lưu và chuyển ô" />
+                                        }
+                                        else
+                                        {
+                                            <span class="@(gItem.Score.HasValue ? "fw-bold text-dark" : "text-muted")">
+                                                @(gItem.Score.HasValue ? gItem.Score.Value.ToString("0.00") : "—")
+                                            </span>
+                                        }
+                                    </td>
+                                }
+
+                                <!-- Summary Sticky Right -->
+                                <td class="text-center text-secondary cell-completed">@summary.CompletedSubjectsCount</td>
+                                <td class="text-center fw-bold text-primary cell-avg" style="font-size: 13px;">
+                                    @(summary.AverageScore.HasValue ? summary.AverageScore.Value.ToString("0.00") : "—")
+                                </td>
+                                <td class="small text-muted cell-words text-truncate" style="max-width: 170px;" title="@summary.AverageScoreInWords">
+                                    @summary.AverageScoreInWords
+                                </td>
+                                <td class="text-center cell-rank">
+                                    @{
+                                        var badgeStyle = summary.Classification switch
+                                        {
+                                            "Xuất sắc" => "bg-primary text-white",
+                                            "Giỏi" => "bg-success text-white",
+                                            "Khá" => "bg-info text-dark",
+                                            "Trung bình" => "bg-warning text-dark",
+                                            "Yếu" => "bg-danger text-white",
+                                            _ => "bg-light text-muted border"
+                                        };
+                                    }
+                                    <span class="badge @badgeStyle">@summary.Classification</span>
+                                </td>
+
+                                @if (Model.IsAdmin)
+                                {
+                                    <td class="text-center text-nowrap">
+                                        <button type="button" class="grid-btn btn-edit-student" title="Sửa học viên"
+                                                data-id="@st.Id"
+                                                data-code="@st.StudentCode"
+                                                data-lastname="@st.LastName"
+                                                data-firstname="@st.FirstName"
+                                                data-dob="@(st.DateOfBirth?.ToString("yyyy-MM-dd"))"
+                                                data-gender="@st.Gender"
+                                                data-note="@st.Note">✎</button>
+                                        <button type="button" class="grid-btn text-danger btn-delete-student" title="Xóa học viên"
+                                                data-id="@st.Id"
+                                                data-name="@st.FullName">✕</button>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Modals Quản trị Bảng điểm -->
+<!-- ========================================================================= -->
+@if (Model.IsAdmin)
+{
+    <!-- Modal Thêm học viên -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddStudent">
+                    <input type="hidden" name="Search" value="@Model.Search" />
+                    <input type="hidden" name="RankFilter" value="@Model.RankFilter" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="addStudentModalLabel">➕ THÊM HỌC VIÊN MỚI</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label fw-bold">Mã số HV <span class="text-danger">*</span></label>
+                                <input type="text" name="StudentCode" class="desktop-input w-100" placeholder="K75A56.0149" required maxlength="50" />
+                            </div>
+                            <div class="col-md-7 mb-3">
+                                <label class="form-label fw-bold">Giới tính</label>
+                                <select name="Gender" class="desktop-input w-100">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label class="form-label fw-bold">Họ và tên đệm <span class="text-danger">*</span></label>
+                                <input type="text" name="LastName" class="desktop-input w-100" placeholder="Nguyễn Văn" required maxlength="100" />
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label fw-bold">Tên học viên <span class="text-danger">*</span></label>
+                                <input type="text" name="FirstName" class="desktop-input w-100" placeholder="An" required maxlength="50" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" name="DateOfBirth" class="desktop-input w-100" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="Note" class="desktop-input w-100" placeholder="Ghi chú thêm..." maxlength="200" />
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu học viên</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa học viên -->
+    <div class="modal fade" id="editStudentModal" tabindex="-1" aria-labelledby="editStudentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="UpdateStudent">
+                    <input type="hidden" id="editStudentId" name="Id" />
+                    <input type="hidden" name="Search" value="@Model.Search" />
+                    <input type="hidden" name="RankFilter" value="@Model.RankFilter" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="editStudentModalLabel">✎ CẬP NHẬT THÔNG TIN HỌC VIÊN</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label fw-bold">Mã số HV <span class="text-danger">*</span></label>
+                                <input type="text" id="editStudentCode" name="StudentCode" class="desktop-input w-100" required maxlength="50" />
+                            </div>
+                            <div class="col-md-7 mb-3">
+                                <label class="form-label fw-bold">Giới tính</label>
+                                <select id="editStudentGender" name="Gender" class="desktop-input w-100">
+                                    <option value="">-- Chọn giới tính --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-7 mb-3">
+                                <label class="form-label fw-bold">Họ và tên đệm <span class="text-danger">*</span></label>
+                                <input type="text" id="editStudentLastName" name="LastName" class="desktop-input w-100" required maxlength="100" />
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label fw-bold">Tên học viên <span class="text-danger">*</span></label>
+                                <input type="text" id="editStudentFirstName" name="FirstName" class="desktop-input w-100" required maxlength="50" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" id="editStudentDob" name="DateOfBirth" class="desktop-input w-100" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" id="editStudentNote" name="Note" class="desktop-input w-100" maxlength="200" />
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận xóa học viên -->
+    <div class="modal fade" id="deleteStudentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="DeleteStudent">
+                    <input type="hidden" id="deleteStudentId" name="id" />
+                    <input type="hidden" name="Search" value="@Model.Search" />
+                    <input type="hidden" name="RankFilter" value="@Model.RankFilter" />
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h6 class="modal-title fw-bold">XÁC NHẬN XÓA</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3 text-center">
+                        <p class="mb-1">Bạn có chắc chắn muốn xóa học viên:</p>
+                        <p class="fw-bold text-danger mb-2" id="deleteStudentNameDisplay"></p>
+                        <span class="text-muted small">Toàn bộ điểm các môn của học viên này cũng sẽ bị xóa.</span>
+                    </div>
+                    <div class="modal-footer p-2 bg-light justify-content-center">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nhập từ Excel -->
+    <div class="modal fade" id="importExcelModal" tabindex="-1" aria-labelledby="importExcelModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="ImportExcel" enctype="multipart/form-data">
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="importExcelModalLabel">📥 NẠP BẢNG ĐIỂM TỪ EXCEL</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chọn file Excel bảng điểm (.xlsx, .xls) <span class="text-danger">*</span></label>
+                            <input type="file" name="file" accept=".xlsx,.xls" class="desktop-input w-100" required />
+                            <span class="text-muted small d-block mt-1">Hỗ trợ file bảng điểm chuẩn lớp K56 (`BANG DIEM TONG K56.01.xlsx`) hoặc file Excel có cột STT, Mã số, Họ tên và các môn.</span>
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="preserveExisting" value="true" id="preserveExistingCheck" />
+                            <label class="form-check-label" for="preserveExistingCheck">
+                                Giữ lại danh sách học viên hiện tại (chỉ thêm mới hoặc ghi đè)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Bắt đầu nạp</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            var csrfToken = '@token';
+
+            // Mở modal Sửa học viên
+            $('.btn-edit-student').on('click', function () {
+                var btn = $(this);
+                $('#editStudentId').val(btn.data('id'));
+                $('#editStudentCode').val(btn.data('code'));
+                $('#editStudentLastName').val(btn.data('lastname'));
+                $('#editStudentFirstName').val(btn.data('firstname'));
+                $('#editStudentDob').val(btn.data('dob') || '');
+                $('#editStudentGender').val(btn.data('gender') || '');
+                $('#editStudentNote').val(btn.data('note') || '');
+
+                var modal = new bootstrap.Modal(document.getElementById('editStudentModal'));
+                modal.show();
+            });
+
+            // Mở modal Xóa học viên
+            $('.btn-delete-student').on('click', function () {
+                var btn = $(this);
+                $('#deleteStudentId').val(btn.data('id'));
+                $('#deleteStudentNameDisplay').text(btn.data('name'));
+
+                var modal = new bootstrap.Modal(document.getElementById('deleteStudentModal'));
+                modal.show();
+            });
+
+            // Inline Grade Edit: Lắng nghe phím Enter hoặc Tab để chuyển ô và lưu điểm tự động
+            $('.grade-cell').on('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    $(this).trigger('change');
+                    // Chuyển xuống ô hàng dưới cùng môn
+                    var currentInput = $(this);
+                    var currentTd = currentInput.closest('td');
+                    var colIndex = currentTd.index();
+                    var nextTr = currentTd.closest('tr').next('tr');
+                    if (nextTr.length > 0) {
+                        nextTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
+                    }
+                }
+            });
+
+            $('.grade-cell').on('change', function () {
+                var input = $(this);
+                var studentId = input.data('student-id');
+                var subjectId = input.data('subject-id');
+                var rawVal = input.val().trim();
+                var score = rawVal === '' ? null : parseFloat(rawVal.replace(',', '.'));
+
+                if (score !== null && (isNaN(score) || score < 0 || score > 10)) {
+                    alert('Điểm số phải là số hợp lệ từ 0.00 đến 10.00');
+                    input.addClass('border-danger');
+                    return;
+                }
+
+                input.removeClass('border-danger').addClass('border-warning');
+
+                var formData = new FormData();
+                formData.append('studentId', studentId);
+                formData.append('subjectId', subjectId);
+                if (score !== null) {
+                    formData.append('score', score);
+                }
+
+                fetch('?handler=UpdateGrade', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    },
+                    body: formData
+                })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('Cập nhật thất bại.');
+                    return res.json();
+                })
+                .then(function (data) {
+                    if (data.success) {
+                        input.removeClass('border-warning').addClass('border-success');
+                        setTimeout(function () { input.removeClass('border-success'); }, 1200);
+                        if (data.score !== null && data.score !== undefined) {
+                            input.val(parseFloat(data.score).toFixed(2));
+                        } else {
+                            input.val('');
+                        }
+                    }
+                })
+                .catch(function (err) {
+                    input.removeClass('border-warning').addClass('border-danger');
+                    alert('Không thể cập nhật điểm: ' + err.message);
+                });
+            });
+        });
+    </script>
+}

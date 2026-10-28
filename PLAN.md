@@ -110,59 +110,58 @@ KeHoachHocTap/
 - [x] `dotnet build -warnaserror` sạch; `dotnet test` xanh; không còn TODO/hard-code "19".
 
 ## Giai đoạn 8 — Phân hệ Kế hoạch Nâng cao: Chèn Hoạt động xen kẽ & Chuỗi nhiệm vụ kết thúc khóa (SPEC mục 4, 5, 6)
-- [ ] Mở rộng CSDL & Domain:
-  - [ ] Thực thể `PlanActivity` (Id, Name, Type [`Interim` | `Closing`], AfterSubjectId, SortOrder, FromDate, ToDate, Sessions, Periods, Note).
-  - [ ] Migration EF Core `AddPlanActivity` an toàn trên SQL Server.
-  - [ ] Cập nhật `PlanRepository`: CRUD `PlanActivity`, sắp xếp thứ tự các hoạt động xen kẽ và hoạt động cuối khóa.
-- [ ] Cập nhật thuật toán xếp lịch `ScheduleCalculator`:
-  - [ ] Nếu sau môn $k$ có hoạt động xen kẽ (`Interim`):
+- [x] Mở rộng CSDL & Domain:
+  - [x] Thực thể `PlanActivity` (Id, Name, Type [`Interim` | `Closing`], AfterSubjectId, SortOrder, FromDate, ToDate, Sessions, Periods, Note).
+  - [x] Migration EF Core `AddPlanActivitiesAndStudentGrades` an toàn trên SQL Server.
+  - [x] Cập nhật `PlanRepository`: CRUD `PlanActivity`, sắp xếp thứ tự các hoạt động xen kẽ và hoạt động cuối khóa.
+- [x] Cập nhật thuật toán xếp lịch `ScheduleCalculator`:
+  - [x] Nếu sau môn $k$ có hoạt động xen kẽ (`Interim`):
     * Tính theo khoảng ngày (`FromDate` → `ToDate`): môn $k+1$ bắt đầu tại buổi sáng của `NextWorkday(ToDate)`.
     * Hoặc tính theo số buổi: môn $k+1$ bắt đầu tại buổi kế tiếp sau khi hoạt động kết thúc.
-  - [ ] Xử lý chuỗi hoạt động sau môn cuối cùng (`Closing`): Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng... tự động tính buổi bắt đầu/kết thúc hoặc áp dụng cấu hình tùy chọn.
-- [ ] Cập nhật giao diện Trang Kế hoạch (`/` hoặc `/Plan`):
-  - [ ] Bảng DataGrid hiển thị các dòng hoạt động xen kẽ ngay dưới môn học tương ứng (badge icon 📌, nền highlight dịu nhẹ #EBF3FC).
-  - [ ] Nút & Modal "Chèn hoạt động xen kẽ sau môn" (chọn môn, nhập tên: Nghiên cứu thực tế / Nghỉ viết bài..., khoảng ngày).
-  - [ ] Khối hiển thị & quản lý chuỗi sự kiện cuối khóa (Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng).
-- [ ] Cập nhật `DocxBieuMauExporter`: Tự động chèn các hoạt động xen kẽ và sự kiện kết thúc khóa vào bảng 10 cột theo đúng thứ tự thời gian.
-- [ ] Viết unit test & integration test cho việc chèn hoạt động xen kẽ, kiểm tra tính toán dời lịch các môn sau.
+  - [x] Xử lý chuỗi hoạt động sau môn cuối cùng (`Closing`): Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng... tự động tính buổi bắt đầu/kết thúc hoặc áp dụng cấu hình tùy chọn.
+- [x] Cập nhật giao diện Trang Kế hoạch (`/` hoặc `/Plan`):
+  - [x] Bảng DataGrid hiển thị các dòng hoạt động xen kẽ ngay dưới môn học tương ứng (badge icon 📌, nền highlight dịu nhẹ #EBF3FC).
+  - [x] Nút & Modal "Chèn hoạt động xen kẽ sau môn" (chọn môn, nhập tên: Nghiên cứu thực tế / Nghỉ viết bài..., khoảng ngày).
+  - [x] Khối hiển thị & quản lý chuỗi sự kiện cuối khóa (Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng).
+- [x] Cập nhật `DocxBieuMauExporter`: Tự động chèn các hoạt động xen kẽ và sự kiện kết thúc khóa vào bảng 10 cột theo đúng thứ tự thời gian.
+- [x] Viết unit test & integration test cho việc chèn hoạt động xen kẽ, kiểm tra tính toán dời lịch các môn sau.
 
 **Xong khi:** Chèn 1 đợt nghiên cứu thực tế sau môn bất kỳ → lịch các môn sau tự động dịch chuyển chính xác; xuất Word có đủ dòng hoạt động; test xanh.
 
 ## Giai đoạn 9 — Phân hệ Bảng điểm Tổng hợp (`/Grades`) chuẩn K56 (SPEC 5, 6.4)
-- [ ] Mở rộng CSDL & Domain cho Bảng điểm học viên:
-  - [ ] Thực thể `Student` (Id, StudentCode, LastName, FirstName, DateOfBirth, Gender, SortOrder, Note).
-  - [ ] Thực thể `StudentGrade` (Id, StudentId, SubjectId, Score, Note).
-  - [ ] Migration EF Core `AddStudentAndGrades` an toàn.
-  - [ ] Cập nhật `PlanDbContext`, cấu hình relationship, unique index `(StudentId, SubjectId)`, index `StudentCode`.
-- [ ] Dịch vụ nghiệp vụ & thuật toán tính điểm:
-  - [ ] `VietnameseNumberToWordsConverter`: Hàm thuần chuyển đổi điểm số sang chữ tiếng Việt chuẩn học bạ (vd: 7.81 -> "Bảy phẩy tám mươi mốt", 8.34 -> "Tám phẩy ba mươi bốn", 7.60 -> "Bảy phẩy sáu" / "Bảy phẩy sáu mươi").
-  - [ ] `GradeRankClassifier`: Xếp loại tự động (Xuất sắc, Giỏi, Khá, Trung bình, Yếu/Chưa đạt) căn cứ ĐTB và điểm liệt từng môn.
-  - [ ] `GradeService`: Tính ma trận điểm, số môn đã hoàn thành, ĐTB, ĐTB bằng chữ và thống kê xếp loại cả lớp.
-- [ ] Giao diện Trang Bảng điểm Tổng hợp (`/Grades`):
-  - [ ] Bố cục Desktop Cổ Điển DataGrid chia ô sắc nét:
+- [x] Mở rộng CSDL & Domain cho Bảng điểm học viên:
+  - [x] Thực thể `Student` (Id, StudentCode, LastName, FirstName, DateOfBirth, Gender, SortOrder, Note).
+  - [x] Thực thể `StudentGrade` (Id, StudentId, SubjectId, Score, Note).
+  - [x] Migration EF Core `AddPlanActivitiesAndStudentGrades` an toàn.
+  - [x] Cập nhật `PlanDbContext`, cấu hình relationship, unique index `(StudentId, SubjectId)`, index `StudentCode`.
+- [x] Dịch vụ nghiệp vụ & thuật toán tính điểm:
+  - [x] `VietnameseNumberToWordsConverter`: Hàm thuần chuyển đổi điểm số sang chữ tiếng Việt chuẩn học bạ (vd: 7.81 -> "Bảy phẩy tám mươi mốt", 8.34 -> "Tám phẩy ba mươi bốn", 7.60 -> "Bảy phẩy sáu" / "Bảy phẩy sáu mươi").
+  - [x] `GradeRankClassifier`: Xếp loại tự động (Xuất sắc, Giỏi, Khá, Trung bình, Yếu/Chưa đạt) căn cứ ĐTB và điểm liệt từng môn.
+  - [x] `GradeService`: Tính ma trận điểm, số môn đã hoàn thành, ĐTB, ĐTB bằng chữ và thống kê xếp loại cả lớp.
+- [x] Giai đoạn giao diện & xuất file:
+  - [x] Giao diện Trang Bảng điểm Tổng hợp (`/Grades`):
     * Cột cố định bên trái (Sticky): Stt, Mã số HV, Họ lót, Tên, Ngày sinh.
     * Cột động môn học: ĐÚNG danh sách các môn trong Khung chương trình (header xoay đứng 90 độ hoặc compact).
     * Cột cố định bên phải (Sticky): Số môn, ĐTB, ĐTB bằng chữ, Xếp loại.
-  - [ ] Toolbar: Nút Thêm học viên, Sửa thông tin, Nhập điểm nhanh (hỗ trợ phím Tab/Enter), Tìm kiếm học viên theo tên/mã số.
-  - [ ] Modal Quản trị: Thêm/Sửa học viên, Nhập điểm theo từng học viên.
-- [ ] Import & Export Excel cho Bảng điểm:
-  - [ ] `ExcelGradeImporter`: Đọc trực tiếp file `BANG DIEM TONG K56.01.xls` để nạp danh sách học viên và điểm toàn bộ các môn.
-  - [ ] `ExcelGradeExporter`: Xuất file Excel bảng điểm tổng hợp (.xlsx) định dạng chuẩn, đầy đủ công thức và styling.
-- [ ] Test tự động: Test chuyển đổi số sang chữ (7.81, 8.34, 7.26...), test tính ĐTB và xếp loại, test import file `BANG DIEM TONG K56.01.xls`.
+    * Toolbar: Nút Thêm học viên, Sửa thông tin, Nhập điểm nhanh (hỗ trợ phím Tab/Enter), Tìm kiếm học viên theo tên/mã số.
+    * Modal Quản trị: Thêm/Sửa học viên, Nhập điểm theo từng học viên.
+  - [x] `ExcelGradeImporter`: Đọc trực tiếp file `BANG DIEM TONG K56.01.xlsx` (hoặc `.xls`) nạp danh sách học viên và điểm toàn bộ 22 môn.
+  - [x] `ExcelGradeExporter`: Xuất file Excel bảng điểm tổng hợp (.xlsx) định dạng chuẩn, đầy đủ công thức và styling qua endpoint `OnGetExportExcelAsync`.
+- [x] Test tự động: Test chuyển đổi số sang chữ (7.81, 8.34, 7.26...), test tính ĐTB và xếp loại, test import file `BANG DIEM TONG K56.01.xlsx`, test repository và test page model.
 
 **Xong khi:** Mở `/Grades` hiển thị đầy đủ danh sách học viên K56, ma trận điểm đúng số môn khung CT, ĐTB, ĐTB bằng chữ và Xếp loại khớp 100% với file mẫu; nhập điểm hoặc import Excel thành công; test xanh.
 
 ## Giai đoạn 10 — Tinh chỉnh Toolbar điều hướng, Tối ưu Responsive & Kiểm thử toàn diện
-- [ ] Cập nhật Navbar/Toolbar chung của hệ thống:
-  - [ ] Tách rõ 2 menu chính: **📅 Kế hoạch giảng dạy** (`/`) và **📊 Bảng điểm tổng hợp** (`/Grades`).
-  - [ ] Giữ nguyên các menu hỗ trợ: **🏖 Ngày nghỉ**, **📄 Biểu mẫu & Xuất Word**, **⚙ Quản lý Mẫu biểu**, **Đăng nhập/Đăng xuất**.
-- [ ] Tối ưu Responsive trên Mobile và Desktop:
-  - [ ] Trang Bảng điểm: Hỗ trợ cuộn ngang mượt mà với sticky columns, chế độ xem Thẻ học viên trên màn hình nhỏ.
-  - [ ] Trang Kế hoạch: Badge trạng thái rõ ràng, không bị tràn màn hình.
-- [ ] Kiểm thử hồi quy toàn diện:
-  - [ ] Chạy `dotnet build -warnaserror` đảm bảo 0 warning, 0 error.
-  - [ ] Chạy toàn bộ test suite xUnit đảm bảo 100% tests xanh (cả test cũ và test mới).
-- [ ] Cập nhật tài liệu `README.md` hướng dẫn sử dụng cả 2 phân hệ.
+- [x] Cập nhật Navbar/Toolbar chung của hệ thống:
+  - [x] Tách rõ 2 menu chính: **📅 Kế hoạch giảng dạy** (`/`) và **📊 Bảng điểm tổng hợp** (`/Grades`).
+  - [x] Giữ nguyên các menu hỗ trợ: **🏖 Ngày nghỉ**, **📄 Biểu mẫu & Xuất Word**, **⚙ Quản lý Mẫu biểu**, **Đăng nhập/Đăng xuất**.
+- [x] Tối ưu Responsive trên Mobile và Desktop:
+  - [x] Trang Bảng điểm: Hỗ trợ cuộn ngang mượt mà với sticky columns, chế độ xem Thẻ học viên trên màn hình nhỏ.
+  - [x] Trang Kế hoạch: Badge trạng thái rõ ràng, không bị tràn màn hình.
+- [x] Kiểm thử hồi quy toàn diện:
+  - [x] Chạy `dotnet build -warnaserror` đảm bảo 0 warning, 0 error.
+  - [x] Chạy toàn bộ test suite xUnit đảm bảo 100% tests xanh (cả test cũ và test mới - 125/125 tests passed).
+- [x] Cập nhật tài liệu `README.md` hướng dẫn sử dụng cả 2 phân hệ.
 
 ## Giai đoạn 11 — Exporter bổ sung (tuỳ chọn, chỉ làm khi 0–10 xong và được yêu cầu)
 - [ ] `xlsx-plan` · [ ] `csv-plan` · [ ] `ics-calendar` (SPEC 7.2). Mỗi loại chỉ thêm 1 class + đăng ký DI + 1 test.
@@ -183,3 +182,5 @@ KeHoachHocTap/
 - Thông số ExtraTasks (Khai giảng, Thi tốt nghiệp, Bế giảng, Tiết tự học, Tiết ôn thi) được lưu vào bảng `AppSetting` trong database với độ ưu tiên cao hơn `appsettings.json`.
 - [Agent 001] Nâng cấp Lịch thi & Khai giảng linh hoạt: Thực thể `Subject` bổ sung `ExamMode` ("Immediately", "Delayed", "Custom") và `CustomExamSlot`. Migration `AddFlexibleExamAndOpeningDay` được thêm an toàn. Khai giảng hỗ trợ nhiều ngày (`NextWorkday(openingHoliday.To)`) và chọn buổi bắt đầu `firstSessionHalf`. Cơ chế hoãn/dồn thi (`Delayed`) xếp thi tuần tự khi gặp môn `Immediately` hoặc môn cuối, môn tiếp theo vào học luôn; 100% test xanh (72/72 tests bao gồm Golden 19 môn).
 - [Agent 002] Tích hợp Giao diện Web & Exporter: PlanService đọc cấu hình `Plan:FirstSessionHalf` từ AppSetting; Trang Holidays cho phép khoảng ngày khai giảng kéo dài nhiều ngày (`To >= From`) và chọn buổi bắt đầu học môn 1 (Sáng/Chiều); Trang Môn học (Index) hỗ trợ chọn Chế độ thi (`Immediately`, `Delayed`, `Custom`) kèm `CustomExamSlot` trong Modal Thêm/Sửa, gắn badge trực quan trên DataGrid và Mobile Cards; DocxBieuMauExporter điền chính xác `item.Exam.ToString()` và hỗ trợ khoảng ngày khai giảng; 100% test xanh (75/75 tests).
+- [Agent 002 (Grade System)] Triển khai nền tảng Bảng điểm tổng hợp K56 (Phase 9 - Round 1): Tạo thực thể `Student`, `StudentGrade`, Domain Models `StudentGradeItem`, `StudentSummary`, `GradeSheetResult`; phát triển `VietnameseNumberToWordsConverter` (đọc chuẩn tiếng Việt cho học bạ/văn bằng, vd: 7.81 -> "Bảy phẩy tám mươi mốt", 8.00 -> "Tám phẩy không", 7.60 -> "Bảy phẩy sáu"), `GradeRankClassifier` (Xuất sắc, Giỏi, Khá, Trung bình, Yếu, Chưa xếp loại), `GradeService` (tính ma trận điểm, số môn, ĐTB, ĐTB bằng chữ, thống kê xếp loại), và `ExcelGradeImporter` (đọc ClosedXML hỗ trợ cả định dạng K56 gốc và chuẩn OpenXML .xlsx); tạo file `BANG DIEM TONG K56.01.xlsx` (48 học viên, 22 môn); đăng ký DI; viết 43 test mới trong `VietnameseNumberToWordsTests`, `GradeServiceTests`, `ExcelGradeImporterTests`; 100% test xanh (118/118 tests, 0 warnings, 0 errors). Giữ nguyên `PlanDbContext.cs` và chưa tạo migration theo đúng chỉ dẫn phân vai cho agent-003.
+- [Agent 003] Tích hợp Round 2 Hoàn chỉnh Hệ thống (Phase 8, 9, 10): Cập nhật `PlanDbContext` (DbSet `PlanActivities`, `Students`, `StudentGrades`), tạo Migration EF Core `AddPlanActivitiesAndStudentGrades` và xuất script SQL idempotent `docs/migration_script.sql`. Nâng cấp `PlanRepository` đầy đủ CRUD cho hoạt động và học viên/điểm. Tự động seed học viên K56 lúc khởi động khi bảng `Student` trống. Tinh chỉnh Navbar Toolbar Desktop cổ điển chia rõ 2 tab chính `📅 Kế hoạch giảng dạy` và `📊 Bảng điểm tổng hợp`. Trang `/` hiển thị đầy đủ các dòng hoạt động xen kẽ `#EBF3FC` dưới môn học tương ứng và chuỗi hoạt động cuối khóa sau môn cuối, kèm modals thêm/sửa/xóa cho Admin. Trang `/Grades` hiển thị DataGrid ma trận điểm đúng số môn khung CT, sticky columns, inline edit điểm mượt mà (Enter/Tab), ribbon thống kê xếp loại, tìm kiếm/lọc, nạp Excel, nạp lại mẫu K56 và xuất file Excel `.xlsx` chuẩn. Thêm integration test; toàn bộ 125/125 tests XANH 100%, 0 warning, 0 error.

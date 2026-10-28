@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 namespace KeHoachHocTap.Web.Data;
 
 /// <summary>
-/// DbContext chính của ứng dụng Kế hoạch học tập, quản lý Subjects, Holidays và AppSettings.
+/// DbContext chính của ứng dụng Kế hoạch học tập, quản lý Subjects, Holidays, AppSettings, PlanActivities, Students và StudentGrades.
 /// </summary>
 public class PlanDbContext : DbContext
 {
@@ -14,6 +14,9 @@ public class PlanDbContext : DbContext
     public DbSet<Subject> Subjects => Set<Subject>();
     public DbSet<Holiday> Holidays => Set<Holiday>();
     public DbSet<AppSetting> AppSettings => Set<AppSetting>();
+    public DbSet<PlanActivity> PlanActivities => Set<PlanActivity>();
+    public DbSet<Student> Students => Set<Student>();
+    public DbSet<StudentGrade> StudentGrades => Set<StudentGrade>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -54,6 +57,61 @@ public class PlanDbContext : DbContext
                 .HasMaxLength(100);
             entity.Property(e => e.Value)
                 .IsRequired();
+        });
+
+        modelBuilder.Entity<PlanActivity>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(200);
+            entity.Property(e => e.Note)
+                .HasMaxLength(500);
+            entity.HasIndex(e => e.SortOrder);
+            entity.HasIndex(e => e.AfterSubjectId);
+            entity.HasOne<Subject>()
+                .WithMany()
+                .HasForeignKey(e => e.AfterSubjectId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Student>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.StudentCode)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.LastName)
+                .IsRequired()
+                .HasMaxLength(100);
+            entity.Property(e => e.FirstName)
+                .IsRequired()
+                .HasMaxLength(50);
+            entity.Property(e => e.Gender)
+                .HasMaxLength(10);
+            entity.Property(e => e.Note)
+                .HasMaxLength(200);
+            entity.HasIndex(e => e.StudentCode);
+            entity.HasIndex(e => e.SortOrder);
+        });
+
+        modelBuilder.Entity<StudentGrade>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Score)
+                .HasPrecision(4, 2);
+            entity.Property(e => e.Note)
+                .HasMaxLength(200);
+            entity.HasIndex(e => new { e.StudentId, e.SubjectId })
+                .IsUnique();
+            entity.HasOne(e => e.Student)
+                .WithMany(s => s.Grades)
+                .HasForeignKey(e => e.StudentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Subject)
+                .WithMany()
+                .HasForeignKey(e => e.SubjectId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

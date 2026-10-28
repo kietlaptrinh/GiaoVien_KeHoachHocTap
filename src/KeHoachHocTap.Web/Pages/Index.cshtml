@@ -1,5 +1,6 @@
 @page
 @model IndexModel
+@using KeHoachHocTap.Web.Data
 @{
     ViewData["Title"] = "Kế hoạch học tập & Bảng điểm";
 }
@@ -30,6 +31,12 @@
                     <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
                 </svg>
                 Thêm môn học
+            </button>
+            <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#addInterimActivityModal" title="Chèn hoạt động xen kẽ sau môn">
+                📌 Chèn HĐ xen kẽ
+            </button>
+            <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#addClosingActivityModal" title="Thêm hoạt động kết thúc khóa">
+                🎓 Thêm HĐ cuối khóa
             </button>
             <a asp-page="/Import" class="toolbar-btn">
                 <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
@@ -162,6 +169,7 @@
                 {
                     var item = Model.Items[i];
                     var sub = item.Subject;
+                    var cardInterims = Model.Activities.Where(a => a.Activity.Type == PlanActivityType.Interim && a.Activity.AfterSubjectId == sub.Id).ToList();
                     <div class="mobile-card">
                         <div class="mobile-card-header">
                             <div class="mobile-card-title">
@@ -254,6 +262,119 @@
                             </div>
                         }
                     </div>
+
+                    @foreach (var act in cardInterims)
+                    {
+                        <div class="mobile-card" style="border-left: 4px solid #0D6EFD; background-color: #F4F8FD;">
+                            <div class="mobile-card-header bg-light">
+                                <div class="mobile-card-title text-primary">
+                                    <span class="badge bg-primary">📌 Xen kẽ</span>
+                                    <span>@act.Activity.Name</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-white text-dark border">@(act.Activity.Periods?.ToString() ?? "—") tiết (@(act.Activity.Sessions?.ToString() ?? "—") buổi)</span>
+                                </div>
+                            </div>
+                            <div class="mobile-card-body">
+                                <div class="mobile-kv-grid">
+                                    <div class="mobile-kv-item">
+                                        <span class="mobile-kv-label">Bắt đầu</span>
+                                        <span class="mobile-kv-value text-primary">@(act.Start.HasValue ? act.Start.Value.ToString() : (act.Activity.FromDate.HasValue ? act.Activity.FromDate.Value.ToString("d/M/yyyy") : "—"))</span>
+                                    </div>
+                                    <div class="mobile-kv-item">
+                                        <span class="mobile-kv-label">Kết thúc</span>
+                                        <span class="mobile-kv-value text-primary">@(act.End.HasValue ? act.End.Value.ToString() : (act.Activity.ToDate.HasValue ? act.Activity.ToDate.Value.ToString("d/M/yyyy") : "—"))</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(act.Activity.Note))
+                                    {
+                                        <div class="mobile-kv-item" style="grid-column: span 2;">
+                                            <span class="mobile-kv-label">Ghi chú</span>
+                                            <span class="mobile-kv-value small text-muted">@act.Activity.Note</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            @if (Model.IsAdmin)
+                            {
+                                <div class="mobile-card-footer">
+                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-activity"
+                                            data-id="@act.Activity.Id"
+                                            data-name="@act.Activity.Name"
+                                            data-type="@((int)act.Activity.Type)"
+                                            data-after="@act.Activity.AfterSubjectId"
+                                            data-from="@(act.Activity.FromDate?.ToString("yyyy-MM-dd"))"
+                                            data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
+                                            data-sessions="@act.Activity.Sessions"
+                                            data-periods="@act.Activity.Periods"
+                                            data-note="@act.Activity.Note">✎ Sửa</button>
+                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
+                                            data-id="@act.Activity.Id"
+                                            data-name="@act.Activity.Name">✕ Xóa</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+
+                @{
+                    var mobileClosingActs = Model.Activities.Where(a => a.Activity.Type == PlanActivityType.Closing).ToList();
+                }
+                @if (mobileClosingActs.Count > 0)
+                {
+                    <div class="alert alert-primary py-2 px-3 fw-bold my-2">
+                        🎓 CHUỖI HOẠT ĐỘNG KẾT THÚC KHÓA HỌC
+                    </div>
+                    @foreach (var act in mobileClosingActs)
+                    {
+                        <div class="mobile-card" style="border-left: 4px solid #10B981; background-color: #F0FDF4;">
+                            <div class="mobile-card-header bg-light">
+                                <div class="mobile-card-title text-success">
+                                    <span class="badge bg-success">🎓 Cuối khóa</span>
+                                    <span>@act.Activity.Name</span>
+                                </div>
+                                <div>
+                                    <span class="badge bg-white text-dark border">@(act.Activity.Periods?.ToString() ?? "—") tiết (@(act.Activity.Sessions?.ToString() ?? "—") buổi)</span>
+                                </div>
+                            </div>
+                            <div class="mobile-card-body">
+                                <div class="mobile-kv-grid">
+                                    <div class="mobile-kv-item">
+                                        <span class="mobile-kv-label">Bắt đầu</span>
+                                        <span class="mobile-kv-value text-success fw-bold">@(act.Start.HasValue ? act.Start.Value.ToString() : (act.Activity.FromDate.HasValue ? act.Activity.FromDate.Value.ToString("d/M/yyyy") : "—"))</span>
+                                    </div>
+                                    <div class="mobile-kv-item">
+                                        <span class="mobile-kv-label">Kết thúc</span>
+                                        <span class="mobile-kv-value text-success fw-bold">@(act.End.HasValue ? act.End.Value.ToString() : (act.Activity.ToDate.HasValue ? act.Activity.ToDate.Value.ToString("d/M/yyyy") : "—"))</span>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(act.Activity.Note))
+                                    {
+                                        <div class="mobile-kv-item" style="grid-column: span 2;">
+                                            <span class="mobile-kv-label">Ghi chú</span>
+                                            <span class="mobile-kv-value small text-muted">@act.Activity.Note</span>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            @if (Model.IsAdmin)
+                            {
+                                <div class="mobile-card-footer">
+                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-activity"
+                                            data-id="@act.Activity.Id"
+                                            data-name="@act.Activity.Name"
+                                            data-type="@((int)act.Activity.Type)"
+                                            data-after="@act.Activity.AfterSubjectId"
+                                            data-from="@(act.Activity.FromDate?.ToString("yyyy-MM-dd"))"
+                                            data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
+                                            data-sessions="@act.Activity.Sessions"
+                                            data-periods="@act.Activity.Periods"
+                                            data-note="@act.Activity.Note">✎ Sửa</button>
+                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
+                                            data-id="@act.Activity.Id"
+                                            data-name="@act.Activity.Name">✕ Xóa</button>
+                                </div>
+                            }
+                        </div>
+                    }
                 }
             </div>
 
@@ -283,6 +404,7 @@
                         {
                             var item = Model.Items[i];
                             var sub = item.Subject;
+                            var interims = Model.Activities.Where(a => a.Activity.Type == PlanActivityType.Interim && a.Activity.AfterSubjectId == sub.Id).ToList();
                             <tr>
                                 <td class="text-center fw-bold sticky-col-stt">@item.Number</td>
                                 <td class="sticky-col-name">@sub.Name</td>
@@ -350,6 +472,91 @@
                                     </td>
                                 }
                             </tr>
+
+                            @foreach (var act in interims)
+                            {
+                                <tr class="interim-activity-row" style="background-color: #EBF3FC; border-left: 3px solid #0D6EFD;">
+                                    <td class="text-center sticky-col-stt text-primary fw-bold">📌</td>
+                                    <td class="sticky-col-name text-primary fw-bold">
+                                        <span class="badge bg-primary text-white me-1">Xen kẽ</span>
+                                        @act.Activity.Name
+                                    </td>
+                                    <td class="text-center">@(act.Activity.Periods?.ToString() ?? "—")</td>
+                                    <td class="text-center">@(act.Activity.Sessions?.ToString() ?? "—")</td>
+                                    <td class="text-center text-nowrap text-primary">@(act.Start.HasValue ? act.Start.Value.ToString() : (act.Activity.FromDate.HasValue ? act.Activity.FromDate.Value.ToString("d/M/yyyy") : "—"))</td>
+                                    <td class="text-center text-nowrap text-primary">@(act.End.HasValue ? act.End.Value.ToString() : (act.Activity.ToDate.HasValue ? act.Activity.ToDate.Value.ToString("d/M/yyyy") : "—"))</td>
+                                    <td class="text-center text-muted">—</td>
+                                    <td class="text-center col-grade" style="display: none;">—</td>
+                                    <td class="text-center text-muted">—</td>
+                                    <td class="small text-muted">@act.Activity.Note</td>
+                                    @if (Model.IsAdmin)
+                                    {
+                                        <td class="text-center text-nowrap">
+                                            <button type="button" class="grid-btn btn-edit-activity" title="Sửa hoạt động"
+                                                    data-id="@act.Activity.Id"
+                                                    data-name="@act.Activity.Name"
+                                                    data-type="@((int)act.Activity.Type)"
+                                                    data-after="@act.Activity.AfterSubjectId"
+                                                    data-from="@(act.Activity.FromDate?.ToString("yyyy-MM-dd"))"
+                                                    data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
+                                                    data-sessions="@act.Activity.Sessions"
+                                                    data-periods="@act.Activity.Periods"
+                                                    data-note="@act.Activity.Note">✎</button>
+                                            <button type="button" class="grid-btn text-danger btn-delete-activity" title="Xóa hoạt động"
+                                                    data-id="@act.Activity.Id"
+                                                    data-name="@act.Activity.Name">✕</button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        }
+
+                        @{
+                            var closingActs = Model.Activities.Where(a => a.Activity.Type == PlanActivityType.Closing).ToList();
+                        }
+                        @if (closingActs.Count > 0)
+                        {
+                            <tr style="background-color: #dbeafe; font-weight: bold; border-top: 2px solid #0d6efd;">
+                                <td colspan="@(Model.IsAdmin ? 11 : 10)" class="py-2 text-primary">
+                                    🎓 CHUỖI HOẠT ĐỘNG KẾT THÚC KHÓA HỌC (ÔN THI, THI TỐT NGHIỆP, HỌP LỚP, BẾ GIẢNG)
+                                </td>
+                            </tr>
+                            @foreach (var act in closingActs)
+                            {
+                                <tr style="background-color: #f8fafc; border-left: 3px solid #10b981;">
+                                    <td class="text-center sticky-col-stt text-success fw-bold">🎓</td>
+                                    <td class="sticky-col-name fw-bold text-dark">
+                                        <span class="badge bg-success text-white me-1">Cuối khóa</span>
+                                        @act.Activity.Name
+                                    </td>
+                                    <td class="text-center">@(act.Activity.Periods?.ToString() ?? "—")</td>
+                                    <td class="text-center">@(act.Activity.Sessions?.ToString() ?? "—")</td>
+                                    <td class="text-center text-nowrap text-success fw-bold">@(act.Start.HasValue ? act.Start.Value.ToString() : (act.Activity.FromDate.HasValue ? act.Activity.FromDate.Value.ToString("d/M/yyyy") : "—"))</td>
+                                    <td class="text-center text-nowrap text-success fw-bold">@(act.End.HasValue ? act.End.Value.ToString() : (act.Activity.ToDate.HasValue ? act.Activity.ToDate.Value.ToString("d/M/yyyy") : "—"))</td>
+                                    <td class="text-center text-muted">—</td>
+                                    <td class="text-center col-grade" style="display: none;">—</td>
+                                    <td class="text-center text-muted">—</td>
+                                    <td class="small text-muted">@act.Activity.Note</td>
+                                    @if (Model.IsAdmin)
+                                    {
+                                        <td class="text-center text-nowrap">
+                                            <button type="button" class="grid-btn btn-edit-activity" title="Sửa hoạt động"
+                                                    data-id="@act.Activity.Id"
+                                                    data-name="@act.Activity.Name"
+                                                    data-type="@((int)act.Activity.Type)"
+                                                    data-after="@act.Activity.AfterSubjectId"
+                                                    data-from="@(act.Activity.FromDate?.ToString("yyyy-MM-dd"))"
+                                                    data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
+                                                    data-sessions="@act.Activity.Sessions"
+                                                    data-periods="@act.Activity.Periods"
+                                                    data-note="@act.Activity.Note">✎</button>
+                                            <button type="button" class="grid-btn text-danger btn-delete-activity" title="Xóa hoạt động"
+                                                    data-id="@act.Activity.Id"
+                                                    data-name="@act.Activity.Name">✕</button>
+                                        </td>
+                                    }
+                                </tr>
+                            }
                         }
                     </tbody>
                     <tfoot class="table-light fw-bold">
@@ -521,6 +728,208 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal Chèn hoạt động xen kẽ sau môn (Chỉ Admin) -->
+    <div class="modal fade" id="addInterimActivityModal" tabindex="-1" aria-labelledby="addInterimActivityModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddActivity">
+                    <input type="hidden" name="Type" value="@((int)PlanActivityType.Interim)" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="addInterimActivityModalLabel">📌 CHÈN HOẠT ĐỘNG XEN KẼ SAU MÔN HỌC</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Môn học đứng trước <span class="text-danger">*</span></label>
+                            <select name="AfterSubjectId" class="desktop-input w-100" required>
+                                <option value="">-- Chọn môn học đứng trước --</option>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <option value="@item.Subject.Id">#@item.Number - @item.Subject.Name (@item.Subject.Periods tiết)</option>
+                                }
+                            </select>
+                            <span class="text-muted small">Hoạt động sẽ được chèn ngay sau khi môn này thi xong. Lịch môn sau sẽ tự động dời lại!</span>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên hoạt động <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Đi nghiên cứu thực tế tại cơ sở" required maxlength="200" />
+                            <div class="d-flex gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('input[name=Name]', '#addInterimActivityModal').val('Đi nghiên cứu thực tế tại cơ sở');">Nghiên cứu thực tế</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('input[name=Name]', '#addInterimActivityModal').val('Nghỉ viết bài thu hoạch môn học');">Viết bài thu hoạch</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Từ ngày</label>
+                                <input type="date" name="FromDate" class="desktop-input w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đến ngày</label>
+                                <input type="date" name="ToDate" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số buổi</label>
+                                <input type="number" name="Sessions" min="1" max="1000" class="desktop-input w-100" placeholder="Ví dụ: 2" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số tiết</label>
+                                <input type="number" name="Periods" min="1" max="10000" class="desktop-input w-100" placeholder="Ví dụ: 10" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="Note" maxlength="500" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu hoạt động</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Thêm hoạt động cuối khóa (Chỉ Admin) -->
+    <div class="modal fade" id="addClosingActivityModal" tabindex="-1" aria-labelledby="addClosingActivityModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddActivity">
+                    <input type="hidden" name="Type" value="@((int)PlanActivityType.Closing)" />
+                    <div class="modal-header bg-success text-white py-2">
+                        <h6 class="modal-title fw-bold" id="addClosingActivityModalLabel">🎓 THÊM HOẠT ĐỘNG KẾT THÚC KHÓA HỌC</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên hoạt động <span class="text-danger">*</span></label>
+                            <input type="text" id="closingActivityName" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Ôn thi tốt nghiệp" required maxlength="200" />
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('#closingActivityName').val('Ôn thi tốt nghiệp'); $('input[name=Periods]', '#addClosingActivityModal').val('15'); $('input[name=Sessions]', '#addClosingActivityModal').val('3');">Ôn thi tốt nghiệp</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('#closingActivityName').val('Thi tốt nghiệp (3 môn TTN1, TTN2, TTN3)'); $('input[name=Periods]', '#addClosingActivityModal').val('15'); $('input[name=Sessions]', '#addClosingActivityModal').val('3');">Thi tốt nghiệp</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('#closingActivityName').val('Họp lớp tổng kết & Bình xét thi đua'); $('input[name=Periods]', '#addClosingActivityModal').val('5'); $('input[name=Sessions]', '#addClosingActivityModal').val('1');">Họp lớp tổng kết</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-1 small" onclick="$('#closingActivityName').val('Lễ bế giảng & Trao bằng tốt nghiệp'); $('input[name=Periods]', '#addClosingActivityModal').val('5'); $('input[name=Sessions]', '#addClosingActivityModal').val('1');">Lễ bế giảng</button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Từ ngày</label>
+                                <input type="date" name="FromDate" class="desktop-input w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đến ngày</label>
+                                <input type="date" name="ToDate" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số buổi</label>
+                                <input type="number" name="Sessions" min="1" max="1000" class="desktop-input w-100" placeholder="Ví dụ: 3" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số tiết</label>
+                                <input type="number" name="Periods" min="1" max="10000" class="desktop-input w-100" placeholder="Ví dụ: 15" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" name="Note" maxlength="500" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-success px-3">Lưu hoạt động</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Sửa hoạt động (Chỉ Admin) -->
+    <div class="modal fade" id="editActivityModal" tabindex="-1" aria-labelledby="editActivityModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="UpdateActivity">
+                    <input type="hidden" id="editActivityId" name="Id" />
+                    <input type="hidden" id="editActivityType" name="Type" />
+                    <div class="modal-header desktop-titlebar py-2 text-white">
+                        <h6 class="modal-title fw-bold" id="editActivityModalLabel">CHỈNH SỬA HOẠT ĐỘNG</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3">
+                        <div class="mb-3" id="editActivityAfterSubjectGroup">
+                            <label class="form-label fw-bold">Môn học đứng trước</label>
+                            <select id="editActivityAfterSubjectId" name="AfterSubjectId" class="desktop-input w-100">
+                                <option value="">-- Không chọn --</option>
+                                @foreach (var item in Model.Items)
+                                {
+                                    <option value="@item.Subject.Id">#@item.Number - @item.Subject.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Tên hoạt động <span class="text-danger">*</span></label>
+                            <input type="text" id="editActivityName" name="Name" class="desktop-input w-100" required maxlength="200" />
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Từ ngày</label>
+                                <input type="date" id="editActivityFromDate" name="FromDate" class="desktop-input w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Đến ngày</label>
+                                <input type="date" id="editActivityToDate" name="ToDate" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số buổi</label>
+                                <input type="number" id="editActivitySessions" name="Sessions" min="1" class="desktop-input w-100" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Số tiết</label>
+                                <input type="number" id="editActivityPeriods" name="Periods" min="1" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <input type="text" id="editActivityNote" name="Note" maxlength="500" class="desktop-input w-100" />
+                        </div>
+                    </div>
+                    <div class="modal-footer p-2 bg-light">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xác nhận xóa hoạt động (Chỉ Admin) -->
+    <div class="modal fade" id="deleteActivityModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="DeleteActivity">
+                    <input type="hidden" id="deleteActivityId" name="id" />
+                    <div class="modal-header bg-danger text-white py-2">
+                        <h6 class="modal-title fw-bold">XÁC NHẬN XÓA</h6>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-3 text-center">
+                        <p class="mb-1">Bạn có chắc chắn muốn xóa hoạt động:</p>
+                        <p class="fw-bold text-danger mb-2" id="deleteActivityNameDisplay"></p>
+                    </div>
+                    <div class="modal-footer p-2 bg-light justify-content-center">
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 }
 
 @section Scripts {
@@ -571,6 +980,38 @@
 
                 var deleteModal = new bootstrap.Modal(document.getElementById('deleteSubjectModal'));
                 deleteModal.show();
+            });
+
+            $('.btn-edit-activity').on('click', function () {
+                var btn = $(this);
+                $('#editActivityId').val(btn.data('id'));
+                var type = btn.data('type');
+                $('#editActivityType').val(type);
+                $('#editActivityName').val(btn.data('name'));
+                $('#editActivityAfterSubjectId').val(btn.data('after') || '');
+                $('#editActivityFromDate').val(btn.data('from') || '');
+                $('#editActivityToDate').val(btn.data('to') || '');
+                $('#editActivitySessions').val(btn.data('sessions') || '');
+                $('#editActivityPeriods').val(btn.data('periods') || '');
+                $('#editActivityNote').val(btn.data('note') || '');
+
+                if (type == 0) { // Interim
+                    $('#editActivityAfterSubjectGroup').show();
+                } else {
+                    $('#editActivityAfterSubjectGroup').hide();
+                }
+
+                var modal = new bootstrap.Modal(document.getElementById('editActivityModal'));
+                modal.show();
+            });
+
+            $('.btn-delete-activity').on('click', function () {
+                var btn = $(this);
+                $('#deleteActivityId').val(btn.data('id'));
+                $('#deleteActivityNameDisplay').text(btn.data('name'));
+
+                var modal = new bootstrap.Modal(document.getElementById('deleteActivityModal'));
+                modal.show();
             });
 
             // Chuyển đổi qua lại giữa Chế độ xem Thẻ & Bảng trên thiết bị di động

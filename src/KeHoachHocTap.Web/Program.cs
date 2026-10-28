@@ -65,6 +65,12 @@ builder.Services.AddScoped<IPlanService, PlanService>();
 builder.Services.AddSingleton<IExporter, DocxBieuMauExporter>();
 builder.Services.AddScoped<ITemplateService, TemplateService>();
 
+// Đăng ký phân hệ Bảng điểm tổng hợp học viên (SPEC mục 5, 6.4)
+builder.Services.AddSingleton<IVietnameseNumberToWordsConverter, VietnameseNumberToWordsConverter>();
+builder.Services.AddSingleton<IGradeRankClassifier, GradeRankClassifier>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+builder.Services.AddTransient<IExcelGradeImporter, ExcelGradeImporter>();
+
 var app = builder.Build();
 
 // Khởi tạo Database và Seed dữ liệu ban đầu nếu cần
@@ -114,6 +120,98 @@ using (var scope = app.Services.CreateScope())
             else
             {
                 logger.LogWarning("Không tìm thấy file nạp dữ liệu ban đầu tại đường dẫn: '{SeedPath}'.", seedPath);
+            }
+        }
+
+        // Tự động Seed học viên và bảng điểm từ Excel nếu bảng Student đang trống lúc khởi động (SPEC mục 5, 6.4)
+        var hasStudents = await context.Students.AnyAsync();
+        if (!hasStudents)
+        {
+            var gradeSeedRelativePath = configuration.GetValue<string>("Plan:SeedGradeExcelPath") ?? "App_Data/BANG DIEM TONG K56.01.xlsx";
+            var gradeSeedPath = Path.Combine(app.Environment.ContentRootPath, gradeSeedRelativePath);
+            if (!File.Exists(gradeSeedPath))
+            {
+                var alt = Path.Combine(Directory.GetCurrentDirectory(), "App_Data", "BANG DIEM TONG K56.01.xlsx");
+                if (File.Exists(alt)) gradeSeedPath = alt;
+            }
+
+            if (File.Exists(gradeSeedPath))
+            {
+                logger.LogInformation("Bảng học viên trống. Đang nạp dữ liệu bảng điểm ban đầu từ '{GradeSeedPath}'...", gradeSeedPath);
+                var gradeImporter = services.GetRequiredService<IExcelGradeImporter>();
+                var gradeResult = gradeImporter.ReadGradeSheet(gradeSeedPath);
+
+                var existingSubjects = await context.Subjects.ToListAsync();
+                var subjectMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                foreach (var s in existingSubjects)
+                {
+                    subjectMap[s.Name.Trim()] = s.Id;
+                }
+
+                var maxSortOrder = existingSubjects.Count > 0 ? existingSubjects.Max(s => s.SortOrder) : 0;
+                var newSubjectsAdded = false;
+                foreach (var subName in gradeResult.SubjectNames)
+                {
+                    var trimmed = subName.Trim();
+                    if (!subjectMap.ContainsKey(trimmed))
+                    {
+                        maxSortOrder++;
+                        var newSub = new Subject
+                        {
+                            Name = trimmed,
+                            Periods = 15,
+                            SortOrder = maxSortOrder,
+                            ExamMode = "Immediately"
+                        };
+                        context.Subjects.Add(newSub);
+                        newSubjectsAdded = true;
+                    }
+                }
+
+                if (newSubjectsAdded)
+                {
+                    await context.SaveChangesAsync();
+                    existingSubjects = await context.Subjects.ToListAsync();
+                    subjectMap.Clear();
+                    foreach (var s in existingSubjects)
+                    {
+                        subjectMap[s.Name.Trim()] = s.Id;
+                    }
+                }
+
+                var studentsToAdd = new List<Student>();
+                foreach (var imp in gradeResult.Students)
+                {
+                    var student = new Student
+                    {
+                        SortOrder = imp.Stt,
+                        StudentCode = imp.StudentCode,
+                        LastName = imp.LastName,
+                        FirstName = imp.FirstName,
+                        DateOfBirth = imp.DateOfBirth,
+                        Gender = imp.Gender
+                    };
+
+                    foreach (var g in imp.Grades)
+                    {
+                        if (subjectMap.TryGetValue(g.SubjectName.Trim(), out var subId))
+                        {
+                            student.Grades.Add(new StudentGrade
+                            {
+                                SubjectId = subId,
+                                Score = g.Score
+                            });
+                        }
+                    }
+                    studentsToAdd.Add(student);
+                }
+
+                if (studentsToAdd.Count > 0)
+                {
+                    var planRepo = services.GetRequiredService<IPlanRepository>();
+                    await planRepo.ImportStudentsAndGradesAsync(studentsToAdd, preserveExisting: true);
+                    logger.LogInformation("Nạp thành công {Count} học viên và điểm từ Excel.", studentsToAdd.Count);
+                }
             }
         }
     }

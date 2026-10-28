@@ -3,7 +3,7 @@ using KeHoachHocTap.Web.Data;
 namespace KeHoachHocTap.Web.Services;
 
 /// <summary>
-/// Giao diện repository quản lý dữ liệu Môn học, Ngày nghỉ và Cấu hình hệ thống.
+/// Giao diện repository quản lý dữ liệu Môn học, Ngày nghỉ, Hoạt động đào tạo, Học viên, Điểm và Cấu hình hệ thống.
 /// </summary>
 public interface IPlanRepository
 {
@@ -74,6 +74,79 @@ public interface IPlanRepository
     /// Xóa một ngày nghỉ. Không cho phép xóa ngày khai giảng duy nhất.
     /// </summary>
     Task DeleteHolidayAsync(int id, CancellationToken cancellationToken = default);
+
+    // ==========================================
+    // PlanActivity operations (SPEC mục 4.3, 7.2)
+    // ==========================================
+
+    /// <summary>
+    /// Lấy danh sách toàn bộ hoạt động đào tạo (xen kẽ và cuối khóa) sắp xếp theo SortOrder tăng dần.
+    /// </summary>
+    Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy thông tin hoạt động đào tạo theo Id.
+    /// </summary>
+    Task<PlanActivity?> GetActivityByIdAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Thêm một hoạt động đào tạo mới.
+    /// </summary>
+    Task AddActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cập nhật thông tin hoạt động đào tạo.
+    /// </summary>
+    Task UpdateActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Xóa một hoạt động đào tạo.
+    /// </summary>
+    Task DeleteActivityAsync(int id, CancellationToken cancellationToken = default);
+
+    // ==========================================
+    // Student & Grade operations (SPEC mục 5, 6.4)
+    // ==========================================
+
+    /// <summary>
+    /// Lấy danh sách toàn bộ học viên kèm điểm các môn, sắp xếp theo SortOrder và Id tăng dần.
+    /// </summary>
+    Task<IReadOnlyList<Student>> GetStudentsWithGradesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lấy thông tin học viên theo Id kèm điểm các môn.
+    /// </summary>
+    Task<Student?> GetStudentByIdAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Thêm một học viên mới.
+    /// </summary>
+    Task AddStudentAsync(Student student, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Cập nhật thông tin học viên.
+    /// </summary>
+    Task UpdateStudentAsync(Student student, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Xóa một học viên và toàn bộ điểm liên quan.
+    /// </summary>
+    Task DeleteStudentAsync(int id, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lưu hoặc cập nhật một điểm môn học duy nhất của học viên.
+    /// </summary>
+    Task UpdateSingleGradeAsync(int studentId, int subjectId, decimal? score, string? note = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Lưu hàng loạt điểm môn học trong 1 transaction.
+    /// </summary>
+    Task SaveGradesAsync(IEnumerable<StudentGrade> grades, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Nhập danh sách học viên và điểm từ Excel trong 1 transaction (hỗ trợ xóa cũ hoặc giữ nguyên).
+    /// </summary>
+    Task ImportStudentsAndGradesAsync(IEnumerable<Student> students, bool preserveExisting = false, CancellationToken cancellationToken = default);
 
     // ==========================================
     // AppSetting operations

@@ -455,5 +455,226 @@ public class ScheduleCalculatorTests
         Assert.Equal("C 15/9/2025", result.Items[1].Exam.ToString());
     }
 
+    [Fact]
+    public void Calculate_WithInterimActivity_DateRange_ShiftsNextSubjectToNextWorkdayMorning()
+    {
+        var subjects = new List<Subject>
+        {
+            new() { Id = 1, SortOrder = 1, Name = "Môn 1", Periods = 10 },
+            new() { Id = 2, SortOrder = 2, Name = "Môn 2", Periods = 10 }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 1,
+                Name = "Đi nghiên cứu thực tế tại cơ sở",
+                Type = PlanActivityType.Interim,
+                AfterSubjectId = 1,
+                FromDate = new DateOnly(2025, 9, 15), // Thứ 2
+                ToDate = new DateOnly(2025, 9, 19),   // Thứ 6
+                Periods = 10,
+                Note = "Nghiên cứu cơ sở"
+            }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays, Half.S, activities);
+
+        Assert.Equal(2, result.Items.Count);
+        Assert.Single(result.Activities);
+
+        // Môn 1 học S 11/9, C 11/9; thi S 12/9
+        Assert.Equal("S 11/9/2025", result.Items[0].Start.ToString());
+        Assert.Equal("C 11/9/2025", result.Items[0].End.ToString());
+        Assert.Equal("S 12/9/2025", result.Items[0].Exam.ToString());
+
+        // Hoạt động xen kẽ
+        var act = result.Activities[0];
+        Assert.Equal("Đi nghiên cứu thực tế tại cơ sở", act.Activity.Name);
+        Assert.Equal("S 15/9/2025", act.Start!.ToString());
+        Assert.Equal("C 19/9/2025", act.End!.ToString());
+
+        // Môn 2 tự động dời sang sáng Thứ 2 tuần sau (NextWorkday của 19/9/2025 là 22/9/2025)
+        Assert.Equal("S 22/9/2025", result.Items[1].Start.ToString());
+        Assert.Equal("C 22/9/2025", result.Items[1].End.ToString());
+        Assert.Equal("S 23/9/2025", result.Items[1].Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_WithInterimActivity_Sessions_ShiftsNextSubjectConsecutively()
+    {
+        var subjects = new List<Subject>
+        {
+            new() { Id = 1, SortOrder = 1, Name = "Môn 1", Periods = 10 },
+            new() { Id = 2, SortOrder = 2, Name = "Môn 2", Periods = 10 }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 1,
+                Name = "Nghỉ viết bài thu hoạch môn học",
+                Type = PlanActivityType.Interim,
+                AfterSubjectId = 1,
+                Sessions = 2
+            }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays, Half.S, activities);
+
+        // Môn 1 thi vào S 12/9/2025
+        Assert.Equal("S 12/9/2025", result.Items[0].Exam.ToString());
+
+        // Hoạt động 2 buổi bắt đầu tại C 12/9/2025 đến S 15/9/2025 (Thứ 2)
+        var act = Assert.Single(result.Activities);
+        Assert.Equal("C 12/9/2025", act.Start!.ToString());
+        Assert.Equal("S 15/9/2025", act.End!.ToString());
+
+        // Môn 2 bắt đầu tại buổi kế tiếp: C 15/9/2025
+        Assert.Equal("C 15/9/2025", result.Items[1].Start.ToString());
+        Assert.Equal("S 16/9/2025", result.Items[1].End.ToString());
+        Assert.Equal("C 16/9/2025", result.Items[1].Exam.ToString());
+    }
+
+    [Fact]
+    public void Calculate_WithClosingActivities_SchedulesActivitiesAfterLastSubject()
+    {
+        var subjects = new List<Subject>
+        {
+            new() { Id = 1, SortOrder = 1, Name = "Môn cuối", Periods = 10 }
+        };
+
+        var holidays = new List<Holiday>
+        {
+            new() { Name = "Khai giảng", From = new DateOnly(2025, 9, 10), To = new DateOnly(2025, 9, 10), IsOpeningDay = true }
+        };
+
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 1,
+                SortOrder = 1,
+                Name = "Ôn thi tốt nghiệp",
+                Type = PlanActivityType.Closing,
+                Periods = 15 // 3 buổi
+            },
+            new()
+            {
+                Id = 2,
+                SortOrder = 2,
+                Name = "Thi tốt nghiệp",
+                Type = PlanActivityType.Closing,
+                FromDate = new DateOnly(2025, 9, 22),
+                ToDate = new DateOnly(2025, 9, 24),
+                Periods = 15
+            },
+            new()
+            {
+                Id = 3,
+                SortOrder = 3,
+                Name = "Họp lớp",
+                Type = PlanActivityType.Closing,
+                Sessions = 1
+            },
+            new()
+            {
+                Id = 4,
+                SortOrder = 4,
+                Name = "Bế giảng",
+                Type = PlanActivityType.Closing,
+                FromDate = new DateOnly(2025, 9, 29),
+                ToDate = new DateOnly(2025, 9, 29),
+                Periods = 5
+            }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays, Half.S, activities);
+
+        Assert.Single(result.Items);
+        Assert.Equal("S 12/9/2025", result.Items[0].Exam.ToString());
+
+        Assert.Equal(4, result.Activities.Count);
+
+        // 1. Ôn thi tốt nghiệp: 3 buổi từ C 12/9/2025 -> C 15/9/2025
+        Assert.Equal("Ôn thi tốt nghiệp", result.Activities[0].Activity.Name);
+        Assert.Equal("C 12/9/2025", result.Activities[0].Start!.ToString());
+        Assert.Equal("C 15/9/2025", result.Activities[0].End!.ToString());
+
+        // 2. Thi tốt nghiệp: From 22/9/2025 -> To 24/9/2025
+        Assert.Equal("Thi tốt nghiệp", result.Activities[1].Activity.Name);
+        Assert.Equal("S 22/9/2025", result.Activities[1].Start!.ToString());
+        Assert.Equal("C 24/9/2025", result.Activities[1].End!.ToString());
+
+        // 3. Họp lớp: 1 buổi sau Thi tốt nghiệp -> NextWorkday(24/9) là 25/9 sáng
+        Assert.Equal("Họp lớp", result.Activities[2].Activity.Name);
+        Assert.Equal("S 25/9/2025", result.Activities[2].Start!.ToString());
+        Assert.Equal("S 25/9/2025", result.Activities[2].End!.ToString());
+
+        // 4. Bế giảng: From 29/9/2025 -> To 29/9/2025
+        Assert.Equal("Bế giảng", result.Activities[3].Activity.Name);
+        Assert.Equal("S 29/9/2025", result.Activities[3].Start!.ToString());
+        Assert.Equal("C 29/9/2025", result.Activities[3].End!.ToString());
+    }
+
+    [Fact]
+    public void Calculate_Golden19Subjects_WithInterimActivity_AccuratelyShiftsSubsequentSubjects()
+    {
+        var excelPath = Path.Combine(AppContext.BaseDirectory, "TestData", "ke_hoach_hoc_tap.xlsx");
+        var reader = new ExcelPlanReader();
+        using var stream = File.OpenRead(excelPath);
+        var (subjects, holidays, _) = reader.Read(stream);
+
+        // Gán Id cho các môn theo SortOrder để liên kết với AfterSubjectId
+        foreach (var s in subjects)
+        {
+            s.Id = s.SortOrder;
+        }
+
+        // Chèn hoạt động nghiên cứu thực tế 1 tuần sau môn 1 (22/9/2025 -> 26/9/2025)
+        var activities = new List<PlanActivity>
+        {
+            new()
+            {
+                Id = 100,
+                Name = "Đi nghiên cứu thực tế tại cơ sở",
+                Type = PlanActivityType.Interim,
+                AfterSubjectId = 1,
+                FromDate = new DateOnly(2025, 9, 22),
+                ToDate = new DateOnly(2025, 9, 26)
+            }
+        };
+
+        var result = _calculator.Calculate(subjects, holidays, Half.S, activities);
+
+        Assert.Equal(19, result.Items.Count);
+        Assert.Single(result.Activities);
+
+        // Môn 1 giữ nguyên lịch golden
+        Assert.Equal("S 11/9/2025", result.Items[0].Start.ToString());
+        Assert.Equal("C 18/9/2025", result.Items[0].End.ToString());
+        Assert.Equal("S 19/9/2025", result.Items[0].Exam.ToString());
+
+        // Hoạt động xen kẽ diễn ra từ S 22/9 đến C 26/9
+        Assert.Equal("S 22/9/2025", result.Activities[0].Start!.ToString());
+        Assert.Equal("C 26/9/2025", result.Activities[0].End!.ToString());
+
+        // Môn 2 (nguyên bản là C 19/9 -> C 26/9, thi S 29/9)
+        // Nay bắt đầu vào S 29/9/2025 (NextWorkday sau 26/9/2025)
+        Assert.Equal("S 29/9/2025", result.Items[1].Start.ToString());
+    }
+
     #endregion
 }

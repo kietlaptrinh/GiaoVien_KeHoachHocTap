@@ -16,7 +16,8 @@ public class ScheduleCalculator : IScheduleCalculator
     public ScheduleResult Calculate(
         IEnumerable<Subject> subjects,
         IEnumerable<Holiday> holidays,
-        Half firstSessionHalf = Half.S)
+        Half firstSessionHalf = Half.S,
+        IReadOnlyList<PlanActivity>? activities = null)
     {
         var subjectList = subjects?.ToList() ?? new List<Subject>();
         var holidayList = holidays?.ToList() ?? new List<Holiday>();
@@ -31,7 +32,7 @@ public class ScheduleCalculator : IScheduleCalculator
         if (openingHoliday == null)
         {
             warnings.Add("Chưa thiết lập ngày khai giảng trong danh sách ngày nghỉ.");
-            return new ScheduleResult(DateOnly.MinValue, holidayList, Array.Empty<ScheduledSubject>(), warnings);
+            return new ScheduleResult(DateOnly.MinValue, holidayList, Array.Empty<ScheduledSubject>(), Array.Empty<ScheduledActivity>(), warnings);
         }
 
         var openingDay = openingHoliday.From;
@@ -131,7 +132,7 @@ public class ScheduleCalculator : IScheduleCalculator
         catch (InvalidOperationException ex)
         {
             warnings.Add($"Không tìm thấy ngày làm việc hợp lệ sau khai giảng: {ex.Message}");
-            return new ScheduleResult(openingDay, holidayList, Array.Empty<ScheduledSubject>(), warnings);
+            return new ScheduleResult(openingDay, holidayList, Array.Empty<ScheduledSubject>(), Array.Empty<ScheduledActivity>(), warnings);
         }
 
         // 4. Lọc môn hợp lệ theo SortOrder
@@ -160,6 +161,7 @@ public class ScheduleCalculator : IScheduleCalculator
 
         // 5. Xếp lịch từng môn
         var scheduledItems = new List<ScheduledSubject>();
+        var scheduledActivities = new List<ScheduledActivity>();
         var pendingExams = new List<(Subject Subject, int Number, int Sessions, Slot Start, Slot End)>();
         Slot currentStart = new Slot(firstWorkday, firstSessionHalf);
 
@@ -196,12 +198,7 @@ public class ScheduleCalculator : IScheduleCalculator
                     }
 
                     scheduledItems.Add(new ScheduledSubject(subject, displayNumber, sessions, start, end, examSlot));
-
-                    if (!isLast)
-                    {
-                        // Môn sau bắt đầu sau end (hoặc sau exam)
-                        currentStart = Advance(end, 1);
-                    }
+                    currentStart = Advance(end, 1);
                 }
                 else
                 {
@@ -221,9 +218,48 @@ public class ScheduleCalculator : IScheduleCalculator
 
                     scheduledItems.Add(new ScheduledSubject(subject, displayNumber, sessions, start, end, examCursor));
 
-                    if (!isLast)
+                    currentStart = Advance(examCursor, 1);
+                }
+
+                // Xử lý hoạt động xen kẽ gắn với môn học này (Interim Activities)
+                if (activities != null)
+                {
+                    var interimList = activities
+                        .Where(a => a.Type == PlanActivityType.Interim &&
+                                    (a.AfterSubjectId == subject.Id || (subject.Id == 0 && a.AfterSubjectId == subject.SortOrder)))
+                        .OrderBy(a => a.SortOrder)
+                        .ToList();
+
+                    foreach (var act in interimList)
                     {
-                        currentStart = Advance(examCursor, 1);
+                        if (act.FromDate.HasValue)
+                        {
+                            var fromDate = act.FromDate.Value;
+                            var toDate = act.ToDate ?? fromDate;
+                            if (toDate < fromDate)
+                            {
+                                warnings.Add($"Hoạt động xen kẽ '{act.Name}' có Đến ngày ({toDate:d/M/yyyy}) trước Từ ngày ({fromDate:d/M/yyyy}). Đã điều chỉnh Đến ngày = Từ ngày.");
+                                toDate = fromDate;
+                            }
+
+                            var actStart = new Slot(fromDate, Half.S);
+                            var actEnd = new Slot(toDate, Half.C);
+                            scheduledActivities.Add(new ScheduledActivity(act, actStart, actEnd));
+
+                            // Môn học k+1 sẽ bắt đầu tại buổi sáng của NextWorkday(activity.ToDate)
+                            currentStart = new Slot(NextWorkday(toDate), Half.S);
+                        }
+                        else
+                        {
+                            // Chỉ định theo Sessions hoặc Periods
+                            int actSessions = act.Sessions ?? (act.Periods.HasValue && act.Periods.Value > 0 ? (int)Math.Ceiling(act.Periods.Value / 5.0) : 1);
+                            var actStart = currentStart;
+                            var actEnd = Advance(actStart, actSessions - 1);
+                            scheduledActivities.Add(new ScheduledActivity(act, actStart, actEnd));
+
+                            // Môn học k+1 bắt đầu tại buổi kế tiếp sau khi hoạt động kết thúc
+                            currentStart = Advance(actEnd, 1);
+                        }
                     }
                 }
             }
@@ -247,6 +283,7 @@ public class ScheduleCalculator : IScheduleCalculator
                     examCursor = Advance(examCursor, 1);
                 }
                 pendingExams.Clear();
+                currentStart = Advance(examCursor, 1);
             }
             catch (InvalidOperationException ex)
             {
@@ -254,7 +291,53 @@ public class ScheduleCalculator : IScheduleCalculator
             }
         }
 
+        // 6. Xử lý chuỗi hoạt động sau môn cuối (Closing Activities)
+        if (activities != null)
+        {
+            var closingList = activities
+                .Where(a => a.Type == PlanActivityType.Closing)
+                .OrderBy(a => a.SortOrder)
+                .ToList();
+
+            foreach (var act in closingList)
+            {
+                try
+                {
+                    if (act.FromDate.HasValue)
+                    {
+                        var fromDate = act.FromDate.Value;
+                        var toDate = act.ToDate ?? fromDate;
+                        if (toDate < fromDate)
+                        {
+                            warnings.Add($"Hoạt động kết thúc '{act.Name}' có Đến ngày ({toDate:d/M/yyyy}) trước Từ ngày ({fromDate:d/M/yyyy}). Đã điều chỉnh Đến ngày = Từ ngày.");
+                            toDate = fromDate;
+                        }
+
+                        var actStart = new Slot(fromDate, Half.S);
+                        var actEnd = new Slot(toDate, Half.C);
+                        scheduledActivities.Add(new ScheduledActivity(act, actStart, actEnd));
+
+                        currentStart = new Slot(NextWorkday(toDate), Half.S);
+                    }
+                    else
+                    {
+                        int actSessions = act.Sessions ?? (act.Periods.HasValue && act.Periods.Value > 0 ? (int)Math.Ceiling(act.Periods.Value / 5.0) : 1);
+                        var actStart = currentStart;
+                        var actEnd = Advance(actStart, actSessions - 1);
+                        scheduledActivities.Add(new ScheduledActivity(act, actStart, actEnd));
+
+                        currentStart = Advance(actEnd, 1);
+                    }
+                }
+                catch (InvalidOperationException ex)
+                {
+                    warnings.Add($"Đã dừng xếp lịch cho hoạt động '{act.Name}' do vượt giới hạn an toàn: {ex.Message}");
+                    break;
+                }
+            }
+        }
+
         var sortedItems = scheduledItems.OrderBy(s => s.Number).ToList();
-        return new ScheduleResult(openingDay, holidayList, sortedItems, warnings);
+        return new ScheduleResult(openingDay, holidayList, sortedItems, scheduledActivities, warnings);
     }
 }

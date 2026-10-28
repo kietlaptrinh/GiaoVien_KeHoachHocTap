@@ -24,10 +24,11 @@ public class PlanService : IPlanService
     {
         var subjects = await _repository.GetSubjectsAsync(cancellationToken);
         var holidays = await _repository.GetHolidaysAsync(cancellationToken);
+        var activities = await _repository.GetActivitiesAsync(cancellationToken);
         var firstHalfSetting = await _repository.GetSettingAsync("Plan:FirstSessionHalf", "S", cancellationToken);
         var firstSessionHalf = "C".Equals(firstHalfSetting, StringComparison.OrdinalIgnoreCase) ? Half.C : Half.S;
 
-        return _calculator.Calculate(subjects, holidays, firstSessionHalf);
+        return _calculator.Calculate(subjects, holidays, firstSessionHalf, activities);
     }
 
     public async Task<IReadOnlyList<Subject>> GetSubjectsAsync(CancellationToken cancellationToken = default)
@@ -43,5 +44,10 @@ public class PlanService : IPlanService
     public async Task<Holiday?> GetOpeningDayAsync(CancellationToken cancellationToken = default)
     {
         return await _repository.GetOpeningDayAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _repository.GetActivitiesAsync(cancellationToken);
     }
 }

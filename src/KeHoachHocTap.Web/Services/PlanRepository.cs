@@ -340,6 +340,236 @@ public class PlanRepository : IPlanRepository
     }
 
     // ==========================================
+    // PlanActivity operations (SPEC mục 4.3, 7.2)
+    // ==========================================
+
+    public async Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.PlanActivities
+            .OrderBy(a => a.SortOrder)
+            .ThenBy(a => a.Id)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<PlanActivity?> GetActivityByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.PlanActivities
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+    }
+
+    public async Task AddActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default)
+    {
+        if (activity.SortOrder <= 0)
+        {
+            var maxOrder = await _context.PlanActivities.MaxAsync(a => (int?)a.SortOrder, cancellationToken) ?? 0;
+            activity.SortOrder = maxOrder + 1;
+        }
+
+        _context.PlanActivities.Add(activity);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default)
+    {
+        var tracked = _context.PlanActivities.Local.FirstOrDefault(a => a.Id == activity.Id);
+        if (tracked != null)
+        {
+            if (!ReferenceEquals(tracked, activity))
+            {
+                _context.Entry(tracked).CurrentValues.SetValues(activity);
+            }
+        }
+        else
+        {
+            _context.PlanActivities.Update(activity);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteActivityAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var activity = await _context.PlanActivities.FindAsync(new object[] { id }, cancellationToken);
+        if (activity != null)
+        {
+            _context.PlanActivities.Remove(activity);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    // ==========================================
+    // Student & Grade operations (SPEC mục 5, 6.4)
+    // ==========================================
+
+    public async Task<IReadOnlyList<Student>> GetStudentsWithGradesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Students
+            .Include(s => s.Grades)
+                .ThenInclude(g => g.Subject)
+            .OrderBy(s => s.SortOrder)
+            .ThenBy(s => s.Id)
+            .AsNoTracking()
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Student?> GetStudentByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Students
+            .Include(s => s.Grades)
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
+    }
+
+    public async Task AddStudentAsync(Student student, CancellationToken cancellationToken = default)
+    {
+        if (student.SortOrder <= 0)
+        {
+            var maxOrder = await _context.Students.MaxAsync(s => (int?)s.SortOrder, cancellationToken) ?? 0;
+            student.SortOrder = maxOrder + 1;
+        }
+
+        _context.Students.Add(student);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task UpdateStudentAsync(Student student, CancellationToken cancellationToken = default)
+    {
+        var tracked = _context.Students.Local.FirstOrDefault(s => s.Id == student.Id);
+        if (tracked != null)
+        {
+            if (!ReferenceEquals(tracked, student))
+            {
+                _context.Entry(tracked).CurrentValues.SetValues(student);
+            }
+        }
+        else
+        {
+            _context.Students.Update(student);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task DeleteStudentAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var student = await _context.Students.FindAsync(new object[] { id }, cancellationToken);
+        if (student != null)
+        {
+            _context.Students.Remove(student);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+    }
+
+    public async Task UpdateSingleGradeAsync(int studentId, int subjectId, decimal? score, string? note = null, CancellationToken cancellationToken = default)
+    {
+        var grade = await _context.StudentGrades
+            .FirstOrDefaultAsync(g => g.StudentId == studentId && g.SubjectId == subjectId, cancellationToken);
+
+        if (grade != null)
+        {
+            grade.Score = score;
+            if (note != null)
+            {
+                grade.Note = note;
+            }
+        }
+        else
+        {
+            _context.StudentGrades.Add(new StudentGrade
+            {
+                StudentId = studentId,
+                SubjectId = subjectId,
+                Score = score,
+                Note = note
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SaveGradesAsync(IEnumerable<StudentGrade> grades, CancellationToken cancellationToken = default)
+    {
+        var hasExistingTx = _context.Database.CurrentTransaction != null;
+        IDbContextTransaction? tx = hasExistingTx ? null : await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            foreach (var g in grades)
+            {
+                var existing = await _context.StudentGrades
+                    .FirstOrDefaultAsync(x => x.StudentId == g.StudentId && x.SubjectId == g.SubjectId, cancellationToken);
+
+                if (existing != null)
+                {
+                    existing.Score = g.Score;
+                    existing.Note = g.Note;
+                }
+                else
+                {
+                    _context.StudentGrades.Add(new StudentGrade
+                    {
+                        StudentId = g.StudentId,
+                        SubjectId = g.SubjectId,
+                        Score = g.Score,
+                        Note = g.Note
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            if (tx != null)
+            {
+                await tx.CommitAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            if (tx != null)
+            {
+                await tx.RollbackAsync(cancellationToken);
+            }
+            throw;
+        }
+    }
+
+    public async Task ImportStudentsAndGradesAsync(IEnumerable<Student> students, bool preserveExisting = false, CancellationToken cancellationToken = default)
+    {
+        var hasExistingTx = _context.Database.CurrentTransaction != null;
+        IDbContextTransaction? tx = hasExistingTx ? null : await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            if (!preserveExisting)
+            {
+                _context.StudentGrades.RemoveRange(_context.StudentGrades);
+                _context.Students.RemoveRange(_context.Students);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            foreach (var student in students)
+            {
+                _context.Students.Add(student);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            if (tx != null)
+            {
+                await tx.CommitAsync(cancellationToken);
+            }
+        }
+        catch
+        {
+            if (tx != null)
+            {
+                await tx.RollbackAsync(cancellationToken);
+            }
+            throw;
+        }
+    }
+
+    // ==========================================
     // AppSetting operations
     // ==========================================
 

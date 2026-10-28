@@ -220,6 +220,8 @@ public class AuthTests
             => Task.FromResult<IReadOnlyList<Holiday>>(Array.Empty<Holiday>());
         public Task<Holiday?> GetOpeningDayAsync(CancellationToken cancellationToken = default)
             => Task.FromResult<Holiday?>(null);
+        public Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default)
+            => Task.FromResult<IReadOnlyList<PlanActivity>>(Array.Empty<PlanActivity>());
     }
 
     private class StubPlanRepository : IPlanRepository
@@ -237,6 +239,22 @@ public class AuthTests
         public Task AddHolidayAsync(Holiday holiday, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task UpdateHolidayAsync(Holiday holiday, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task DeleteHolidayAsync(int id, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<PlanActivity>> GetActivitiesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<PlanActivity>>(Array.Empty<PlanActivity>());
+        public Task<PlanActivity?> GetActivityByIdAsync(int id, CancellationToken cancellationToken = default) => Task.FromResult<PlanActivity?>(null);
+        public Task AddActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateActivityAsync(PlanActivity activity, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteActivityAsync(int id, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<IReadOnlyList<Student>> GetStudentsWithGradesAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyList<Student>>(Array.Empty<Student>());
+        public Task<Student?> GetStudentByIdAsync(int id, CancellationToken cancellationToken = default) => Task.FromResult<Student?>(null);
+        public Task AddStudentAsync(Student student, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateStudentAsync(Student student, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task DeleteStudentAsync(int id, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task UpdateSingleGradeAsync(int studentId, int subjectId, decimal? score, string? note = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task SaveGradesAsync(IEnumerable<StudentGrade> grades, CancellationToken cancellationToken = default) => Task.CompletedTask;
+        public Task ImportStudentsAndGradesAsync(IEnumerable<Student> students, bool preserveExisting = false, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
         public Task<string?> GetSettingAsync(string key, string? defaultValue = null, CancellationToken cancellationToken = default) => Task.FromResult(defaultValue);
         public Task SetSettingAsync(string key, string value, CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task<IReadOnlyDictionary<string, string>> GetAllSettingsAsync(CancellationToken cancellationToken = default) => Task.FromResult<IReadOnlyDictionary<string, string>>(new Dictionary<string, string>());

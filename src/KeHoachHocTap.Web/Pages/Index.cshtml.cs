@@ -32,6 +32,7 @@ public class IndexModel : PageModel
 
     public ScheduleResult? Schedule { get; private set; }
     public IReadOnlyList<ScheduledSubject> Items => Schedule?.Items ?? Array.Empty<ScheduledSubject>();
+    public IReadOnlyList<ScheduledActivity> Activities => Schedule?.Activities ?? Array.Empty<ScheduledActivity>();
     public GradeSummary Summary { get; private set; } = new(0, 0, 0, null, null);
     public IReadOnlyList<string> Warnings => Schedule?.Warnings ?? Array.Empty<string>();
 
@@ -44,6 +45,32 @@ public class IndexModel : PageModel
 
     [TempData]
     public string? ErrorMessage { get; set; }
+
+    public class ActivityInputModel
+    {
+        public int Id { get; set; }
+
+        [Required(ErrorMessage = "Tên hoạt động không được để trống.")]
+        [StringLength(200, ErrorMessage = "Tên hoạt động tối đa 200 ký tự.")]
+        public string Name { get; set; } = string.Empty;
+
+        public PlanActivityType Type { get; set; } = PlanActivityType.Interim;
+
+        public int? AfterSubjectId { get; set; }
+
+        public DateOnly? FromDate { get; set; }
+
+        public DateOnly? ToDate { get; set; }
+
+        [Range(1, 1000, ErrorMessage = "Số buổi phải lớn hơn 0.")]
+        public int? Sessions { get; set; }
+
+        [Range(1, 10000, ErrorMessage = "Số tiết phải lớn hơn 0.")]
+        public int? Periods { get; set; }
+
+        [StringLength(500, ErrorMessage = "Ghi chú tối đa 500 ký tự.")]
+        public string? Note { get; set; }
+    }
 
     public class SubjectInputModel
     {
@@ -242,6 +269,135 @@ public class IndexModel : PageModel
         {
             _logger.LogError(ex, "Lỗi khi đổi thứ tự môn học Id {Id}.", id);
             ErrorMessage = "Không thể đổi vị trí môn học: " + ex.Message;
+        }
+
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostAddActivityAsync(ActivityInputModel input)
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded)
+        {
+            return Forbid();
+        }
+
+        if (!IsPasswordConfigured)
+        {
+            ErrorMessage = "Hệ thống đang ở chế độ chỉ xem do chưa thiết lập mật khẩu quản trị.";
+            return RedirectToPage();
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+        {
+            ErrorMessage = "Tên hoạt động không được để trống.";
+            return RedirectToPage();
+        }
+
+        try
+        {
+            var activity = new PlanActivity
+            {
+                Name = input.Name.Trim(),
+                Type = input.Type,
+                AfterSubjectId = input.Type == PlanActivityType.Interim ? input.AfterSubjectId : null,
+                FromDate = input.FromDate,
+                ToDate = input.ToDate,
+                Sessions = input.Sessions,
+                Periods = input.Periods,
+                Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim()
+            };
+
+            await _planRepository.AddActivityAsync(activity);
+            SuccessMessage = $"Đã thêm hoạt động '{activity.Name}' thành công.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi thêm hoạt động.");
+            ErrorMessage = "Không thể thêm hoạt động: " + ex.Message;
+        }
+
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostUpdateActivityAsync(ActivityInputModel input)
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded)
+        {
+            return Forbid();
+        }
+
+        if (!IsPasswordConfigured)
+        {
+            ErrorMessage = "Hệ thống đang ở chế độ chỉ xem do chưa thiết lập mật khẩu quản trị.";
+            return RedirectToPage();
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Name))
+        {
+            ErrorMessage = "Tên hoạt động không được để trống.";
+            return RedirectToPage();
+        }
+
+        try
+        {
+            var existing = await _planRepository.GetActivityByIdAsync(input.Id);
+            if (existing == null)
+            {
+                ErrorMessage = "Hoạt động không tồn tại.";
+                return RedirectToPage();
+            }
+
+            existing.Name = input.Name.Trim();
+            existing.Type = input.Type;
+            existing.AfterSubjectId = input.Type == PlanActivityType.Interim ? input.AfterSubjectId : null;
+            existing.FromDate = input.FromDate;
+            existing.ToDate = input.ToDate;
+            existing.Sessions = input.Sessions;
+            existing.Periods = input.Periods;
+            existing.Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim();
+
+            await _planRepository.UpdateActivityAsync(existing);
+            SuccessMessage = $"Đã cập nhật hoạt động '{existing.Name}' thành công.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi cập nhật hoạt động Id {Id}.", input.Id);
+            ErrorMessage = "Không thể cập nhật hoạt động: " + ex.Message;
+        }
+
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostDeleteActivityAsync(int id)
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded)
+        {
+            return Forbid();
+        }
+
+        if (!IsPasswordConfigured)
+        {
+            ErrorMessage = "Hệ thống đang ở chế độ chỉ xem do chưa thiết lập mật khẩu quản trị.";
+            return RedirectToPage();
+        }
+
+        try
+        {
+            var existing = await _planRepository.GetActivityByIdAsync(id);
+            if (existing != null)
+            {
+                var name = existing.Name;
+                await _planRepository.DeleteActivityAsync(id);
+                SuccessMessage = $"Đã xóa hoạt động '{name}' thành công.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi xóa hoạt động Id {Id}.", id);
+            ErrorMessage = "Không thể xóa hoạt động: " + ex.Message;
         }
 
         return RedirectToPage();
