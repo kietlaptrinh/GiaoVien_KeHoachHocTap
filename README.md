@@ -1,6 +1,6 @@
-# Hệ Thống Quản Lý Kế Hoạch Học Tập & Giảng Dạy (Web KeHoachHocTap)
+# Hệ Thống Quản Lý Kế Hoạch Học Tập & Bảng Điểm Tổng Hợp (Web KeHoachHocTap)
 
-Ứng dụng web chuyên nghiệp quản lý kế hoạch học tập, xếp lịch giảng dạy tự động, quản lý điểm và xuất biểu mẫu Word chuẩn theo quy định đào tạo.
+Ứng dụng web chuyên nghiệp quản lý **kế hoạch học tập**, **xếp lịch giảng dạy tự động**, **quản lý bảng điểm tổng kết lớp học** và **xuất biểu mẫu Word chuẩn** theo quy định đào tạo.
 
 Hệ thống được phát triển trên nền tảng **ASP.NET Core Razor Pages (.NET 8)**, lưu trữ dữ liệu an toàn trong **SQL Server**, xử lý đọc file Excel bằng **ClosedXML** và sinh biểu mẫu Word bằng **DocumentFormat.OpenXml**.
 
@@ -8,27 +8,47 @@ Hệ thống được phát triển trên nền tảng **ASP.NET Core Razor Page
 
 ## 1. Điểm Nổi Bật & Kiến Trúc Hệ Thống
 
-- **Phong cách giao diện Desktop Cổ Điển (Classic Desktop App Style):**
-  - **Bảng màu:** Nền Trắng / Xám nhạt (`#FFFFFF`, `#F8F9FA`), chữ và viền Đen / Xám đậm (`#212529`, `#DEE2E6` sắc nét 1px), điểm nhấn Xanh dương nhạt (`#EBF3FC`, `#D0E2FF`, `#1D4ED8` cho nút chính và trạng thái kích hoạt).
-  - **Bố cục ứng dụng:** Thanh tiêu đề ứng dụng (TitleBar), thanh công cụ (Toolbar), lưới dữ liệu dạng bảng chia ô rõ ràng (DataGrid), và thanh trạng thái dưới cùng (StatusBar).
+Hệ thống được chia tách thành **hai phân hệ chuyên biệt và độc lập**:
+
+### 1.1 Phân hệ Kế hoạch giảng dạy & học tập (`/` hoặc `/Plan`)
 - **Thuật toán xếp lịch tự động thông minh:**
   - 1 buổi = 5 tiết, mỗi ngày 2 buổi (Sáng: S, Chiều: C), chỉ học từ Thứ 2 đến Thứ 6 (nghỉ Thứ 7, Chủ nhật).
-  - Tự động bỏ qua các khoảng ngày nghỉ lễ, Tết và khai giảng.
-  - Buổi thi hết môn diễn ra ngay buổi tiếp theo sau buổi học cuối cùng. Môn học sau bắt đầu ngay buổi kế tiếp sau buổi thi của môn trước (có thể bắt đầu vào buổi chiều).
+  - Tự động loại trừ các khoảng ngày nghỉ lễ, Tết và khai giảng.
+  - Buổi thi hết môn linh hoạt: Thi ngay (`Immediately`), Hoãn/dồn thi (`Delayed`), hoặc Chỉ định buổi thi (`Custom`). Môn tiếp theo bắt đầu ngay buổi kế tiếp.
   - Định dạng buổi chuẩn: `S 11/9/2025` (`d/M/yyyy`, không đệm số 0 thừa).
-- **Bảo mật & Phân quyền:**
-  - Khách vãng lai: Toàn quyền tra cứu kế hoạch học tập, xem ngày nghỉ và tải biểu mẫu Word.
-  - Quản trị viên: Đăng nhập bằng mật khẩu duy nhất bảo mật bằng `CryptographicOperations.FixedTimeEquals` và Cookie Authentication (hết hạn 8 giờ, `HttpOnly`, `SameSite=Lax`). Mọi thao tác ghi dữ liệu (thêm/sửa/xóa môn học, sửa điểm, đổi ngày nghỉ, import Excel, upload template) đều được bảo vệ nghiêm ngặt ở server bằng policy `Admin` và Anti-forgery token.
-  - Khi mật khẩu quản trị để trống: Hệ thống tự động chuyển sang chế độ chỉ xem an toàn.
+- **Chèn hoạt động xen kẽ sau môn học bất kỳ:**
+  - Giáo viên có thể chèn thêm sự kiện/khoảng nghỉ vào sau bất kỳ môn nào (ví dụ: *Lớp đi nghiên cứu thực tế tại cơ sở*, *Nghỉ từ ngày đến ngày để viết bài thu hoạch/tiểu luận môn học*).
+  - Hệ thống tự động tính toán và dời lịch môn kế tiếp bắt đầu ngay sau khi hoạt động xen kẽ kết thúc.
+- **Chuỗi hoạt động sau môn học cuối cùng:**
+  - Hỗ trợ cấu hình chuỗi nhiệm vụ kết thúc khóa: *Ôn thi tốt nghiệp*, *Thi tốt nghiệp*, *Họp lớp tổng kết*, *Bế giảng*.
 - **Xuất biểu mẫu Word (.docx) chuẩn:**
-  - Nhân bản trực tiếp từ template mẫu OpenXml, bảo toàn 100% font chữ Calibri, cỡ chữ, lề văn bản A4 dọc và các ô gộp tiêu đề (`gridSpan`, `vMerge`).
-  - Tự động điền đầy đủ dòng Khai giảng, danh sách môn học, Thi tốt nghiệp và Bế giảng.
-  - Sinh file hoàn toàn trong bộ nhớ (`MemoryStream`), không ghi file tạm lên đĩa máy chủ.
-- **Quản lý Template & Nhiệm vụ trực tiếp trên Web (`/Templates`):**
-  - Quản trị viên có thể tải file mẫu hiện tại về máy để chỉnh sửa trên Microsoft Word.
-  - Upload file template `.docx` tùy biến mới (dung lượng tối đa 10 MB) với cơ chế xác thực cấu trúc OpenXml nghiêm ngặt (kiểm tra bảng, 2 hàng tiêu đề, 10 cột dữ liệu).
-  - Nút khôi phục mẫu gốc mặc định nhanh chóng.
-  - Form chỉnh sửa thông số nhiệm vụ đặc biệt (Thi tốt nghiệp, Bế giảng, Tiết tự học, Tiết ôn thi) lưu trữ linh hoạt trong database `AppSetting`.
+  - Tự động điền đầy đủ dòng Khai giảng, danh sách môn học, các hoạt động xen kẽ và các nhiệm vụ kết thúc khóa học vào bảng 10 cột, giữ trọn vẹn mẫu Word gốc của đơn vị đào tạo.
+
+### 1.2 Phân hệ Bảng điểm tổng hợp học viên (`/Grades`)
+- **Đúng số môn như khung chương trình:**
+  - Cột điểm chỉ bao gồm các môn học chính khóa trong Khung chương trình đào tạo (Triết học, Kinh tế chính trị, CNXHKH, Tư tưởng HCM, Lịch sử Đảng... TTN1, TTN2, TTN3).
+  - Tuyệt đối không lẫn các hoạt động ngoại khóa, nghiên cứu thực tế hay ngày nghỉ vào cột điểm.
+- **DataGrid Desktop Cổ Điển chuyên nghiệp (chuẩn lớp K56):**
+  - Cột thông tin học viên cố định bên trái: *Stt, Mã số HV, Họ lót, Tên, Ngày sinh*.
+  - Cột điểm từng môn: Header dạng compact hoặc xoay đứng 90 độ, hiển thị điểm 2 chữ số thập phân (`7.50`, `8.00`, `7.75`...).
+  - Cột tổng kết tự động bên phải:
+    * `Số môn`: Số môn học viên đã có điểm.
+    * `ĐTB`: Điểm trung bình cộng, làm tròn 2 chữ số thập phân (vd: `7.81`, `7.26`, `8.34`).
+    * `ĐTB bằng chữ`: Đọc tự động sang tiếng Việt chuẩn học bạ (vd: 7.81 → *"Bảy phẩy tám mươi mốt"*, 8.34 → *"Tám phẩy ba mươi bốn"*).
+    * `Xếp loại`: Tự động phân loại học lực (Xuất sắc, Giỏi, Khá, Trung bình, Chưa đạt).
+- **Nhập liệu & Import/Export linh hoạt:**
+  - Nhập điểm trực tiếp dạng inline di chuyển phím Tab / Enter.
+  - Import danh sách học viên và điểm từ file Excel tổng hợp (`BANG DIEM TONG K56.01.xls`).
+  - Xuất bảng điểm lớp học ra file Excel (.xlsx) chuẩn biểu mẫu.
+
+### 1.3 Phong cách giao diện Desktop Cổ Điển (Classic Desktop App Style)
+- **Bảng màu:** Nền Trắng / Xám nhạt (`#FFFFFF`, `#F8F9FA`), chữ và viền Đen / Xám đậm (`#212529`, `#DEE2E6` sắc nét 1px), điểm nhấn Xanh dương nhạt (`#EBF3FC`, `#D0E2FF`, `#1D4ED8`).
+- **Bố cục ứng dụng:** Thanh menu Toolbar điều hướng rõ ràng giữa **Kế hoạch giảng dạy** và **Bảng điểm tổng hợp**, DataGrid chia ô chuẩn mực và StatusBar chân trang.
+
+### 1.4 Bảo mật & Phân quyền
+- Khách vãng lai: Toàn quyền tra cứu kế hoạch học tập, xem bảng điểm, xem ngày nghỉ và tải biểu mẫu Word.
+- Quản trị viên: Đăng nhập bằng mật khẩu duy nhất bảo mật bằng `CryptographicOperations.FixedTimeEquals` và Cookie Authentication. Mọi thao tác ghi dữ liệu (thêm/sửa/xóa môn học, chèn hoạt động, sửa điểm, đổi ngày nghỉ, import Excel, upload template) đều được bảo vệ nghiêm ngặt ở server bằng policy `Admin` và Anti-forgery token.
+- Khi mật khẩu quản trị để trống: Hệ thống tự động chuyển sang chế độ chỉ xem an toàn.
 
 ---
 

@@ -1,15 +1,24 @@
-# SPEC — Web Kế hoạch học tập (ASP.NET Core)
+# SPEC — Web Kế hoạch học tập & Bảng điểm tổng hợp (ASP.NET Core)
 
 > Đặc tả "cái gì". Thứ tự làm xem `PLAN.md`. Quy tắc làm việc xem `AGENTS.md`.
-> **Phiên bản 2:** dữ liệu lưu trong **database**; Excel chỉ dùng để **nhập (import)**.
+> **Phiên bản 2.1:** Dữ liệu lưu trong **database**; Excel chỉ dùng để **nhập (import)**; Tách biệt 2 phân hệ chuyên biệt: **Kế hoạch giảng dạy** & **Bảng điểm tổng hợp**.
 > Khi mâu thuẫn: **SPEC.md > PLAN.md > AGENTS.md**.
 
 ## 1. Mục tiêu
 
-Web đơn giản lưu **môn học** và **ngày nghỉ** trong database, **tự tính** lịch học từng môn (dữ liệu mẫu có 19 môn). File Excel `ke_hoach_hoc_tap.xlsx` chỉ để nhập dữ liệu ban đầu. Hiển thị:
+Hệ thống quản lý đào tạo & kế hoạch học tập chuyên sâu, lưu trữ **môn học**, **hoạt động xen kẽ/kết thúc**, **ngày nghỉ** và **danh sách học viên - điểm số** trong database SQL Server. Tự động tính toán tiến độ giảng dạy và xếp loại học tập. Hệ thống tách biệt thành 2 giao diện độc lập:
 
-1. Danh sách môn học + số tiết + bảng điểm.
-2. Xuất file; loại đầu tiên là **biểu mẫu Word "Kế hoạch giảng dạy và học tập"**.
+1. **Trang Kế hoạch giảng dạy & học tập (`/` hoặc `/Plan`)**:
+   - Quản lý toàn bộ tiến trình đào tạo: Ngày khai giảng, các môn học theo khung chương trình, và lịch thi.
+   - **Chèn hoạt động xen kẽ sau môn học bất kỳ**: Cho phép giáo viên chèn thêm các sự kiện đào tạo thực tế (ví dụ: lớp đi nghiên cứu thực tế tại cơ sở, nghỉ từ ngày đến ngày để viết bài thu hoạch/tiểu luận môn học...). Khi chèn hoạt động này sau môn X, hệ thống tự động đẩy lịch bắt đầu của môn X+1 nối tiếp ngay sau khi hoạt động kết thúc.
+   - **Chèn chuỗi hoạt động sau môn học cuối cùng**: Cho phép quản lý linh hoạt các sự kiện kết thúc khóa học: *Ôn thi tốt nghiệp*, *Thi tốt nghiệp*, *Họp lớp tổng kết*, *Bế giảng*...
+   - Xuất file biểu mẫu Word chuẩn: **"Kế hoạch giảng dạy và học tập" (.docx)** giữ nguyên định dạng, quốc hiệu, tiêu đề, bảng 10 cột, tự động điền các môn học, hoạt động xen kẽ và các nhiệm vụ kết thúc khóa.
+2. **Trang Bảng điểm tổng hợp học viên (`/Grades`)**:
+   - Quản lý bảng điểm tổng kết lớp học thực tế (chuẩn lớp K56 tham chiếu từ `BANG DIEM TONG K56.01.xls`).
+   - **Đúng số môn như khung chương trình**: Giữ nguyên danh sách các môn học chính khóa (không bị lẫn các hoạt động ngoại khóa, nghiên cứu thực tế vào cột điểm).
+   - Hiển thị dạng bảng ma trận (DataGrid): Hàng là danh sách học viên (*Stt, Mã số HV, Họ lót, Tên, Ngày sinh*), các cột điểm từng môn theo khung chương trình.
+   - **Tự động tính toán kết quả**: Cột *Số môn* (đã có điểm), *Điểm trung bình (ĐTB)* làm tròn 2 chữ số thập phân, *ĐTB bằng chữ* (chuyển đổi chuẩn tiếng Việt, vd: 7.81 -> "Bảy phẩy tám mươi mốt"), và *Xếp loại* (Xuất sắc, Giỏi, Khá, Trung bình...).
+   - Hỗ trợ nhập điểm trực tiếp, import danh sách học viên & điểm từ Excel, và xuất file Excel bảng điểm tổng hợp (.xlsx).
 
 Chạy local và deploy được lên hosting ASP.NET Core miễn phí (mục 13). Có **1 tài khoản quản trị** (mật khẩu duy nhất, mục 12); khách chỉ xem.
 
@@ -82,11 +91,26 @@ Chạy local và deploy được lên hosting ASP.NET Core miễn phí (mục 13
 ```
 sessions = ceil(SoTiet / 5)
 start    = (môn đầu)  ? (NextWorkday(ngàyKhaiGiảng), S)
-                      : Advance(thiMônTrước, 1)        // buổi ngay sau buổi thi môn trước
+                      : (sau môn trước có hoạt động xen kẽ) 
+                          ? Advance(kếtThúcHoạtĐộng, 1) // hoặc NextWorkday(activity.To)
+                          : Advance(thiMônTrước, 1)    // buổi ngay sau buổi thi môn trước
 end      = Advance(start, sessions - 1)
 exam     = Advance(end, 1)                              // 1 buổi thi, ngay sau buổi học cuối
 ```
 Môn có thể bắt đầu ở buổi chiều (C) nếu môn trước thi ở buổi sáng. Đây là hành vi đúng, khớp công thức Excel gốc.
+
+**Xử lý hoạt động xen kẽ giữa các môn (`Interim Activities`):**
+- Giáo viên có thể chèn thêm sự kiện/khoảng nghỉ vào sau bất kỳ môn học nào (ví dụ: *Lớp đi nghiên cứu thực tế tại cơ sở*, *Nghỉ từ ngày đến ngày để viết bài thu hoạch/tiểu luận*).
+- Nếu cấu hình theo khoảng ngày (`FromDate` → `ToDate`): Hoạt động chiếm trọn khoảng ngày này. Môn học tiếp theo sẽ bắt đầu tại buổi sáng (S) của `NextWorkday(activity.ToDate)`.
+- Nếu cấu hình theo số buổi/số tiết: Hoạt động bắt đầu tại buổi làm việc kế tiếp sau buổi thi của môn trước (`Advance(exam, 1)`), kéo dài $N$ buổi. Môn học tiếp theo bắt đầu ngay buổi kế tiếp sau khi hoạt động kết thúc.
+
+**Xử lý chuỗi sự kiện sau môn cuối cùng (`Closing Activities`):**
+- Sau môn học cuối cùng của chương trình, hệ thống hỗ trợ chèn chuỗi các nhiệm vụ kết thúc khóa học:
+  1. *Ôn thi tốt nghiệp*: Thời gian bắt đầu, kết thúc, số tiết (mặc định 15 tiết).
+  2. *Thi tốt nghiệp*: Lịch thi tốt nghiệp (3 môn tốt nghiệp TTN1, TTN2, TTN3).
+  3. *Họp lớp tổng kết*: Đánh giá rèn luyện, bình xét thi đua.
+  4. *Bế giảng*: Lễ bế giảng và trao bằng tốt nghiệp (mặc định 5 tiết).
+- Các sự kiện này nối tiếp linh hoạt trên dòng thời gian Kế hoạch và tự động xuất vào các hàng cuối của file biểu mẫu Word.
 
 **Hiển thị buổi:** `S 11/9/2025`, `C 18/9/2025` — định dạng ngày `d/M/yyyy`, **không** đệm số 0.
 
@@ -125,9 +149,9 @@ Test tự động bắt buộc: so sánh 19 dòng trên, và nếu file Excel c�
 ```csharp
 class Subject {
   int Id; int SortOrder;              // SortOrder 1..n; Stt hiển thị = vị trí theo SortOrder
-  string Name;                        // bắt buộc, ≤ 200
+  string Name;                        // bắt buộc, ≤ 200 (thuộc khung chương trình đào tạo)
   int Periods;                        // số tiết, > 0
-  decimal? Grade;                     // điểm 0–10, 1 chữ số thập phân
+  decimal? Grade;                     // điểm 0–10, 1 chữ số thập phân (cũ/nhanh)
   int? ReservePeriods;                // dự phòng (tiết) ≥ 0
   string? Note;                       // ≤ 100
   string ExamMode;                    // "Immediately" (mặc định), "Delayed" (hoãn thi, dồn thi), "Custom" (tùy chỉnh)
@@ -141,6 +165,42 @@ class Holiday {
 class AppSetting {
   string Key;                         // Khóa cấu hình (PK, ≤ 100, vd: "Plan:FirstSessionHalf")
   string Value;                       // Giá trị cấu hình
+}
+
+// Thực thể Quản lý Hoạt động xen kẽ giữa các môn & Chuỗi hoạt động sau môn cuối
+enum PlanActivityType { Interim = 0, Closing = 1 }
+class PlanActivity {
+  int Id;
+  string Name;                        // Tên hoạt động (vd: "Nghiên cứu thực tế", "Nghỉ viết bài", "Ôn thi tốt nghiệp", "Họp lớp", "Bế giảng")
+  PlanActivityType Type;              // Interim (xen kẽ sau môn), Closing (chuỗi sau môn cuối)
+  int? AfterSubjectId;                // FK Subject; null nếu là Closing sau môn cuối
+  int SortOrder;                      // Thứ tự trong chuỗi (1..n)
+  DateOnly? FromDate;                 // Từ ngày (nếu chỉ định khoảng ngày thực tế)
+  DateOnly? ToDate;                   // Đến ngày (ToDate >= FromDate)
+  int? Sessions;                      // Số buổi (nếu tính theo số buổi học)
+  int? Periods;                       // Số tiết (mặc định 5 tiết/buổi, vd: 15 tiết thi tốt nghiệp, 5 tiết bế giảng)
+  string? Note;                       // Ghi chú hoạt động
+}
+
+// Thực thể Quản lý Học viên & Bảng điểm tổng hợp (chuẩn lớp K56)
+class Student {
+  int Id;
+  int SortOrder;                      // Thứ tự hiển thị trong danh sách lớp (1..n)
+  string StudentCode;                 // Mã số học viên (bắt buộc, ≤ 50, vd: "K75A56.0101")
+  string LastName;                    // Họ lót (bắt buộc, ≤ 100, vd: "Đặng Thị Hội")
+  string FirstName;                   // Tên (bắt buộc, ≤ 50, vd: "An")
+  DateOnly? DateOfBirth;              // Ngày sinh (vd: 14/04/1982)
+  string? Gender;                     // Giới tính (Nam/Nữ)
+  string? Note;                       // Ghi chú
+  ICollection<StudentGrade> Grades;   // Danh sách điểm các môn của học viên
+}
+
+class StudentGrade {
+  int Id;
+  int StudentId;                      // FK Student
+  int SubjectId;                      // FK Subject (chỉ môn trong khung chương trình)
+  decimal? Score;                     // Điểm hệ 10 (0.00 – 10.00), làm tròn 2 chữ số thập phân
+  string? Note;                       // Ghi chú (nếu có)
 }
 ```
 
@@ -159,60 +219,138 @@ class AppSetting {
 enum Half { S = 0, C = 1 }
 record Slot(DateOnly Date, Half Half);                 // IComparable
 record ScheduledSubject(Subject Subject, int Number, int Sessions, Slot Start, Slot End, Slot Exam);
+record ScheduledActivity(PlanActivity Activity, Slot? Start, Slot? End);
 record ScheduleResult(DateOnly OpeningDay, IReadOnlyList<Holiday> Holidays,
-                      IReadOnlyList<ScheduledSubject> Items, IReadOnlyList<string> Warnings);
+                      IReadOnlyList<ScheduledSubject> Items, 
+                      IReadOnlyList<ScheduledActivity> Activities,
+                      IReadOnlyList<string> Warnings);
+
+// Kiểu domain cho Bảng điểm tổng hợp
+record StudentGradeItem(int SubjectId, string SubjectName, decimal? Score);
+record StudentSummary(Student Student, int Stt, 
+                      IReadOnlyList<StudentGradeItem> SubjectGrades, 
+                      int CompletedSubjectsCount, 
+                      decimal? AverageScore, 
+                      string AverageScoreInWords, 
+                      string Classification);
+record GradeSheetResult(IReadOnlyList<Subject> Subjects, 
+                        IReadOnlyList<StudentSummary> Students, 
+                        int TotalStudents, 
+                        IReadOnlyDictionary<string, int> ClassificationStats);
 ```
 
 **Dịch vụ (DI, đều có interface):**
-- `IScheduleCalculator.Calculate(subjects, holidays)` → `ScheduleResult`. Hàm thuần, không I/O, dễ test.
-- `IPlanRepository` — CRUD `Subject`/`Holiday` qua EF Core, đổi thứ tự, đánh lại `SortOrder`.
+- `IScheduleCalculator.Calculate(subjects, holidays, activities)` → `ScheduleResult`. Hàm thuần, không I/O, dễ test.
+- `IPlanRepository` — CRUD `Subject`/`Holiday`/`PlanActivity`/`Student`/`StudentGrade` qua EF Core, đổi thứ tự, đánh lại `SortOrder`.
 - `IExcelPlanReader` — đọc Excel → `(subjects, holidays)` chưa lưu.
-- `IPlanImporter` — mục 3.3.
-- `IPlanService` — "lấy dữ liệu từ repository → tính lịch → trả `ScheduleResult`", dùng chung cho mọi trang.
+- `IPlanImporter` — nạp khung chương trình và ngày nghỉ từ Excel vào DB trong 1 transaction.
+- `IPlanService` — "lấy dữ liệu từ repository → tính lịch → trả `ScheduleResult`", dùng chung cho kế hoạch giảng dạy và xuất file.
+- `IGradeService` — quản lý học viên, tính toán ma trận điểm, tự động chuyển đổi điểm trung bình sang chữ tiếng Việt, xếp loại học lực.
+- `IVietnameseNumberToWordsConverter` — đọc điểm thập phân sang tiếng Việt chuẩn học vụ (vd: 7.81 -> "Bảy phẩy tám mươi mốt").
+- `IGradeRankClassifier` — phân loại học lực (Xuất sắc, Giỏi, Khá, Trung bình, Chưa đạt).
+- `IExcelGradeImporter` — đọc danh sách học viên và điểm từ file Excel tổng hợp (`BANG DIEM TONG K56.01.xls`).
 - `IExporter` — mục 7.
 
 Mở file Excel upload bằng `MemoryStream`, không ghi ra đĩa.
 
-## 6. Trang 1 — Môn học & Bảng điểm (`/`)
+## 6. Phân hệ 1 — Kế hoạch giảng dạy & học tập (`/` hoặc `/Plan`)
 
-Đọc từ database và hiển thị ngay khi mở trang. **Khách** chỉ xem; **quản trị** sửa được (mục 12).
+Đọc từ database và hiển thị tiến trình kế hoạch đào tạo toàn khóa ngay khi mở trang. **Khách** chỉ xem; **quản trị** sửa được (mục 12).
 
-Bảng, mỗi môn 1 dòng:
+### 6.1 Giao diện Kế hoạch (Classic Desktop DataGrid)
+
+Bảng tiến độ hiển thị tuần tự dòng thời gian bao gồm:
+1. **Dòng Khai giảng**: Lấy từ bảng `Holiday` có cờ `IsOpeningDay = true` (có thể kéo dài 1 hoặc nhiều ngày, chọn buổi bắt đầu học môn 1 là Sáng hoặc Chiều).
+2. **Các Môn học chính khóa**: Mỗi môn hiển thị Stt, Tên môn, Số tiết, Số buổi, Bắt đầu, Kết thúc, Buổi thi, Chế độ thi (`Immediately`, `Delayed`, `Custom`), Dự phòng, Ghi chú.
+3. **Các Hoạt động xen kẽ sau môn (`Interim Activities`)**:
+   - Hiển thị trực tiếp ngay dưới môn học được chỉ định (`AfterSubjectId`).
+   - Được làm nổi bật trực quan bằng dải màu nền xanh dương nhạt (#EBF3FC), viền nét mảnh, biểu tượng 📌 ghi chú hoạt động.
+   - Thể hiện rõ: Tên hoạt động (vd: *Lớp đi nghiên cứu thực tế tại cơ sở*, *Nghỉ viết bài thu hoạch môn học*), khoảng thời gian (Từ ngày → Đến ngày) hoặc số buổi/tiết.
+   - Môn học phía sau tự động bắt đầu ngay sau khi hoạt động xen kẽ kết thúc.
+4. **Chuỗi Hoạt động kết thúc khóa học (`Closing Activities`)**:
+   - Nằm ở cuối bảng, ngay sau môn học cuối cùng.
+   - Gồm các nhiệm vụ quan trọng: *Ôn thi tốt nghiệp*, *Thi tốt nghiệp (TTN1, TTN2, TTN3)*, *Họp lớp tổng kết*, *Bế giảng khóa học*.
+   - Cho phép Quản trị viên thêm/sửa/xóa hoặc điều chỉnh thời gian và số tiết.
 
 | Cột | Nội dung | Quản trị sửa |
 |---|---|---|
-| Stt | vị trí theo `SortOrder` | |
-| Môn học | `Name` | Có |
-| Số tiết | `Periods` | Có |
+| Stt | Vị trí môn (1..n) hoặc ký hiệu hoạt động xen kẽ (vd: 1.1, 19.1...) | |
+| Tên môn / Hoạt động | `Subject.Name` hoặc `PlanActivity.Name` | Có |
+| Số tiết | `Periods` (hoặc số tiết hoạt động) | Có |
 | Số buổi | `ceil(tiết/5)` | |
-| Bắt đầu / Kết thúc / Thi | `S 11/9/2025`… | |
-| **Điểm** | thang 10, 1 chữ số thập phân, trống = chưa có | **Có** |
+| Bắt đầu / Kết thúc / Thi | `S 11/9/2025`… | Có (khi chọn chế độ thi Custom) |
+| Chế độ thi | Thi ngay / Hoãn, dồn thi / Tùy chỉnh | Có |
 | Dự phòng (tiết) | số nguyên ≥ 0, mặc định trống | Có |
 | Ghi chú | text ≤ 100 ký tự | Có |
-| Thao tác | ▲ ▼ đổi thứ tự, 🗑 xoá (có hỏi xác nhận) | Có |
+| Thao tác | ▲ ▼ đổi thứ tự, ➕ Chèn hoạt động sau môn, ✏ Sửa, 🗑 Xóa | Có |
 
-- Quản trị có nút **Thêm môn**; mọi thay đổi lưu ngay (POST) rồi lịch tính lại.
-- Dòng cuối: **Tổng số tiết**, **Điểm TB cộng**, **Điểm TB theo số tiết** (chỉ tính môn đã có điểm; hiện "—" nếu chưa có điểm nào).
-- Kiểm tra hợp lệ ở server và hiện lỗi tại ô: điểm ngoài 0–10, số tiết ≤ 0, tên trống.
-- "Dự phòng" và "Ghi chú" **không** ảnh hưởng thuật toán xếp lịch (đúng như biểu mẫu mẫu); chỉ đi vào file Word.
-- Nút **Xuất file** → `/Export`. Quản trị có thêm nút **Nhập từ Excel** → `/Import`.
-- Khu vực cảnh báo (`Warnings`) hiện trên đầu trang nếu có.
-- Database trống ⇒ hiện hướng dẫn "Chưa có dữ liệu: thêm môn hoặc nhập từ Excel" (khách thì "Chưa có dữ liệu").
+- Quản trị có các nút thao tác trên Toolbar:
+  + **➕ Thêm môn học**
+  + **📌 Chèn hoạt động xen kẽ sau môn** (chọn môn đứng trước, tên hoạt động: Nghiên cứu thực tế / Nghỉ viết bài..., từ ngày đến ngày).
+  + **🎓 Cấu hình hoạt động cuối khóa** (Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng).
+  + **🔄 Tải lại / Tính lại lịch**.
+  + **📄 Xuất file biểu mẫu Word** (`/Export`).
+- Kiểm tra hợp lệ ở server: số tiết > 0, tên không trống, đến ngày ≥ từ ngày.
 
-> **Giả định cần xác nhận:** "bảng điểm" = cột điểm nhập tay cho từng môn (Excel gốc không có điểm). Nếu cần nhiều cột điểm (chuyên cần, giữa kỳ, cuối kỳ…) thì thêm cột sau, không đổi kiến trúc.
-
-### 6.1 Trang Ngày nghỉ (`/Holidays`)
+### 6.2 Trang Ngày nghỉ (`/Holidays`)
 
 - Bảng: Tên, Từ ngày, Đến ngày, Số ngày, Khai giảng (✓). Khách chỉ xem.
 - Quản trị: thêm/sửa/xoá. Kiểm tra: `Đến ngày ≥ Từ ngày`; luôn đúng 1 ngày khai giảng (không xoá được dòng khai giảng duy nhất; đổi khai giảng sang dòng khác thì dòng cũ tự bỏ cờ).
+- Hỗ trợ chọn buổi bắt đầu học môn 1 (Sáng hoặc Chiều) khi khai giảng nhiều ngày.
 - Sau khi lưu, lịch tính lại ngay.
 
-### 6.2 Trang Nhập từ Excel (`/Import`, chỉ quản trị)
+### 6.3 Trang Nhập kế hoạch từ Excel (`/Import`, chỉ quản trị)
 
 1. Chọn file `.xlsx` (≤ 5 MB) → kiểm tra: đọc được, có đủ 2 sheet `Khung CT` + `Ngay nghi`, ≥ 1 môn hợp lệ, có ngày khai giảng.
 2. **Xem trước:** số môn, số khoảng nghỉ, ngày khai giảng, danh sách cảnh báo — chưa ghi gì.
 3. Tick "Giữ điểm/dự phòng/ghi chú nếu trùng tên môn" (mặc định bật) → nút **Xác nhận thay thế toàn bộ** (có cảnh báo chữ đỏ: dữ liệu hiện tại sẽ bị thay).
 4. Thực hiện theo 3.3 trong 1 transaction. Báo kết quả (đã nạp N môn, M khoảng nghỉ).
+
+## 6.4 Phân hệ 2 — Bảng điểm tổng hợp học viên (`/Grades`)
+
+Tách biệt thành trang quản lý điểm độc lập, phục vụ công tác đào tạo và quản lý học vụ của lớp (chuẩn thực tế tham chiếu từ `BANG DIEM TONG K56.01.xls` và các hình ảnh đính kèm của lớp K56).
+
+### 6.4.1 Nguyên tắc cấu trúc
+1. **ĐÚNG số môn như khung chương trình**: Cột điểm chỉ bao gồm các môn học chính khóa trong Khung chương trình (Triết học, Kinh tế chính trị, CNXHKH, Tư tưởng Hồ Chí Minh, Lịch sử Đảng, Xây dựng Đảng, Giáo dục QP-AN, Quan hệ quốc tế, Chính trị học, Khoa học LĐ, NN và PL, Lý luận và PL về QCN, Quản lý kinh tế, Kinh tế phát triển, VH và PT, XHH trong LĐ-QL, Giới trong LĐ-QL, TG và TN, LLDT và QHĐT ở VN, TTN1, TTN2, TTN3...). **Tuyệt đối không lẫn các hoạt động ngoại khóa, nghiên cứu thực tế hay ngày nghỉ vào cột điểm**.
+2. **Bố cục DataGrid phong cách Desktop Cổ Điển**:
+   - **Các cột thông tin học viên cố định (Sticky Left Columns)**:
+     + `Stt`: Thứ tự học viên (1, 2, 3...)
+     + `Mã số`: Mã số học viên (vd: `K75A56.0101`, `K75A56.0102`...)
+     + `Họ lót`: Họ và tên đệm (vd: `Đặng Thị Hội`, `Đoàn Phan`...)
+     + `Tên`: Tên học viên (vd: `An`, `Anh`, `Bảy`, `Bê`...)
+     + `Ngày sinh`: Định dạng `dd/MM/yyyy` (vd: `14/04/1982`)
+   - **Các cột điểm môn học theo Khung chương trình**:
+     + Mỗi cột ứng với một môn học theo thứ tự `SortOrder`.
+     + Tiêu đề cột được định dạng compact hoặc xoay dọc (vertical text header 90 độ) thanh lịch, tiết kiệm diện tích màn hình.
+     + Ô điểm: Hiển thị 2 chữ số thập phân (vd: `7.50`, `8.00`, `7.75`, `8.25`).
+     + Cho phép Quản trị viên nhập/chỉnh sửa điểm trực tiếp (Inline Editing) hoặc mở Modal nhập điểm theo từng học viên.
+   - **Các cột tổng kết học tập tự động (Sticky Right Columns)**:
+     + `Số môn`: Đếm số lượng môn học viên đã có điểm (vd: 22 môn).
+     + `ĐTB`: Điểm trung bình cộng các môn đã có điểm, tính theo công thức:
+       $$\text{ĐTB} = \frac{\sum_{i=1}^{k} \text{Score}_i}{k}$$
+       Làm tròn 2 chữ số thập phân (vd: `7.81`, `7.26`, `8.34`, `7.50`).
+     + `ĐTB bằng chữ`: Tự động đọc số điểm ĐTB sang chữ tiếng Việt chuẩn văn bằng, học bạ:
+       * `7.81` → *"Bảy phẩy tám mươi mốt"*
+       * `7.26` → *"Bảy phẩy hai mươi sáu"*
+       * `7.35` → *"Bảy phẩy ba mươi lăm"*
+       * `7.60` → *"Bảy phẩy sáu"* hoặc *"Bảy phẩy sáu mươi"*
+       * `8.34` → *"Tám phẩy ba mươi bốn"*
+       * `8.23` → *"Tám phẩy hai mươi ba"*
+     + `Xếp loại`: Tự động xếp loại học lực theo thang điểm chuẩn:
+       * **Xuất sắc**: $\text{ĐTB} \ge 9.0$ và không có môn nào dưới 7.0
+       * **Giỏi**: $\text{ĐTB} \ge 8.0$ và không có môn nào dưới 6.0
+       * **Khá**: $\text{ĐTB} \ge 7.0$ và không có môn nào dưới 5.0
+       * **Trung bình**: $\text{ĐTB} \ge 5.0$
+       * **Yếu / Chưa đạt**: $\text{ĐTB} < 5.0$ hoặc có môn thi lại/chưa đạt.
+
+### 6.4.2 Tính năng quản lý bảng điểm
+- **Thanh Toolbar quản trị**:
+  + **➕ Thêm học viên**: Nhập Mã số, Họ lót, Tên, Ngày sinh, Giới tính.
+  + **⚡ Nhập điểm nhanh**: Hỗ trợ di chuyển bằng phím Tab / Enter giữa các ô điểm.
+  + **📥 Import Bảng điểm từ Excel**: Đọc danh sách học viên và điểm từ file `BANG DIEM TONG K56.01.xls` hoặc file Excel chuẩn theo định dạng.
+  + **📤 Xuất Excel Bảng điểm**: Xuất file `.xlsx` định dạng chuẩn như file mẫu, có đầy đủ công thức ĐTB, số môn, ĐTB bằng chữ, xếp loại và styling viền bảng.
+  + **🔍 Tìm kiếm & Lọc học viên**: Tìm theo tên, mã số, hoặc lọc theo xếp loại (Giỏi, Khá, Trung bình...).
+- Khách vãng lai: Chỉ xem bảng điểm và xem thống kê xếp loại lớp học.
 
 ## 7. Xuất file (`/Export`)
 
@@ -244,7 +382,7 @@ Cấu trúc mẫu: bảng đầu 2×2 rỗng (khối quốc hiệu/đơn vị) �
 **Cách làm bảng chính**
 1. Tìm bảng có ô chứa "Tên môn học/Nhiệm vụ" (không dựa vào chỉ số bảng).
 2. Giữ 2 hàng tiêu đề. Lấy hàng dữ liệu đầu tiên của môn học làm **hàng mẫu** (định dạng ô).
-3. Xoá mọi hàng dữ liệu cũ (kể cả hàng trống cuối), rồi thêm hàng clone theo thứ tự: **Khai giảng → 19 môn → Thi tốt nghiệp → Bế giảng**.
+3. Xoá mọi hàng dữ liệu cũ (kể cả hàng trống cuối), rồi thêm hàng clone theo thứ tự thời gian: **Khai giảng → Các môn học + Các hoạt động xen kẽ sau môn (Nghiên cứu thực tế, Viết bài...) → Chuỗi hoạt động sau môn cuối (Ôn thi tốt nghiệp, Thi tốt nghiệp, Họp lớp, Bế giảng)**.
 4. Chỉ thay chữ trong run, giữ nguyên `rPr`; ô rỗng vẫn phải có đoạn văn.
 
 **Ánh xạ cột** (khớp biểu mẫu mẫu)
