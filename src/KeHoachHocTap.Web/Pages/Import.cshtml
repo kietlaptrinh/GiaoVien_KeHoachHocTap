@@ -51,9 +51,13 @@
 
         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
         {
-            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
-                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
-            </div>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ErrorMessage)), 'error');
+                    }
+                });
+            </script>
         }
 
         @if (!Model.IsPreview)

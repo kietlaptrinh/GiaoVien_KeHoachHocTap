@@ -99,18 +99,26 @@
 
     <!-- Panel Body / DataGrid -->
     <div class="desktop-panel-body p-2">
-        <!-- Thông báo -->
+        <!-- Thông báo hệ thống qua Toast Thả Xuống -->
         @if (!string.IsNullOrEmpty(Model.SuccessMessage))
         {
-            <div class="alert alert-success py-2 px-3 small border-1 mb-2">
-                <strong>✓ Thành công:</strong> @Model.SuccessMessage
-            </div>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SuccessMessage)), 'success');
+                    }
+                });
+            </script>
         }
         @if (!string.IsNullOrEmpty(Model.ErrorMessage))
         {
-            <div class="alert alert-danger py-2 px-3 small border-1 mb-2">
-                <strong>✕ Lỗi:</strong> @Model.ErrorMessage
-            </div>
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ErrorMessage)), 'error');
+                    }
+                });
+            </script>
         }
         @if (!string.IsNullOrEmpty(Model.DatabaseError))
         {
@@ -477,7 +485,9 @@
                 var score = rawVal === '' ? null : parseFloat(rawVal.replace(',', '.'));
 
                 if (score !== null && (isNaN(score) || score < 0 || score > 10)) {
-                    alert('Điểm số phải là số hợp lệ từ 0.00 đến 10.00');
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Điểm số phải là số hợp lệ từ 0.00 đến 10.00', 'warning');
+                    }
                     input.addClass('border-danger');
                     return;
                 }
@@ -511,11 +521,16 @@
                         } else {
                             input.val('');
                         }
+                        if (typeof window.showToast === 'function') {
+                            window.showToast('Đã lưu điểm môn thành công.', 'success', null, 2000);
+                        }
                     }
                 })
                 .catch(function (err) {
                     input.removeClass('border-warning').addClass('border-danger');
-                    alert('Không thể cập nhật điểm: ' + err.message);
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('Không thể cập nhật điểm: ' + err.message, 'error');
+                    }
                 });
             });
         });

@@ -115,9 +115,32 @@
         </footer>
     </div>
 
+    <!-- Hệ thống Toast Thả Xuống Toàn Cục -->
+    <div id="toastDropdownContainer" class="toast-dropdown-container" aria-live="polite"></div>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @{
+        var toastSuccess = TempData["SuccessMessage"]?.ToString() ?? ViewData["SuccessMessage"]?.ToString();
+        var toastError = TempData["ErrorMessage"]?.ToString() ?? ViewData["ErrorMessage"]?.ToString();
+    }
+    @if (!string.IsNullOrEmpty(toastSuccess) || !string.IsNullOrEmpty(toastError))
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                @if (!string.IsNullOrEmpty(toastSuccess))
+                {
+                    <text>if (typeof window.showToast === 'function') { window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(toastSuccess)), 'success'); }</text>
+                }
+                @if (!string.IsNullOrEmpty(toastError))
+                {
+                    <text>if (typeof window.showToast === 'function') { window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(toastError)), 'error'); }</text>
+                }
+            });
+        </script>
+    }
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
