@@ -66,11 +66,6 @@
             Xem lịch ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
         </a>
 
-        <!-- Nút bật/tắt hiển thị cột Điểm (Mặc định ẩn) -->
-        <button type="button" class="toolbar-btn" id="btnToggleGrades" title="Bật/Tắt hiển thị cột Điểm và Điểm Trung Bình">
-            <span id="gradeIcon">👁️</span> <span id="gradeBtnText">Hiện cột điểm</span>
-        </button>
-
         <!-- Nút chuyển chế độ xem di động -->
         <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
             <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnViewCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
@@ -210,12 +205,6 @@
                                         {
                                             <span class="badge bg-info text-dark ms-1" style="font-size: 10px;">Tùy chỉnh</span>
                                         }
-                                    </span>
-                                </div>
-                                <div class="mobile-kv-item col-grade" style="display: none;">
-                                    <span class="mobile-kv-label">Điểm số</span>
-                                    <span class="mobile-kv-value @(sub.Grade.HasValue ? "text-success fw-bold" : "text-muted")">
-                                        @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "Chưa có")
                                     </span>
                                 </div>
                                 @if (sub.ReservePeriods.HasValue && sub.ReservePeriods.Value > 0)
@@ -398,7 +387,6 @@
                             <th style="width: 115px;" class="text-center">Bắt đầu</th>
                             <th style="width: 115px;" class="text-center">Kết thúc</th>
                             <th style="width: 115px;" class="text-center">Thi hết môn</th>
-                            <th style="width: 70px; display: none;" class="text-center col-grade">Điểm</th>
                             <th style="width: 75px;" class="text-center">Dự phòng</th>
                             <th>Ghi chú</th>
                             @if (Model.IsAdmin)
@@ -431,9 +419,6 @@
                                         <span class="badge bg-info text-dark ms-1" style="font-size: 10px;">Tùy chỉnh</span>
                                     }
                                 </td>
-                                <td class="text-center fw-bold col-grade @(sub.Grade.HasValue ? "text-success" : "text-muted")" style="display: none;">
-                                    @(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "—")
-                                </td>
                                 <td class="text-center text-muted">
                                     @(sub.ReservePeriods.HasValue ? sub.ReservePeriods.Value.ToString() : "—")
                                 </td>
@@ -462,7 +447,6 @@
                                                     data-id="@sub.Id"
                                                     data-name="@sub.Name"
                                                     data-periods="@sub.Periods"
-                                                    data-grade="@(sub.Grade.HasValue ? sub.Grade.Value.ToString("0.0") : "")"
                                                     data-reserve="@sub.ReservePeriods"
                                                     data-note="@sub.Note"
                                                     data-exammode="@sub.ExamMode"
@@ -573,14 +557,9 @@
                             <td class="text-center text-primary">@Model.Summary.TotalPeriods</td>
                             <td class="text-center">@Model.Summary.TotalSessions</td>
                             <td colspan="3" class="text-muted small ps-2">
-                                <span class="col-grade" style="display: none;">(Đã nhập điểm: @Model.Summary.GradedSubjectCount / @Model.Items.Count môn)</span>
+                                <span>(Tổng số @Model.Items.Count môn học)</span>
                             </td>
-                            <td class="text-center text-success col-grade" style="display: none;" title="Điểm TB cộng: @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)">
-                                @KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.SimpleAverage)
-                            </td>
-                            <td colspan="@(Model.IsAdmin ? 3 : 2)" class="small text-secondary ps-2">
-                                <span class="col-grade" style="display: none;">Điểm TB theo số tiết: <strong>@KeHoachHocTap.Web.Domain.GradeCalculator.FormatGrade(Model.Summary.WeightedAverage)</strong></span>
-                            </td>
+                            <td colspan="@(Model.IsAdmin ? 2 : 1)" class="small text-secondary ps-2"></td>
                         </tr>
                     </tfoot>
                 </table>
@@ -614,18 +593,8 @@
                                 <span class="text-muted small">Mỗi buổi 5 tiết.</span>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Điểm thi (0 - 10)</label>
-                                <input type="number" name="Grade" step="0.1" min="0" max="10" class="desktop-input w-100" placeholder="Để trống nếu chưa có" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Dự phòng (tiết)</label>
                                 <input type="number" name="ReservePeriods" min="0" class="desktop-input w-100" placeholder="0" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ghi chú</label>
-                                <input type="text" name="Note" maxlength="100" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
                             </div>
                         </div>
                         <div class="row">
@@ -637,7 +606,13 @@
                                     <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3" id="addCustomExamSlotGroup" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" name="Note" maxlength="100" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                            </div>
+                        </div>
+                        <div class="row" id="addCustomExamSlotGroup" style="display: none;">
+                            <div class="col-12 mb-3">
                                 <label class="form-label fw-bold">Buổi thi tùy chỉnh</label>
                                 <input type="text" name="CustomExamSlot" id="addCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
                                 <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
@@ -674,18 +649,8 @@
                                 <input type="number" id="editSubjectPeriods" name="Periods" class="desktop-input w-100" required min="1" max="10000" />
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Điểm thi (0 - 10)</label>
-                                <input type="number" id="editSubjectGrade" name="Grade" step="0.1" min="0" max="10" class="desktop-input w-100" />
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
                                 <label class="form-label">Dự phòng (tiết)</label>
                                 <input type="number" id="editSubjectReserve" name="ReservePeriods" min="0" class="desktop-input w-100" />
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ghi chú</label>
-                                <input type="text" id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" />
                             </div>
                         </div>
                         <div class="row">
@@ -697,7 +662,13 @@
                                     <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3" id="editCustomExamSlotGroup" style="display: none;">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ghi chú</label>
+                                <input type="text" id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" />
+                            </div>
+                        </div>
+                        <div class="row" id="editCustomExamSlotGroup" style="display: none;">
+                            <div class="col-12 mb-3">
                                 <label class="form-label fw-bold">Buổi thi tùy chỉnh</label>
                                 <input type="text" name="CustomExamSlot" id="editCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
                                 <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
@@ -964,7 +935,6 @@
                 $('#editSubjectId').val(btn.data('id'));
                 $('#editSubjectName').val(btn.data('name'));
                 $('#editSubjectPeriods').val(btn.data('periods'));
-                $('#editSubjectGrade').val(btn.data('grade'));
                 $('#editSubjectReserve').val(btn.data('reserve'));
                 $('#editSubjectNote').val(btn.data('note'));
 
@@ -1044,34 +1014,6 @@
             if (savedMode === 'table') {
                 $('#btnViewTable').trigger('click');
             }
-
-            // =================================================================
-            // Bật / Tắt hiển thị cột Điểm (Mặc định: ẨN)
-            // =================================================================
-            function applyGradeVisibility(show) {
-                if (show) {
-                    $('.col-grade').show();
-                    $('#btnToggleGrades').addClass('btn-primary');
-                    $('#gradeIcon').text('👁️‍🗨️');
-                    $('#gradeBtnText').text('Ẩn cột điểm');
-                } else {
-                    $('.col-grade').hide();
-                    $('#btnToggleGrades').removeClass('btn-primary');
-                    $('#gradeIcon').text('👁️');
-                    $('#gradeBtnText').text('Hiện cột điểm');
-                }
-            }
-
-            $('#btnToggleGrades').on('click', function () {
-                var current = localStorage.getItem('kehoach_show_grades') === 'true';
-                var nextState = !current;
-                localStorage.setItem('kehoach_show_grades', nextState ? 'true' : 'false');
-                applyGradeVisibility(nextState);
-            });
-
-            // Mặc định ẩn, trừ khi người dùng đã chủ động bật trước đó
-            var initialGradeShow = localStorage.getItem('kehoach_show_grades') === 'true';
-            applyGradeVisibility(initialGradeShow);
         });
     </script>
 }

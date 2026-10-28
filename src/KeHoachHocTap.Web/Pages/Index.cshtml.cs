@@ -193,7 +193,10 @@ public class IndexModel : PageModel
 
             existing.Name = input.Name.Trim();
             existing.Periods = input.Periods;
-            existing.Grade = input.Grade;
+            if (input.Grade.HasValue)
+            {
+                existing.Grade = input.Grade;
+            }
             existing.ReservePeriods = input.ReservePeriods;
             existing.Note = string.IsNullOrWhiteSpace(input.Note) ? null : input.Note.Trim();
             existing.ExamMode = string.IsNullOrWhiteSpace(input.ExamMode) ? "Immediately" : input.ExamMode.Trim();
