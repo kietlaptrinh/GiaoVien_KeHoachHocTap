@@ -10,9 +10,6 @@
     <!-- Panel Header -->
     <div class="desktop-panel-header">
         <div class="d-flex align-items-center gap-2">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M4 11H2v1h2v-1zm5-4H2v1h7V7zm5-4H2v1h12V3zm-2 8h-1v1h1v-1zm3 0h-2v1h2v-1zM2 15h12v-1H2v1zm0-12v12h12V3H2zm13-1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H1a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h14z"/>
-            </svg>
             <span>BẢNG ĐIỂM TỔNG HỢP HỌC VIÊN — QUẢN LÝ ĐÀO TẠO KHÓA HỌC</span>
         </div>
         <div>
@@ -28,21 +25,21 @@
         @if (Model.IsAdmin)
         {
             <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addStudentModal">
-                ➕ Thêm học viên
+                Thêm học viên
             </button>
             <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#importExcelModal">
-                📥 Nạp từ Excel
+                Nạp từ Excel
             </button>
             <form method="post" asp-page-handler="ReloadSampleK56" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn nạp lại dữ liệu gốc chuẩn lớp K56 không? Toàn bộ điểm hiện tại sẽ được thay bằng dữ liệu chuẩn K56.');">
                 <button type="submit" class="toolbar-btn btn-outline-secondary" title="Khôi phục nguyên trạng 48 học viên và điểm chuẩn K56">
-                    🔄 Nạp lại mẫu K56
+                    Nạp lại mẫu K56
                 </button>
             </form>
             <span class="toolbar-separator"></span>
         }
 
-        <a asp-page="/Grades" asp-page-handler="ExportExcel" class="toolbar-btn btn-success text-white" title="Xuất toàn bộ bảng điểm ra file Excel .xlsx">
-            📤 Xuất Excel bảng điểm
+        <a asp-page="/Grades" asp-page-handler="ExportExcel" class="toolbar-btn btn-excel-export" title="Xuất toàn bộ bảng điểm ra file Excel .xlsx">
+            Xuất Excel bảng điểm
         </a>
 
         <a asp-page="/Grades" class="toolbar-btn">

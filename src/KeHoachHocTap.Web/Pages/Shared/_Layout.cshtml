@@ -33,35 +33,35 @@
                 <ul class="nav">
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")" asp-area="" asp-page="/Index">
-                            <strong>📅 Kế hoạch giảng dạy</strong>
+                            <strong>Kế hoạch giảng dạy</strong>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Grades" ? "active" : "")" asp-area="" asp-page="/Grades">
-                            <strong>📊 Bảng điểm tổng hợp</strong>
+                            <strong>Bảng điểm tổng hợp</strong>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Holidays" ? "active" : "")" asp-area="" asp-page="/Holidays">
-                            <strong>🏖 Ngày nghỉ</strong>
+                            <strong>Ngày nghỉ</strong>
                         </a>
                     </li>
                     @if (User.Identity?.IsAuthenticated == true)
                     {
                         <li class="nav-item">
                             <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Import" ? "active" : "")" asp-area="" asp-page="/Import">
-                                <strong>📥 Nhập từ Excel</strong>
+                                <strong>Nhập từ Excel</strong>
                             </a>
                         </li>
                     }
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Export" ? "active" : "")" asp-area="" asp-page="/Export">
-                            <strong>📄 Biểu mẫu &amp; Xuất Word</strong>
+                            <strong>Biểu mẫu &amp; Xuất Word</strong>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Templates" ? "active" : "")" asp-area="" asp-page="/Templates">
-                            <strong>⚙ Quản lý Mẫu biểu</strong>
+                            <strong>Quản lý Mẫu biểu</strong>
                         </a>
                     </li>
                 </ul>

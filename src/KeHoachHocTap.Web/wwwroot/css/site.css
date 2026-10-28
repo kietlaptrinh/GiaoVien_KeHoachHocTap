@@ -155,6 +155,19 @@ html, body {
     background-color: var(--desktop-blue-deep);
 }
 
+/* Nút Xuất Excel không đổi màu khi hover, cố định màu xanh lá */
+.toolbar-btn.btn-excel-export,
+.toolbar-btn.btn-excel-export:hover,
+.toolbar-btn.btn-excel-export:focus,
+.toolbar-btn.btn-excel-export:active {
+    background-color: #198754 !important;
+    border-color: #146c43 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+    transform: none !important;
+    transition: none !important;
+}
+
 .toolbar-separator {
     width: 1px;
     height: 18px;
