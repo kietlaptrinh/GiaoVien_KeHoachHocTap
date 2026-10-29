@@ -30,22 +30,14 @@
                             <strong>Ngày nghỉ</strong>
                         </a>
                     </li>
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <li class="nav-item">
-                            <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Import" ? "active" : "")" asp-area="" asp-page="/Import">
-                                <strong>Nhập từ Excel</strong>
-                            </a>
-                        </li>
-                    }
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Export" ? "active" : "")" asp-area="" asp-page="/Export">
-                            <strong>Biểu mẫu &amp; Xuất Word</strong>
+                            <strong>Xuất biểu mẫu</strong>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Templates" ? "active" : "")" asp-area="" asp-page="/Templates">
-                            <strong>Quản lý Mẫu biểu</strong>
+                            <strong>Mẫu biểu</strong>
                         </a>
                     </li>
                 </ul>
