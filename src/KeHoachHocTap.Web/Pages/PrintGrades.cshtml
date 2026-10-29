@@ -97,12 +97,14 @@
 
         @@page {
             size: A4 landscape;
-            margin: 8mm 10mm 8mm 10mm;
+            margin: 0;
         }
 
         @@media print {
             body {
                 background-color: #fff;
+                margin: 0 !important;
+                padding: 0 !important;
             }
 
             .print-toolbar {
@@ -111,14 +113,16 @@
 
             .paper-container {
                 padding: 0 !important;
+                margin: 0 !important;
             }
 
             .paper-sheet {
                 width: 100% !important;
                 min-height: auto !important;
-                padding: 0 !important;
+                padding: 8mm 10mm !important;
                 box-shadow: none !important;
                 margin: 0 !important;
+                box-sizing: border-box !important;
             }
 
             table {
@@ -213,7 +217,7 @@
         }
 
         .th-vertical {
-            height: 100px;
+            height: 145px;
             max-width: 32px;
             min-width: 28px;
             padding: 4px 1px !important;
@@ -226,9 +230,8 @@
             white-space: nowrap;
             display: inline-block;
             font-size: 8pt;
-            max-height: 95px;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            max-height: 140px;
+            overflow: visible;
         }
 
         .text-center { text-align: center; }
@@ -278,8 +281,8 @@
             <span style="color: #cbd5e1;">Khổ A4 ngang (Landscape)</span>
         </div>
         <div class="print-toolbar-actions">
-            <span style="font-size: 11.5px; color: #94a3b8; margin-right: 10px;">
-                Mẹo: Chọn "Lưu dưới dạng PDF" (Save as PDF) trong hộp thoại in để xuất file PDF.
+            <span style="font-size: 12px; color: #fde047; margin-right: 12px; background-color: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 3px; border: 1px dashed rgba(253, 224, 71, 0.4);">
+                💡 Lưu file PDF: Tại hộp thoại in, chọn <strong>Máy in đích: "Lưu dưới dạng PDF" (Save as PDF)</strong> rồi nhấn <strong>Lưu</strong>.
             </span>
             <button type="button" class="btn-print" onclick="window.print()">
                 In / Lưu PDF
