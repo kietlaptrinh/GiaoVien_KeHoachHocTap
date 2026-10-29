@@ -530,6 +530,8 @@ public class GradesModel : PageModel
                 mainPart.Document = new Document();
                 var body = new Body();
 
+                // Kích thước trang A4 ngang (16838 x 11906 dxa), margin 720 dxa (0.5 inch)
+                // Chiều rộng in khả dụng = 16838 - 1440 = 15398 dxa
                 var sectionProps = new SectionProperties(
                     new PageSize { Width = 16838U, Height = 11906U, Orient = PageOrientationValues.Landscape },
                     new PageMargin { Top = 720, Bottom = 720, Left = 720, Right = 720 }
@@ -538,52 +540,112 @@ public class GradesModel : PageModel
                 body.AppendChild(CreateWordParagraph("BẢNG ĐIỂM TỔNG HỢP HỌC VIÊN KHÓA HỌC", true, 26, JustificationValues.Center));
                 body.AppendChild(CreateWordParagraph($"Tổng số: {gradeSheet.TotalStudents} học viên | Số môn học: {gradeSheet.Subjects.Count} môn", false, 20, JustificationValues.Center));
 
+                // Tính toán độ rộng từng cột (dxa)
+                const int sttW = 500;
+                const int codeW = 1100;
+                const int lastW = 1600;
+                const int firstW = 850;
+                const int dobW = 950;
+                const int countW = 700;
+                const int avgW = 700;
+                const int rankW = 950;
+                const int fixedWidthSum = sttW + codeW + lastW + firstW + dobW + countW + avgW + rankW; // 7350 dxa
+
+                int subCount = Math.Max(1, gradeSheet.Subjects.Count);
+                int subColWidth = Math.Max(380, (15398 - fixedWidthSum) / subCount);
+                int totalTableWidth = fixedWidthSum + (subColWidth * gradeSheet.Subjects.Count);
+                int totalCols = 5 + gradeSheet.Subjects.Count + 3;
+
                 var table = new Table();
                 var tblProps = new TableProperties(
+                    new TableWidth { Type = TableWidthUnitValues.Dxa, Width = totalTableWidth.ToString() },
+                    new TableLayout { Type = TableLayoutValues.Fixed },
                     new TableBorders(
-                        new TopBorder { Val = BorderValues.Single, Size = 4 },
-                        new BottomBorder { Val = BorderValues.Single, Size = 4 },
-                        new LeftBorder { Val = BorderValues.Single, Size = 4 },
-                        new RightBorder { Val = BorderValues.Single, Size = 4 },
-                        new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4 },
-                        new InsideVerticalBorder { Val = BorderValues.Single, Size = 4 }
+                        new TopBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+                        new BottomBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+                        new LeftBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+                        new RightBorder { Val = BorderValues.Single, Size = 4, Color = "000000" },
+                        new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4, Color = "CCCCCC" },
+                        new InsideVerticalBorder { Val = BorderValues.Single, Size = 4, Color = "CCCCCC" }
                     ),
                     new TableJustification { Val = TableRowAlignmentValues.Center }
                 );
                 table.AppendChild(tblProps);
 
-                var headerRow = new TableRow();
-                headerRow.AppendChild(CreateWordCell("STT", true, true));
-                headerRow.AppendChild(CreateWordCell("Mã HV", true, true));
-                headerRow.AppendChild(CreateWordCell("Họ và tên đệm", true, false));
-                headerRow.AppendChild(CreateWordCell("Tên", true, false));
-                headerRow.AppendChild(CreateWordCell("Ngày sinh", true, true));
+                // TableGrid - bắt buộc để Word Desktop & Word Online phân bổ lưới cột chính xác
+                var tableGrid = new TableGrid();
+                tableGrid.AppendChild(new GridColumn { Width = sttW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = codeW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = lastW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = firstW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = dobW.ToString() });
+                foreach (var _ in gradeSheet.Subjects)
+                {
+                    tableGrid.AppendChild(new GridColumn { Width = subColWidth.ToString() });
+                }
+                tableGrid.AppendChild(new GridColumn { Width = countW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = avgW.ToString() });
+                tableGrid.AppendChild(new GridColumn { Width = rankW.ToString() });
+                table.AppendChild(tableGrid);
+
+                // Header Row (lặp lại ở đầu mỗi trang nếu danh sách dài)
+                var headerRow = new TableRow(
+                    new TableRowProperties(
+                        new TableRowHeight { Val = 1800U, HeightType = HeightRuleValues.AtLeast },
+                        new TableHeader(),
+                        new CantSplit()
+                    )
+                );
+                headerRow.AppendChild(CreateWordCell("STT", true, true, sttW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Mã HV", true, true, codeW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Họ và tên đệm", true, false, lastW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Tên", true, false, firstW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Ngày sinh", true, true, dobW.ToString(), "EBF3FC"));
                 foreach (var sub in gradeSheet.Subjects)
                 {
-                    headerRow.AppendChild(CreateWordCell(sub.Name, true, true));
+                    headerRow.AppendChild(CreateWordCell(sub.Name, true, true, subColWidth.ToString(), "EBF3FC", isVertical: true, halfPtSize: 15));
                 }
-                headerRow.AppendChild(CreateWordCell("Số môn", true, true));
-                headerRow.AppendChild(CreateWordCell("Điểm TB", true, true));
-                headerRow.AppendChild(CreateWordCell("Xếp loại", true, true));
+                headerRow.AppendChild(CreateWordCell("Số môn", true, true, countW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Điểm TB", true, true, avgW.ToString(), "EBF3FC"));
+                headerRow.AppendChild(CreateWordCell("Xếp loại", true, true, rankW.ToString(), "EBF3FC"));
                 table.AppendChild(headerRow);
 
-                foreach (var s in gradeSheet.Students)
+                if (gradeSheet.Students.Count == 0)
                 {
-                    var row = new TableRow();
-                    row.AppendChild(CreateWordCell(s.Stt.ToString(), false, true));
-                    row.AppendChild(CreateWordCell(s.Student.StudentCode, false, true));
-                    row.AppendChild(CreateWordCell(s.Student.LastName, false, false));
-                    row.AppendChild(CreateWordCell(s.Student.FirstName, true, false));
-                    row.AppendChild(CreateWordCell(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "", false, true));
-                    foreach (var g in s.SubjectGrades)
+                    var emptyRow = new TableRow(
+                        new TableRowProperties(new CantSplit(), new TableRowHeight { Val = 600U }),
+                        new TableCell(
+                            new TableCellProperties(
+                                new TableCellWidth { Type = TableWidthUnitValues.Dxa, Width = totalTableWidth.ToString() },
+                                new GridSpan { Val = totalCols },
+                                new Shading { Val = ShadingPatternValues.Clear, Color = "auto", Fill = "F8FAFC" },
+                                new TableCellMargin(new TopMargin { Width = "200" }, new BottomMargin { Width = "200" })
+                            ),
+                            CreateWordParagraph("Chưa có dữ liệu học viên (Danh sách trống). Vui lòng nạp học viên từ file Excel hoặc thêm trực tiếp trên web.", false, 20, JustificationValues.Center)
+                        )
+                    );
+                    table.AppendChild(emptyRow);
+                }
+                else
+                {
+                    foreach (var s in gradeSheet.Students)
                     {
-                        var scoreStr = g.Score.HasValue ? g.Score.Value.ToString("0.00") : "";
-                        row.AppendChild(CreateWordCell(scoreStr, false, true));
+                        var row = new TableRow(new TableRowProperties(new CantSplit()));
+                        row.AppendChild(CreateWordCell(s.Stt.ToString(), false, true, sttW.ToString()));
+                        row.AppendChild(CreateWordCell(s.Student.StudentCode, false, true, codeW.ToString()));
+                        row.AppendChild(CreateWordCell(s.Student.LastName, false, false, lastW.ToString()));
+                        row.AppendChild(CreateWordCell(s.Student.FirstName, true, false, firstW.ToString()));
+                        row.AppendChild(CreateWordCell(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "", false, true, dobW.ToString()));
+                        foreach (var g in s.SubjectGrades)
+                        {
+                            var scoreStr = g.Score.HasValue ? g.Score.Value.ToString("0.00") : "";
+                            row.AppendChild(CreateWordCell(scoreStr, false, true, subColWidth.ToString()));
+                        }
+                        row.AppendChild(CreateWordCell($"{s.CompletedSubjectsCount}/{gradeSheet.Subjects.Count}", false, true, countW.ToString()));
+                        row.AppendChild(CreateWordCell(s.AverageScore.HasValue ? s.AverageScore.Value.ToString("0.00") : "—", true, true, avgW.ToString()));
+                        row.AppendChild(CreateWordCell(s.Classification, true, true, rankW.ToString()));
+                        table.AppendChild(row);
                     }
-                    row.AppendChild(CreateWordCell($"{s.CompletedSubjectsCount}/{gradeSheet.Subjects.Count}", false, true));
-                    row.AppendChild(CreateWordCell(s.AverageScore.HasValue ? s.AverageScore.Value.ToString("0.00") : "—", true, true));
-                    row.AppendChild(CreateWordCell(s.Classification, true, true));
-                    table.AppendChild(row);
                 }
 
                 body.AppendChild(table);
@@ -618,17 +680,38 @@ public class GradesModel : PageModel
         );
     }
 
-    private static TableCell CreateWordCell(string text, bool isBold, bool isCenter)
+    private static TableCell CreateWordCell(
+        string text,
+        bool isBold,
+        bool isCenter,
+        string width,
+        string? bgColor = null,
+        bool isVertical = false,
+        int halfPtSize = 16)
     {
-        return new TableCell(
-            new TableCellProperties(
-                new TableCellMargin(
-                    new TopMargin { Width = "50" },
-                    new BottomMargin { Width = "50" },
-                    new LeftMargin { Width = "70" },
-                    new RightMargin { Width = "70" }
-                )
+        var cellProps = new TableCellProperties(
+            new TableCellWidth { Type = TableWidthUnitValues.Dxa, Width = width },
+            new TableCellMargin(
+                new TopMargin { Width = "60" },
+                new BottomMargin { Width = "60" },
+                new LeftMargin { Width = "60" },
+                new RightMargin { Width = "60" }
             ),
+            new TableCellVerticalAlignment { Val = TableVerticalAlignmentValues.Center }
+        );
+
+        if (!string.IsNullOrEmpty(bgColor))
+        {
+            cellProps.AppendChild(new Shading { Val = ShadingPatternValues.Clear, Color = "auto", Fill = bgColor });
+        }
+
+        if (isVertical)
+        {
+            cellProps.AppendChild(new TextDirection { Val = TextDirectionValues.BottomToTopLeftToRight });
+        }
+
+        return new TableCell(
+            cellProps,
             new Paragraph(
                 new ParagraphProperties(
                     new Justification { Val = isCenter ? JustificationValues.Center : JustificationValues.Left }
@@ -636,7 +719,7 @@ public class GradesModel : PageModel
                 new Run(
                     new RunProperties(
                         new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
-                        new FontSize { Val = "16" },
+                        new FontSize { Val = halfPtSize.ToString() },
                         isBold ? new Bold() : new Bold { Val = false }
                     ),
                     new Text(text ?? "")
