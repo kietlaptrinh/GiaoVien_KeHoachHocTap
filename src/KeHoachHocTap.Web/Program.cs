@@ -55,6 +55,7 @@ builder.Services.AddDbContext<PlanDbContext>(options =>
 // Đăng ký dịch vụ lõi tính toán và đọc Excel
 builder.Services.AddSingleton<IScheduleCalculator, ScheduleCalculator>();
 builder.Services.AddTransient<IExcelPlanReader, ExcelPlanReader>();
+builder.Services.AddTransient<ICurriculumReader, CurriculumReader>();
 
 // Đăng ký dịch vụ dữ liệu và nghiệp vụ kế hoạch
 builder.Services.AddScoped<IPlanRepository, PlanRepository>();

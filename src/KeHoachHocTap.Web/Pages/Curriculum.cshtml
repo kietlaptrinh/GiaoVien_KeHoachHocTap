@@ -1,0 +1,293 @@
+@page
+@model KeHoachHocTap.Web.Pages.CurriculumModel
+@{
+    ViewData["Title"] = "Khung chương trình đào tạo";
+    var isAdmin = User.Identity?.IsAuthenticated == true;
+}
+
+<div class="desktop-panel">
+    <!-- Toolbar Thanh công cụ chuẩn Classic Desktop -->
+    <div class="desktop-toolbar">
+        @if (isAdmin)
+        {
+            <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAddSubject">
+                ➕ Thêm học phần
+            </button>
+            <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#modalImportExcel">
+                📥 Nạp từ Excel
+            </button>
+            <form method="post" asp-page-handler="LoadDefaultTemplate" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn nạp lại 24 học phần từ file mẫu chuẩn \'khung chuong trinh.xlsx\'? Dữ liệu môn hiện tại sẽ được cập nhật đồng bộ.');">
+                <button type="submit" class="toolbar-btn btn-outline-primary" title="Nạp nhanh 24 môn từ file mẫu chuẩn của trường">
+                    ⚡ Nạp 24 môn mẫu
+                </button>
+            </form>
+            <div class="toolbar-separator"></div>
+        }
+
+        <a asp-page-handler="ExportExcel" class="toolbar-btn" title="Xuất khung chương trình ra file Excel">
+            📤 Xuất Excel
+        </a>
+
+        <div class="toolbar-separator"></div>
+
+        <!-- Tìm kiếm & Bộ lọc -->
+        <form method="get" class="d-flex align-items-center gap-2">
+            <input type="text" name="search" value="@Model.Search" placeholder="Tìm tên học phần..." class="desktop-input" style="width: 180px;" />
+            @if (Model.KnowledgeBlocks.Any())
+            {
+                <select name="blockFilter" class="desktop-input" style="width: 150px;">
+                    <option value="">-- Khối kiến thức --</option>
+                    @foreach (var block in Model.KnowledgeBlocks)
+                    {
+                        <option value="@block" selected="@(Model.BlockFilter == block)">@block</option>
+                    }
+                </select>
+            }
+            <button type="submit" class="toolbar-btn btn-primary">Lọc</button>
+            @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.BlockFilter))
+            {
+                <a asp-page="/Curriculum" class="toolbar-btn text-danger" title="Xóa bộ lọc">✕</a>
+            }
+        </form>
+    </div>
+
+    <!-- Summary Ribbon Thống kê Khung CT -->
+    <div class="bg-light border-bottom px-3 py-2 d-flex flex-wrap align-items-center gap-3 small">
+        <span class="fw-bold text-dark">Thống kê Khung chương trình:</span>
+        <span class="badge bg-secondary text-white">Tổng số: @Model.Subjects.Count học phần</span>
+        <span class="badge bg-primary text-white">Tổng số tiết: @Model.TotalPeriods tiết</span>
+        <span class="badge bg-success text-white">Học phần tính điểm (HS > 0): @Model.GradableCount môn</span>
+        <span class="badge bg-info text-dark">Học phần thực tế (HS = 0): @Model.PracticeCount môn</span>
+    </div>
+
+    <!-- DataGrid danh sách học phần -->
+    <div class="desktop-panel-body p-2">
+        @if (!string.IsNullOrEmpty(Model.SuccessMessage))
+        {
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SuccessMessage)), 'success');
+                    }
+                });
+            </script>
+        }
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <script>
+                document.addEventListener("DOMContentLoaded", function () {
+                    if (typeof window.showToast === 'function') {
+                        window.showToast(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ErrorMessage)), 'error');
+                    }
+                });
+            </script>
+        }
+
+        <div class="table-responsive" style="max-height: calc(100vh - 220px); overflow-y: auto;">
+            <table class="table table-bordered table-hover align-middle desktop-datagrid mb-0" style="font-size: 13px;">
+                <thead class="table-light sticky-top" style="z-index: 2; background-color: #EBF3FC;">
+                    <tr class="text-center align-middle">
+                        <th style="width: 50px;">STT</th>
+                        <th class="text-start" style="min-width: 250px;">Tên học phần / Môn học</th>
+                        <th style="width: 140px;">Khối kiến thức</th>
+                        <th style="width: 80px;">Số tiết</th>
+                        <th style="width: 80px;">Hệ số</th>
+                        <th style="width: 130px;">Phân loại</th>
+                        <th style="width: 120px;">Chế độ thi</th>
+                        <th style="width: 130px;">Ghi chú</th>
+                        @if (isAdmin)
+                        {
+                            <th style="width: 140px;">Thao tác</th>
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Subjects.Count == 0)
+                    {
+                        <tr>
+                            <td colspan="@(isAdmin ? 9 : 8)" class="text-center py-4 text-muted fst-italic">
+                                Chưa có học phần nào trong Khung chương trình. Hãy bấm "Thêm học phần" hoặc "Nạp 24 môn mẫu".
+                            </td>
+                        </tr>
+                    }
+                    else
+                    {
+                        @for (int i = 0; i < Model.Subjects.Count; i++)
+                        {
+                            var s = Model.Subjects[i];
+                            var typeBadge = s.Coefficient switch
+                            {
+                                0 => "<span class='badge bg-info text-dark'>Thực tế / Trải nghiệm</span>",
+                                >= 2 => "<span class='badge bg-danger text-white'>Thi tốt nghiệp (x" + s.Coefficient.ToString("0.#") + ")</span>",
+                                _ => "<span class='badge bg-success text-white'>Môn học (x" + s.Coefficient.ToString("0.#") + ")</span>"
+                            };
+
+                            var examModeBadge = s.ExamMode switch
+                            {
+                                "Delayed" => "<span class='badge bg-warning text-dark'>Hoãn thi</span>",
+                                "Custom" => "<span class='badge bg-secondary text-white'>Chỉ định</span>",
+                                _ => "<span class='badge bg-light text-dark border'>Thi ngay</span>"
+                            };
+
+                            <tr>
+                                <td class="text-center fw-bold">@s.SortOrder</td>
+                                <td class="fw-semibold text-primary">@s.Name</td>
+                                <td class="text-center text-muted">@(s.KnowledgeBlock ?? "—")</td>
+                                <td class="text-center fw-bold">@s.Periods</td>
+                                <td class="text-center fw-bold text-dark">@s.Coefficient.ToString("0.#")</td>
+                                <td class="text-center">@Html.Raw(typeBadge)</td>
+                                <td class="text-center">@Html.Raw(examModeBadge)</td>
+                                <td class="text-muted small">@(s.Note ?? "—")</td>
+                                @if (isAdmin)
+                                {
+                                    <td class="text-center">
+                                        <div class="d-inline-flex align-items-center gap-1">
+                                            <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 btn-edit-subject"
+                                                    data-id="@s.Id"
+                                                    data-name="@s.Name"
+                                                    data-periods="@s.Periods"
+                                                    data-coeff="@s.Coefficient"
+                                                    data-block="@(s.KnowledgeBlock ?? "")"
+                                                    data-note="@(s.Note ?? "")"
+                                                    data-exammode="@s.ExamMode"
+                                                    title="Sửa học phần">
+                                                ✏️
+                                            </button>
+                                            <form method="post" asp-page-handler="Move" asp-route-id="@s.Id" asp-route-direction="-1" class="d-inline m-0 p-0">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Lên trên" @(i == 0 ? "disabled" : "")>▲</button>
+                                            </form>
+                                            <form method="post" asp-page-handler="Move" asp-route-id="@s.Id" asp-route-direction="1" class="d-inline m-0 p-0">
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-1" title="Xuống dưới" @(i == Model.Subjects.Count - 1 ? "disabled" : "")>▼</button>
+                                            </form>
+                                            <form method="post" asp-page-handler="Delete" asp-route-id="@s.Id" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc muốn xóa học phần \'@s.Name\'?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" title="Xóa học phần">🗑️</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm / Sửa học phần -->
+@if (isAdmin)
+{
+    <div class="modal fade" id="modalAddSubject" tabindex="-1" aria-labelledby="modalAddSubjectLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="AddOrUpdate">
+                    <div class="modal-header bg-light py-2">
+                        <h6 class="modal-title fw-bold" id="modalAddSubjectLabel">Thêm / Sửa học phần</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="Id" id="subjectId" value="" />
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1">Tên học phần / Môn học <span class="text-danger">*</span></label>
+                            <input type="text" name="Name" id="subjectName" class="form-control form-control-sm" required placeholder="Nhập tên học phần..." />
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold mb-1">Số tiết <span class="text-danger">*</span></label>
+                                <input type="number" name="Periods" id="subjectPeriods" class="form-control form-control-sm" required min="1" max="500" value="30" />
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold mb-1">Hệ số <span class="text-danger">*</span></label>
+                                <input type="number" step="0.1" name="Coefficient" id="subjectCoefficient" class="form-control form-control-sm" required min="0" max="10" value="1.0" />
+                                <div class="form-text text-muted" style="font-size: 11px;">1: môn thường | 0: thực tế | 2: tốt nghiệp</div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1">Khối kiến thức</label>
+                            <input type="text" name="KnowledgeBlock" id="subjectKnowledgeBlock" class="form-control form-control-sm" placeholder="VD: Lý luận cơ bản, Nghiên cứu thực tế..." />
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1">Chế độ thi</label>
+                            <select name="ExamMode" id="subjectExamMode" class="form-select form-select-sm">
+                                <option value="Immediately">Thi ngay sau khi học xong</option>
+                                <option value="Delayed">Hoãn thi (học tiếp môn sau)</option>
+                                <option value="Custom">Chỉ định buổi thi</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label small fw-bold mb-1">Ghi chú</label>
+                            <input type="text" name="Note" id="subjectNote" class="form-control form-control-sm" placeholder="Ghi chú thêm..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2 bg-light">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Lưu học phần</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Nạp từ Excel -->
+    <div class="modal fade" id="modalImportExcel" tabindex="-1" aria-labelledby="modalImportExcelLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form method="post" asp-page-handler="ImportExcel" enctype="multipart/form-data">
+                    <div class="modal-header bg-light py-2">
+                        <h6 class="modal-title fw-bold" id="modalImportExcelLabel">Nạp Khung chương trình từ Excel</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="small text-muted mb-2">
+                            Chọn file Excel chứa khung chương trình (như file <code>khung chuong trinh.xlsx</code>) với các cột: <strong>Stt, Học phần, Số tiết, Hệ số, Khối kiến thức</strong>.
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold mb-1">File Excel (.xlsx) <span class="text-danger">*</span></label>
+                            <input type="file" name="file" class="form-control form-control-sm" accept=".xlsx" required />
+                        </div>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="replaceExisting" id="replaceExisting" value="true" checked />
+                            <label class="form-check-label small" for="replaceExisting">
+                                Thay thế toàn bộ khung chương trình hiện tại (Khuyến nghị để đồng bộ 100%)
+                            </label>
+                        </div>
+                    </div>
+                    <div class="modal-footer py-2 bg-light">
+                        <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        <button type="submit" class="btn btn-sm btn-primary">Bắt đầu nạp</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Nạp thông tin vào modal khi bấm nút Sửa
+        $('.btn-edit-subject').on('click', function () {
+            var btn = $(this);
+            $('#subjectId').val(btn.data('id'));
+            $('#subjectName').val(btn.data('name'));
+            $('#subjectPeriods').val(btn.data('periods'));
+            $('#subjectCoefficient').val(btn.data('coeff'));
+            $('#subjectKnowledgeBlock').val(btn.data('block'));
+            $('#subjectNote').val(btn.data('note'));
+            $('#subjectExamMode').val(btn.data('exammode'));
+            $('#modalAddSubjectLabel').text('Sửa học phần: ' + btn.data('name'));
+            $('#modalAddSubject').modal('show');
+        });
+
+        // Reset form khi mở modal Thêm mới
+        $('[data-bs-target="#modalAddSubject"]').on('click', function () {
+            $('#subjectId').val('');
+            $('#subjectName').val('');
+            $('#subjectPeriods').val('30');
+            $('#subjectCoefficient').val('1.0');
+            $('#subjectKnowledgeBlock').val('');
+            $('#subjectNote').val('');
+            $('#subjectExamMode').val('Immediately');
+            $('#modalAddSubjectLabel').text('Thêm học phần mới');
+        });
+    });
+</script>

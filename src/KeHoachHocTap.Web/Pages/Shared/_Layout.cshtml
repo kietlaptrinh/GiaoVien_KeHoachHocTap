@@ -16,6 +16,11 @@
             <nav class="desktop-menubar">
                 <ul class="nav">
                     <li class="nav-item">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Curriculum" ? "active" : "")" asp-area="" asp-page="/Curriculum">
+                            <strong>Khung chương trình</strong>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" || ViewContext.RouteData.Values["page"]?.ToString() == "/Holidays" || ViewContext.RouteData.Values["page"]?.ToString() == "/Export" || ViewContext.RouteData.Values["page"]?.ToString() == "/Templates" || ViewContext.RouteData.Values["page"]?.ToString() == "/Import" ? "active" : "")" asp-area="" asp-page="/Index">
                             <strong>Kế hoạch giảng dạy</strong>
                         </a>

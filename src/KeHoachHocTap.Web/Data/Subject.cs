@@ -46,4 +46,14 @@ public class Subject
     /// Buổi thi chỉ định hoặc ghi chú thi dồn khi ExamMode là "Custom".
     /// </summary>
     public string? CustomExamSlot { get; set; }
+
+    /// <summary>
+    /// Hệ số học phần (1 cho môn lý thuyết thường, 0 cho thực tế, 2 cho thi tốt nghiệp). Mặc định là 1.0.
+    /// </summary>
+    public decimal Coefficient { get; set; } = 1.0m;
+
+    /// <summary>
+    /// Khối kiến thức của học phần trong khung chương trình (tối đa 150 ký tự).
+    /// </summary>
+    public string? KnowledgeBlock { get; set; }
 }

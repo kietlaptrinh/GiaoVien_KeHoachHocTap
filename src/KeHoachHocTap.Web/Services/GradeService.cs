@@ -58,21 +58,36 @@ public class GradeService : IGradeService
                 items.Add(new StudentGradeItem(subject.Id, subject.Name, score));
             }
 
-            var validScores = items
-                .Where(item => item.Score.HasValue)
-                .Select(item => item.Score!.Value)
+            var scoredSubjectPairs = sortedSubjects
+                .Where(s => studentGradesDict.TryGetValue(s.Id, out var sc) && sc.HasValue)
+                .Select(s => new { Subject = s, Score = studentGradesDict[s.Id]!.Value })
                 .ToList();
 
-            var completedCount = validScores.Count;
+            var completedCount = scoredSubjectPairs.Count;
             decimal? avgScore = null;
             if (completedCount > 0)
             {
-                var sum = validScores.Sum();
-                avgScore = Math.Round(sum / completedCount, 2, MidpointRounding.AwayFromZero);
+                var totalWeight = scoredSubjectPairs.Where(p => p.Subject.Coefficient > 0).Sum(p => p.Subject.Coefficient);
+                if (totalWeight > 0)
+                {
+                    var weightedSum = scoredSubjectPairs.Where(p => p.Subject.Coefficient > 0).Sum(p => p.Score * p.Subject.Coefficient);
+                    avgScore = Math.Round(weightedSum / totalWeight, 2, MidpointRounding.AwayFromZero);
+                }
+                else
+                {
+                    // Fallback nếu tất cả các môn đều có Hệ số = 0
+                    var sum = scoredSubjectPairs.Sum(p => p.Score);
+                    avgScore = Math.Round(sum / completedCount, 2, MidpointRounding.AwayFromZero);
+                }
             }
 
             var words = _wordsConverter.ConvertScoreToWords(avgScore);
-            var classification = _classifier.Classify(avgScore, items.Select(item => item.Score));
+            // Chỉ xét điểm liệt cho các môn có tính điểm (Hệ số > 0)
+            var gradableScores = sortedSubjects
+                .Where(s => s.Coefficient > 0)
+                .Select(s => studentGradesDict.TryGetValue(s.Id, out var sc) ? sc : null);
+
+            var classification = _classifier.Classify(avgScore, gradableScores);
 
             if (stats.ContainsKey(classification))
             {

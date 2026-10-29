@@ -38,6 +38,11 @@ public class PlanDbContext : DbContext
                 .HasDefaultValue("Immediately");
             entity.Property(e => e.CustomExamSlot)
                 .HasMaxLength(100);
+            entity.Property(e => e.Coefficient)
+                .HasPrecision(4, 2)
+                .HasDefaultValue(1.0m);
+            entity.Property(e => e.KnowledgeBlock)
+                .HasMaxLength(150);
             entity.HasIndex(e => e.SortOrder);
         });
 
