@@ -20,21 +20,14 @@
         @if (Model.IsAdmin)
         {
             <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHolidayModal">
-                Thêm ngày nghỉ / sự kiện
+                Thêm ngày nghỉ
             </button>
             <span class="toolbar-separator"></span>
         }
         <a asp-page="/Index" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
-            Quay lại Môn học
+            Kế hoạch giảng dạy
         </a>
         <a asp-page="/Holidays" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-            </svg>
             Làm mới
         </a>
         <span class="toolbar-separator"></span>
@@ -60,8 +53,8 @@
 
         <!-- Nút chuyển chế độ xem di động -->
         <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
-            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnHolidaysCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
-            <button type="button" class="toolbar-btn btn-sm" id="btnHolidaysTable" title="Xem dạng bảng đầy đủ">⊞ Bảng</button>
+            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnHolidaysCards" title="Xem dạng thẻ (Phù hợp di động)">Dạng thẻ</button>
+            <button type="button" class="toolbar-btn btn-sm" id="btnHolidaysTable" title="Xem dạng bảng đầy đủ">Dạng bảng</button>
         </div>
     </div>
 
@@ -157,14 +150,14 @@
                                             data-from="@h.From.ToString("yyyy-MM-dd")"
                                             data-to="@h.To.ToString("yyyy-MM-dd")"
                                             data-isopening="@(h.IsOpeningDay ? "true" : "false")">
-                                        ✎ Sửa
+                                        Sửa
                                     </button>
                                     @if (!h.IsOpeningDay)
                                     {
                                         <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-holiday"
                                                 data-id="@h.Id"
                                                 data-name="@h.Name">
-                                            ✕ Xóa
+                                            Xóa
                                         </button>
                                     }
                                 </div>
@@ -293,8 +286,8 @@
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
-                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu ngày nghỉ</button>
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -336,7 +329,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật</button>
                     </div>
                 </form>
             </div>
@@ -360,7 +353,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light justify-content-center">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Xóa</button>
                     </div>
                 </form>
             </div>

@@ -40,10 +40,10 @@
                         <p class="text-muted small mb-3">Bạn đang có toàn quyền thực hiện các thao tác thêm, sửa, xóa môn học, ngày nghỉ và nhập dữ liệu từ Excel.</p>
                         <form method="post" asp-page-handler="Logout" class="d-inline">
                             <button type="submit" class="toolbar-btn btn-danger px-3">
-                                Đăng xuất khỏi hệ thống
+                                Đăng xuất
                             </button>
                         </form>
-                        <a asp-page="/Index" class="toolbar-btn ms-2">Về trang chủ</a>
+                        <a asp-page="/Index" class="toolbar-btn ms-2">Kế hoạch giảng dạy</a>
                     </div>
                 }
                 else
@@ -56,7 +56,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
-                            <a asp-page="/Index" class="toolbar-btn">Hủy bỏ</a>
+                            <a asp-page="/Index" class="toolbar-btn">Kế hoạch giảng dạy</a>
                             <button type="submit" class="toolbar-btn btn-primary px-3" disabled="@(!Model.IsPasswordConfigured)">
                                 Đăng nhập
                             </button>

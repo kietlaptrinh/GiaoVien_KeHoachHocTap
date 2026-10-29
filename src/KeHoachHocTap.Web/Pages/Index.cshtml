@@ -42,13 +42,13 @@
         </a>
         <span class="toolbar-separator"></span>
         <a asp-page="/Holidays" class="toolbar-btn">
-            Xem lịch ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
+            Ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
         </a>
 
         <!-- Nút chuyển chế độ xem di động -->
         <div class="ms-auto d-flex align-items-center gap-1 view-mode-toggle">
-            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnViewCards" title="Xem dạng thẻ (Phù hợp di động)">🗂 Thẻ</button>
-            <button type="button" class="toolbar-btn btn-sm" id="btnViewTable" title="Xem dạng bảng đầy đủ">⊞ Bảng</button>
+            <button type="button" class="toolbar-btn btn-primary btn-sm" id="btnViewCards" title="Xem dạng thẻ (Phù hợp di động)">Dạng thẻ</button>
+            <button type="button" class="toolbar-btn btn-sm" id="btnViewTable" title="Xem dạng bảng đầy đủ">Dạng bảng</button>
         </div>
     </div>
 
@@ -111,10 +111,10 @@
                     <p class="text-muted small mb-3">Vui lòng bấm nút <strong>Thêm môn học</strong> hoặc <strong>Nhập từ Excel</strong> để bắt đầu tạo thời khóa biểu.</p>
                     <div class="d-flex justify-content-center gap-2">
                         <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSubjectModal">
-                            + Thêm môn học
+                            Thêm môn học
                         </button>
                         <a asp-page="/Import" class="toolbar-btn">
-                            Nhập từ Excel (.xlsx)
+                            Nhập từ Excel
                         </a>
                     </div>
                 }
@@ -227,12 +227,12 @@
                                             data-note="@sub.Note"
                                             data-exammode="@sub.ExamMode"
                                             data-customexamslot="@sub.CustomExamSlot">
-                                        ✎ Sửa
+                                        Sửa
                                     </button>
                                     <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete"
                                             data-id="@sub.Id"
                                             data-name="@sub.Name">
-                                        ✕ Xóa
+                                        Xóa
                                     </button>
                                 </div>
                             </div>
@@ -282,10 +282,10 @@
                                             data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
                                             data-sessions="@act.Activity.Sessions"
                                             data-periods="@act.Activity.Periods"
-                                            data-note="@act.Activity.Note">✎ Sửa</button>
+                                            data-note="@act.Activity.Note">Sửa</button>
                                     <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
                                             data-id="@act.Activity.Id"
-                                            data-name="@act.Activity.Name">✕ Xóa</button>
+                                            data-name="@act.Activity.Name">Xóa</button>
                                 </div>
                             }
                         </div>
@@ -343,10 +343,10 @@
                                             data-to="@(act.Activity.ToDate?.ToString("yyyy-MM-dd"))"
                                             data-sessions="@act.Activity.Sessions"
                                             data-periods="@act.Activity.Periods"
-                                            data-note="@act.Activity.Note">✎ Sửa</button>
+                                            data-note="@act.Activity.Note">Sửa</button>
                                     <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
                                             data-id="@act.Activity.Id"
-                                            data-name="@act.Activity.Name">✕ Xóa</button>
+                                            data-name="@act.Activity.Name">Xóa</button>
                                 </div>
                             }
                         </div>
@@ -597,8 +597,8 @@
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
-                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu môn học</button>
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -654,7 +654,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật</button>
                     </div>
                 </form>
             </div>
@@ -677,8 +677,8 @@
                         <span class="text-muted small">Lịch học các môn sau sẽ tự động tính lại.</span>
                     </div>
                     <div class="modal-footer p-2 bg-light justify-content-center">
-                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Xóa</button>
                     </div>
                 </form>
             </div>
@@ -746,7 +746,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu hoạt động</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -805,7 +805,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật</button>
                     </div>
                 </form>
             </div>
@@ -827,8 +827,8 @@
                         <p class="fw-bold text-danger mb-2" id="deleteActivityNameDisplay"></p>
                     </div>
                     <div class="modal-footer p-2 bg-light justify-content-center">
-                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Xóa</button>
                     </div>
                 </form>
             </div>

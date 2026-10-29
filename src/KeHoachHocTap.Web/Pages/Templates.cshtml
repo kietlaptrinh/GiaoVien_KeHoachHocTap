@@ -22,35 +22,20 @@
     <!-- Toolbar -->
     <div class="desktop-toolbar">
         <a asp-page="/Index" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
-            Quay lại Môn học
+            Kế hoạch giảng dạy
         </a>
         <a asp-page="/Export" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-            </svg>
-            Đi đến Xuất file
+            Xuất biểu mẫu
         </a>
         <span class="toolbar-separator"></span>
         <a asp-page="/Templates" asp-page-handler="DownloadCurrent" class="toolbar-btn text-primary">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-            </svg>
-            Tải file mẫu hiện tại (.docx)
+            Tải mẫu hiện tại
         </a>
         @if (Model.CurrentTemplate.IsCustom)
         {
             <form method="post" asp-page-handler="RestoreDefault" class="d-inline m-0 p-0" onsubmit="return confirm('Bạn có chắc chắn muốn xóa file mẫu tùy biến và khôi phục về mẫu gốc mặc định của hệ thống?');">
                 <button type="submit" class="toolbar-btn text-danger border-0 bg-transparent" style="cursor: pointer;">
-                    <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                    </svg>
-                    Khôi phục mẫu gốc mặc định
+                    Khôi phục mẫu gốc
                 </button>
             </form>
         }
@@ -126,11 +111,7 @@
 
                     <div class="d-flex gap-2">
                         <a asp-page="/Templates" asp-page-handler="DownloadCurrent" class="btn btn-outline-primary btn-sm fw-bold">
-                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                            </svg>
-                            Tải file mẫu này về máy
+                            Tải mẫu hiện tại
                         </a>
                     </div>
                 </div>
@@ -161,11 +142,7 @@
                         </div>
 
                         <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
-                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z"/>
-                            </svg>
-                            Tải lên và Kích hoạt áp dụng
+                            Tải lên &amp; Áp dụng
                         </button>
                     </form>
                 </div>
@@ -255,10 +232,7 @@
 
                         <div class="d-flex justify-content-end">
                             <button type="submit" class="btn btn-primary btn-sm fw-bold px-3">
-                                <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                    <path d="M12.736 3.97a.733.733 0 0 1 1.047 0c.286.289.29.756.01 1.05L7.88 12.01a.733.733 0 0 1-1.065.02L3.217 8.384a.757.757 0 0 1 0-1.06.733.733 0 0 1 1.047 0l3.052 3.093 5.4-6.425a.247.247 0 0 1 .02-.022z"/>
-                                </svg>
-                                Lưu cấu hình nhiệm vụ vào Database
+                                Lưu cấu hình
                             </button>
                         </div>
                     </form>

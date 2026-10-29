@@ -28,7 +28,7 @@
                 Thêm học viên
             </button>
             <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#importExcelModal">
-                Nạp từ Excel
+                Nhập từ Excel
             </button>
             <span class="toolbar-separator"></span>
         }
@@ -260,7 +260,7 @@
                     <input type="hidden" name="Search" value="@Model.Search" />
                     <input type="hidden" name="RankFilter" value="@Model.RankFilter" />
                     <div class="modal-header desktop-titlebar py-2 text-white">
-                        <h6 class="modal-title fw-bold" id="addStudentModalLabel">➕ THÊM HỌC VIÊN MỚI</h6>
+                        <h6 class="modal-title fw-bold" id="addStudentModalLabel">THÊM HỌC VIÊN</h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-3">
@@ -299,7 +299,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu học viên</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Lưu</button>
                     </div>
                 </form>
             </div>
@@ -315,7 +315,7 @@
                     <input type="hidden" name="Search" value="@Model.Search" />
                     <input type="hidden" name="RankFilter" value="@Model.RankFilter" />
                     <div class="modal-header desktop-titlebar py-2 text-white">
-                        <h6 class="modal-title fw-bold" id="editStudentModalLabel">✎ CẬP NHẬT THÔNG TIN HỌC VIÊN</h6>
+                        <h6 class="modal-title fw-bold" id="editStudentModalLabel">CẬP NHẬT THÔNG TIN HỌC VIÊN</h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-3">
@@ -354,7 +354,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật thay đổi</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Cập nhật</button>
                     </div>
                 </form>
             </div>
@@ -379,8 +379,8 @@
                         <span class="text-muted small">Toàn bộ điểm các môn của học viên này cũng sẽ bị xóa.</span>
                     </div>
                     <div class="modal-footer p-2 bg-light justify-content-center">
-                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy bỏ</button>
-                        <button type="submit" class="toolbar-btn btn-danger px-3">Đồng ý Xóa</button>
+                        <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="toolbar-btn btn-danger px-3">Xóa</button>
                     </div>
                 </form>
             </div>
@@ -393,7 +393,7 @@
             <div class="modal-content">
                 <form method="post" asp-page-handler="ImportExcel" enctype="multipart/form-data">
                     <div class="modal-header desktop-titlebar py-2 text-white">
-                        <h6 class="modal-title fw-bold" id="importExcelModalLabel">📥 NẠP BẢNG ĐIỂM TỪ EXCEL</h6>
+                        <h6 class="modal-title fw-bold" id="importExcelModalLabel">NHẬP BẢNG ĐIỂM TỪ EXCEL</h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-3">
@@ -411,7 +411,7 @@
                     </div>
                     <div class="modal-footer p-2 bg-light">
                         <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="toolbar-btn btn-primary px-3">Bắt đầu nạp</button>
+                        <button type="submit" class="toolbar-btn btn-primary px-3">Bắt đầu nhập</button>
                     </div>
                 </form>
             </div>
