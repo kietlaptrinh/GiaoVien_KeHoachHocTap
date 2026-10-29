@@ -33,9 +33,9 @@
             <span class="toolbar-separator"></span>
         }
 
-        <a asp-page="/Grades" asp-page-handler="ExportExcel" class="toolbar-btn btn-excel-export" title="Xuất toàn bộ bảng điểm ra file Excel .xlsx">
-            Xuất Excel bảng điểm
-        </a>
+        <button type="button" class="toolbar-btn btn-excel-export" data-bs-toggle="modal" data-bs-target="#exportGradesModal" title="Chọn định dạng xuất bảng điểm">
+            Xuất bảng điểm
+        </button>
 
         <a asp-page="/Grades" class="toolbar-btn">
             Làm mới
@@ -417,6 +417,118 @@
             </div>
         </div>
     </div>
+}
+
+<!-- Modal Lựa chọn định dạng xuất bảng điểm -->
+<div class="modal fade" id="exportGradesModal" tabindex="-1" aria-labelledby="exportGradesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header desktop-titlebar py-2 text-white">
+                <h6 class="modal-title fw-bold" id="exportGradesModalLabel">XUẤT BẢNG ĐIỂM HỌC VIÊN</h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="text-secondary small mb-3">
+                    Vui lòng chọn định dạng xuất phù hợp với nhu cầu sử dụng hoặc lưu trữ của đơn vị:
+                </div>
+                <div class="list-group">
+                    <!-- 1. Excel (.xlsx) -->
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-success px-2 py-1" style="font-size: 11px;">.XLSX</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Bảng điểm tổng hợp Excel</strong>
+                            </div>
+                            <div class="text-muted small">
+                                Xuất toàn bộ bảng điểm lớp học đầy đủ công thức tính điểm trung bình, xếp loại và thống kê theo chuẩn Bộ/Trường.
+                            </div>
+                        </div>
+                        <div class="text-nowrap">
+                            <a asp-page="/Grades" asp-page-handler="ExportExcel" class="btn btn-success btn-sm px-3 py-2 fw-bold btn-action-loading" style="min-height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                Tải xuống (.xlsx)
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 2. PDF / Bản in A4 ngang (.pdf) -->
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-danger px-2 py-1" style="font-size: 11px;">.PDF</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Bản in Bảng điểm tổng hợp (Khổ A4 ngang)</strong>
+                            </div>
+                            <div class="text-muted small">
+                                Định dạng chuẩn công văn in ấn niêm yết, tự động căn lề A4 Landscape, tích hợp khung chữ ký 3 bên và lưu file PDF sắc nét.
+                            </div>
+                        </div>
+                        <div class="text-nowrap">
+                            <a asp-page="/PrintGrades" target="_blank" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold" style="min-height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                Xem &amp; Xuất PDF
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 3. Word (.docx) -->
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-primary px-2 py-1" style="font-size: 11px;">.DOCX</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Văn bản Microsoft Word</strong>
+                            </div>
+                            <div class="text-muted small">
+                                Dạng tài liệu Word khổ ngang có bảng điểm hoàn chỉnh, phù hợp để đính kèm vào báo cáo tổng kết khóa đào tạo hoặc biên bản xét tốt nghiệp.
+                            </div>
+                        </div>
+                        <div class="text-nowrap">
+                            <a asp-page="/Grades" asp-page-handler="ExportWord" class="btn btn-primary btn-sm px-3 py-2 fw-bold btn-action-loading" style="background-color: #1d4ed8; border-color: #1d4ed8; min-height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                Tải xuống (.docx)
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 4. Phiếu điểm cá nhân học viên (PDF / A4 đứng) -->
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-info text-dark px-2 py-1" style="font-size: 11px;">PHIẾU ĐIỂM</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Phiếu báo điểm học tập từng học viên (A4 đứng)</strong>
+                            </div>
+                            <div class="text-muted small">
+                                In hàng loạt phiếu báo điểm cá nhân cho toàn bộ học viên (mỗi học viên 1 trang A4) có đánh giá từng môn và chữ ký giáo viên chủ nhiệm.
+                            </div>
+                        </div>
+                        <div class="text-nowrap">
+                            <a asp-page="/PrintStudentTranscripts" target="_blank" class="btn btn-outline-info text-dark btn-sm px-3 py-2 fw-bold" style="min-height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                In toàn bộ phiếu điểm
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- 5. CSV (.csv) -->
+                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-0" style="border-color: #dee2e6; background-color: #f8fafc;">
+                        <div>
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <span class="badge bg-secondary px-2 py-1" style="font-size: 11px;">.CSV</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Dữ liệu bảng điểm Unicode (.csv)</strong>
+                            </div>
+                            <div class="text-muted small">
+                                File dữ liệu thuần text mã hóa UTF-8 with BOM, phù hợp để nạp hoặc đồng bộ điểm vào các hệ thống quản lý đào tạo (LMS, Moodle).
+                            </div>
+                        </div>
+                        <div class="text-nowrap">
+                            <a asp-page="/Grades" asp-page-handler="ExportCsv" class="btn btn-secondary btn-sm px-3 py-2 fw-bold btn-action-loading" style="min-height: 36px; display: inline-flex; align-items: center; justify-content: center;">
+                                Tải xuống (.csv)
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer p-2 bg-light">
+                <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
 }
 
 @section Scripts {

@@ -33,3 +33,4 @@ public class PrintPlanModel : PageModel
         PrintDateText = $"Ngày {now.Day:D2} tháng {now.Month:D2} năm {now.Year}";
     }
 }
+

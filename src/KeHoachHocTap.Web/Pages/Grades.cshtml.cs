@@ -1,5 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using KeHoachHocTap.Web.Data;
 using KeHoachHocTap.Web.Domain;
 using KeHoachHocTap.Web.Services;
@@ -468,5 +472,182 @@ public class GradesModel : PageModel
             ErrorMessage = "Không thể xuất file Excel bảng điểm: " + ex.Message;
             return RedirectToPage();
         }
+    }
+
+    public async Task<IActionResult> OnGetExportCsvAsync()
+    {
+        try
+        {
+            var subjects = await _repository.GetSubjectsAsync();
+            var students = await _repository.GetStudentsWithGradesAsync();
+            var gradeSheet = _gradeService.CalculateGradeSheet(subjects, students);
+
+            var sb = new StringBuilder();
+            sb.Append("STT,Mã HV,Họ và tên đệm,Tên,Ngày sinh,Giới tính");
+            foreach (var sub in gradeSheet.Subjects)
+            {
+                sb.Append($",\"{sub.Name.Replace("\"", "\"\"")}\"");
+            }
+            sb.AppendLine(",Số môn hoàn thành,Điểm trung bình,Điểm bằng chữ,Xếp loại");
+
+            foreach (var s in gradeSheet.Students)
+            {
+                var dob = s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
+                sb.Append($"{s.Stt},\"{s.Student.StudentCode}\",\"{s.Student.LastName.Replace("\"", "\"\"")}\",\"{s.Student.FirstName.Replace("\"", "\"\"")}\",{dob},\"{s.Student.Gender}\"");
+                foreach (var g in s.SubjectGrades)
+                {
+                    sb.Append($",{(g.Score.HasValue ? g.Score.Value.ToString("0.00") : "")}");
+                }
+                var avg = s.AverageScore.HasValue ? s.AverageScore.Value.ToString("0.00") : "";
+                sb.AppendLine($",{s.CompletedSubjectsCount},{avg},\"{s.AverageScoreInWords}\",\"{s.Classification}\"");
+            }
+
+            var preamble = Encoding.UTF8.GetPreamble();
+            var dataBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            var fullBytes = new byte[preamble.Length + dataBytes.Length];
+            Buffer.BlockCopy(preamble, 0, fullBytes, 0, preamble.Length);
+            Buffer.BlockCopy(dataBytes, 0, fullBytes, preamble.Length, dataBytes.Length);
+
+            var fileName = $"BANG_DIEM_TONG_HOP_{DateTime.Now:yyyyMMdd_HHmm}.csv";
+            return File(fullBytes, "text/csv; charset=utf-8", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi xuất CSV bảng điểm.");
+            ErrorMessage = "Không thể xuất file CSV: " + ex.Message;
+            return RedirectToPage();
+        }
+    }
+
+    public async Task<IActionResult> OnGetExportWordAsync()
+    {
+        try
+        {
+            var subjects = await _repository.GetSubjectsAsync();
+            var students = await _repository.GetStudentsWithGradesAsync();
+            var gradeSheet = _gradeService.CalculateGradeSheet(subjects, students);
+
+            using var memStream = new MemoryStream();
+            using (var wordDoc = WordprocessingDocument.Create(memStream, WordprocessingDocumentType.Document, true))
+            {
+                var mainPart = wordDoc.AddMainDocumentPart();
+                mainPart.Document = new Document();
+                var body = new Body();
+
+                var sectionProps = new SectionProperties(
+                    new PageSize { Width = 16838U, Height = 11906U, Orient = PageOrientationValues.Landscape },
+                    new PageMargin { Top = 720, Bottom = 720, Left = 720, Right = 720 }
+                );
+
+                body.AppendChild(CreateWordParagraph("BẢNG ĐIỂM TỔNG HỢP HỌC VIÊN KHÓA HỌC", true, 26, JustificationValues.Center));
+                body.AppendChild(CreateWordParagraph($"Tổng số: {gradeSheet.TotalStudents} học viên | Số môn học: {gradeSheet.Subjects.Count} môn", false, 20, JustificationValues.Center));
+
+                var table = new Table();
+                var tblProps = new TableProperties(
+                    new TableBorders(
+                        new TopBorder { Val = BorderValues.Single, Size = 4 },
+                        new BottomBorder { Val = BorderValues.Single, Size = 4 },
+                        new LeftBorder { Val = BorderValues.Single, Size = 4 },
+                        new RightBorder { Val = BorderValues.Single, Size = 4 },
+                        new InsideHorizontalBorder { Val = BorderValues.Single, Size = 4 },
+                        new InsideVerticalBorder { Val = BorderValues.Single, Size = 4 }
+                    ),
+                    new TableJustification { Val = TableRowAlignmentValues.Center }
+                );
+                table.AppendChild(tblProps);
+
+                var headerRow = new TableRow();
+                headerRow.AppendChild(CreateWordCell("STT", true, true));
+                headerRow.AppendChild(CreateWordCell("Mã HV", true, true));
+                headerRow.AppendChild(CreateWordCell("Họ và tên đệm", true, false));
+                headerRow.AppendChild(CreateWordCell("Tên", true, false));
+                headerRow.AppendChild(CreateWordCell("Ngày sinh", true, true));
+                headerRow.AppendChild(CreateWordCell("Phái", true, true));
+                foreach (var sub in gradeSheet.Subjects)
+                {
+                    headerRow.AppendChild(CreateWordCell(sub.Name, true, true));
+                }
+                headerRow.AppendChild(CreateWordCell("Số môn", true, true));
+                headerRow.AppendChild(CreateWordCell("Điểm TB", true, true));
+                headerRow.AppendChild(CreateWordCell("Xếp loại", true, true));
+                table.AppendChild(headerRow);
+
+                foreach (var s in gradeSheet.Students)
+                {
+                    var row = new TableRow();
+                    row.AppendChild(CreateWordCell(s.Stt.ToString(), false, true));
+                    row.AppendChild(CreateWordCell(s.Student.StudentCode, false, true));
+                    row.AppendChild(CreateWordCell(s.Student.LastName, false, false));
+                    row.AppendChild(CreateWordCell(s.Student.FirstName, true, false));
+                    row.AppendChild(CreateWordCell(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "", false, true));
+                    row.AppendChild(CreateWordCell(s.Student.Gender ?? "", false, true));
+                    foreach (var g in s.SubjectGrades)
+                    {
+                        var scoreStr = g.Score.HasValue ? g.Score.Value.ToString("0.00") : "";
+                        row.AppendChild(CreateWordCell(scoreStr, false, true));
+                    }
+                    row.AppendChild(CreateWordCell($"{s.CompletedSubjectsCount}/{gradeSheet.Subjects.Count}", false, true));
+                    row.AppendChild(CreateWordCell(s.AverageScore.HasValue ? s.AverageScore.Value.ToString("0.00") : "—", true, true));
+                    row.AppendChild(CreateWordCell(s.Classification, true, true));
+                    table.AppendChild(row);
+                }
+
+                body.AppendChild(table);
+                body.AppendChild(sectionProps);
+                mainPart.Document.AppendChild(body);
+            }
+
+            var content = memStream.ToArray();
+            var fileName = $"BANG_DIEM_TONG_HOP_{DateTime.Now:yyyyMMdd_HHmm}.docx";
+            return File(content, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi xuất Word bảng điểm.");
+            ErrorMessage = "Không thể xuất file Word bảng điểm: " + ex.Message;
+            return RedirectToPage();
+        }
+    }
+
+    private static Paragraph CreateWordParagraph(string text, bool isBold, int halfPtSize, JustificationValues align)
+    {
+        return new Paragraph(
+            new ParagraphProperties(new Justification { Val = align }),
+            new Run(
+                new RunProperties(
+                    new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                    new FontSize { Val = halfPtSize.ToString() },
+                    isBold ? new Bold() : new Bold { Val = false }
+                ),
+                new Text(text)
+            )
+        );
+    }
+
+    private static TableCell CreateWordCell(string text, bool isBold, bool isCenter)
+    {
+        return new TableCell(
+            new TableCellProperties(
+                new TableCellMargin(
+                    new TopMargin { Width = "50" },
+                    new BottomMargin { Width = "50" },
+                    new LeftMargin { Width = "70" },
+                    new RightMargin { Width = "70" }
+                )
+            ),
+            new Paragraph(
+                new ParagraphProperties(
+                    new Justification { Val = isCenter ? JustificationValues.Center : JustificationValues.Left }
+                ),
+                new Run(
+                    new RunProperties(
+                        new RunFonts { Ascii = "Times New Roman", HighAnsi = "Times New Roman" },
+                        new FontSize { Val = "16" },
+                        isBold ? new Bold() : new Bold { Val = false }
+                    ),
+                    new Text(text ?? "")
+                )
+            )
+        );
     }
 }
