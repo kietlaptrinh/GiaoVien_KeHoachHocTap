@@ -1,4 +1,4 @@
-@page
+﻿@page
 @model IndexModel
 @using KeHoachHocTap.Web.Data
 @{
@@ -305,7 +305,7 @@
                         <div class="mobile-card" style="border-left: 4px solid #10B981; background-color: #F0FDF4;">
                             <div class="mobile-card-header bg-light">
                                 <div class="mobile-card-title text-success">
-                                    <span class="badge bg-success">🎓 Cuối khóa</span>
+                                    <span class="badge bg-success">Cuối khóa</span>
                                     <span>@act.Activity.Name</span>
                                 </div>
                                 <div>
@@ -691,57 +691,55 @@
             <div class="modal-content">
                 <form method="post" asp-page-handler="AddActivity">
                     <div class="modal-header desktop-titlebar py-2 text-white">
-                        <h6 class="modal-title fw-bold" id="addActivityModalLabel">📌 THÊM HOẠT ĐỘNG KẾ HOẠCH</h6>
+                        <h6 class="modal-title fw-bold" id="addActivityModalLabel">THÊM HOẠT ĐỘNG</h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-3">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tên hoạt động <span class="text-danger">*</span></label>
-                            <input type="text" id="addActivityName" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Đi nghiên cứu thực tế, Viết bài, Ôn thi tốt nghiệp..." required maxlength="200" />
-                            <div class="d-flex flex-wrap gap-1 mt-2">
-                                <span class="text-muted small align-self-center me-1">Gợi ý nhanh:</span>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Đi nghiên cứu thực tế tại cơ sở');">Nghiên cứu thực tế</button>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Nghỉ viết bài thu hoạch môn học');">Viết bài thu hoạch</button>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Ôn thi tốt nghiệp'); $('input[name=Periods]', '#addActivityModal').val('15'); $('input[name=Sessions]', '#addActivityModal').val('3'); $('#addActivityAfterSubjectId').val('');">Ôn thi tốt nghiệp</button>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Thi tốt nghiệp (3 môn TTN1, TTN2, TTN3)'); $('input[name=Periods]', '#addActivityModal').val('15'); $('input[name=Sessions]', '#addActivityModal').val('3'); $('#addActivityAfterSubjectId').val('');">Thi tốt nghiệp</button>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Họp lớp tổng kết & Bình xét thi đua'); $('input[name=Periods]', '#addActivityModal').val('5'); $('input[name=Sessions]', '#addActivityModal').val('1'); $('#addActivityAfterSubjectId').val('');">Họp lớp tổng kết</button>
-                                <button type="button" class="btn btn-sm btn-light border py-0 px-2 small" onclick="$('#addActivityName').val('Lễ bế giảng & Trao bằng tốt nghiệp'); $('input[name=Periods]', '#addActivityModal').val('5'); $('input[name=Sessions]', '#addActivityModal').val('1'); $('#addActivityAfterSubjectId').val('');">Lễ bế giảng</button>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small mb-1">Tên hoạt động <span class="text-danger">*</span></label>
+                            <input type="text" id="addActivityName" name="Name" class="desktop-input w-100" placeholder="Ví dụ: Nghiên cứu thực tế, Viết bài, Ôn thi tốt nghiệp..." required maxlength="200" />
+                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                <span class="text-muted small align-self-center me-1" style="font-size: 11px;">Gợi ý:</span>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="$('#addActivityName').val('Đi nghiên cứu thực tế tại cơ sở');">Nghiên cứu thực tế</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="$('#addActivityName').val('Nghỉ viết bài thu hoạch môn học');">Viết bài thu hoạch</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="$('#addActivityName').val('Ôn thi tốt nghiệp'); $('input[name=Periods]', '#addActivityModal').val('15'); $('input[name=Sessions]', '#addActivityModal').val('3'); $('#addActivityAfterSubjectId').val('');">Ôn thi tốt nghiệp</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="$('#addActivityName').val('Thi tốt nghiệp (3 môn TTN1, TTN2, TTN3)'); $('input[name=Periods]', '#addActivityModal').val('15'); $('input[name=Sessions]', '#addActivityModal').val('3'); $('#addActivityAfterSubjectId').val('');">Thi tốt nghiệp</button>
+                                <button type="button" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 11px;" onclick="$('#addActivityName').val('Lễ bế giảng & Trao bằng tốt nghiệp'); $('input[name=Periods]', '#addActivityModal').val('5'); $('input[name=Sessions]', '#addActivityModal').val('1'); $('#addActivityAfterSubjectId').val('');">Lễ bế giảng</button>
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Vị trí trong kế hoạch</label>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small mb-1">Vị trí trong kế hoạch</label>
                             <select name="AfterSubjectId" id="addActivityAfterSubjectId" class="desktop-input w-100">
-                                <option value="">🎓 Cuối khóa học (sau môn học cuối cùng)</option>
+                                <option value="">Cuối khóa học (sau môn học cuối cùng)</option>
                                 @foreach (var item in Model.Items)
                                 {
-                                    <option value="@item.Subject.Id">📌 Sau môn #@item.Number - @item.Subject.Name (@item.Subject.Periods tiết)</option>
+                                    <option value="@item.Subject.Id">Sau môn #@item.Number - @item.Subject.Name (@item.Subject.Periods tiết)</option>
                                 }
                             </select>
-                            <span class="text-muted small">Nếu chọn sau một môn học cụ thể, lịch các môn phía sau sẽ tự động dời nối tiếp.</span>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Từ ngày</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Từ ngày</label>
                                 <input type="date" name="FromDate" class="desktop-input w-100" />
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Đến ngày</label>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Đến ngày</label>
                                 <input type="date" name="ToDate" class="desktop-input w-100" />
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Số buổi</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Số buổi</label>
                                 <input type="number" name="Sessions" min="1" max="1000" class="desktop-input w-100" placeholder="Ví dụ: 3" />
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Số tiết</label>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Số tiết</label>
                                 <input type="number" name="Periods" min="1" max="10000" class="desktop-input w-100" placeholder="Ví dụ: 15" />
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ghi chú</label>
-                            <input type="text" name="Note" maxlength="500" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                        <div class="mb-1">
+                            <label class="form-label small mb-1">Ghi chú</label>
+                            <input type="text" name="Note" maxlength="500" class="desktop-input w-100" placeholder="Ghi chú thêm (không bắt buộc)..." />
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
@@ -760,46 +758,46 @@
                 <form method="post" asp-page-handler="UpdateActivity">
                     <input type="hidden" id="editActivityId" name="Id" />
                     <div class="modal-header desktop-titlebar py-2 text-white">
-                        <h6 class="modal-title fw-bold" id="editActivityModalLabel">CHỈNH SỬA HOẠT ĐỘNG KẾ HOẠCH</h6>
+                        <h6 class="modal-title fw-bold" id="editActivityModalLabel">SỬA HOẠT ĐỘNG</h6>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-3">
-                        <div class="mb-3" id="editActivityAfterSubjectGroup">
-                            <label class="form-label fw-bold">Vị trí trong kế hoạch</label>
+                        <div class="mb-2" id="editActivityAfterSubjectGroup">
+                            <label class="form-label fw-bold small mb-1">Vị trí trong kế hoạch</label>
                             <select id="editActivityAfterSubjectId" name="AfterSubjectId" class="desktop-input w-100">
-                                <option value="">🎓 Cuối khóa học (sau môn học cuối cùng)</option>
+                                <option value="">Cuối khóa học (sau môn học cuối cùng)</option>
                                 @foreach (var item in Model.Items)
                                 {
-                                    <option value="@item.Subject.Id">📌 Sau môn #@item.Number - @item.Subject.Name</option>
+                                    <option value="@item.Subject.Id">Sau môn #@item.Number - @item.Subject.Name</option>
                                 }
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold">Tên hoạt động <span class="text-danger">*</span></label>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold small mb-1">Tên hoạt động <span class="text-danger">*</span></label>
                             <input type="text" id="editActivityName" name="Name" class="desktop-input w-100" required maxlength="200" />
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Từ ngày</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Từ ngày</label>
                                 <input type="date" id="editActivityFromDate" name="FromDate" class="desktop-input w-100" />
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Đến ngày</label>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Đến ngày</label>
                                 <input type="date" id="editActivityToDate" name="ToDate" class="desktop-input w-100" />
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Số buổi</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Số buổi</label>
                                 <input type="number" id="editActivitySessions" name="Sessions" min="1" class="desktop-input w-100" />
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Số tiết</label>
+                            <div class="col-6">
+                                <label class="form-label small mb-1">Số tiết</label>
                                 <input type="number" id="editActivityPeriods" name="Periods" min="1" class="desktop-input w-100" />
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ghi chú</label>
+                        <div class="mb-1">
+                            <label class="form-label small mb-1">Ghi chú</label>
                             <input type="text" id="editActivityNote" name="Note" maxlength="500" class="desktop-input w-100" />
                         </div>
                     </div>

@@ -16,28 +16,13 @@
             <nav class="desktop-menubar">
                 <ul class="nav">
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" ? "active" : "")" asp-area="" asp-page="/Index">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Index" || ViewContext.RouteData.Values["page"]?.ToString() == "/Holidays" || ViewContext.RouteData.Values["page"]?.ToString() == "/Export" || ViewContext.RouteData.Values["page"]?.ToString() == "/Templates" || ViewContext.RouteData.Values["page"]?.ToString() == "/Import" ? "active" : "")" asp-area="" asp-page="/Index">
                             <strong>Kế hoạch giảng dạy</strong>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Grades" ? "active" : "")" asp-area="" asp-page="/Grades">
+                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Grades" || ViewContext.RouteData.Values["page"]?.ToString() == "/ImportGrades" ? "active" : "")" asp-area="" asp-page="/Grades">
                             <strong>Bảng điểm tổng hợp</strong>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Holidays" ? "active" : "")" asp-area="" asp-page="/Holidays">
-                            <strong>Ngày nghỉ</strong>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Export" ? "active" : "")" asp-area="" asp-page="/Export">
-                            <strong>Xuất biểu mẫu</strong>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["page"]?.ToString() == "/Templates" ? "active" : "")" asp-area="" asp-page="/Templates">
-                            <strong>Mẫu biểu</strong>
                         </a>
                     </li>
                 </ul>
