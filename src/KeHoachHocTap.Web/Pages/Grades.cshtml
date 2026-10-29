@@ -49,7 +49,7 @@
                 <option value="Yếu" selected="@(Model.RankFilter == "Yếu")">Yếu</option>
                 <option value="Chưa xếp loại" selected="@(Model.RankFilter == "Chưa xếp loại")">Chưa xếp loại</option>
             </select>
-            <button type="submit" class="toolbar-btn btn-primary" data-no-loading>Lọc</button>
+            <button type="submit" class="toolbar-btn btn-primary" title="Lọc danh sách học viên">Lọc</button>
             @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.RankFilter))
             {
                 <a asp-page="/Grades" class="toolbar-btn text-danger" title="Xóa bộ lọc">✕</a>

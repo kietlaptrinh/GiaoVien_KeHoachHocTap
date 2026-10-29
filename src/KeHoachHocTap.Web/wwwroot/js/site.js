@@ -184,13 +184,29 @@
         btn.dataset.originalHtml = btn.innerHTML;
         const currentWidth = btn.offsetWidth;
         if (currentWidth > 0) {
+            btn.style.width = currentWidth + 'px';
             btn.style.minWidth = currentWidth + 'px';
+            btn.style.boxSizing = 'border-box';
         }
 
-        const text = customText || getAppropriateLoadingText(btn.textContent);
         btn.classList.add('btn-loading');
         btn.setAttribute('aria-busy', 'true');
-        btn.innerHTML = `<span class="btn-loading-spinner" aria-hidden="true"></span><span>${text}</span>`;
+
+        const btnText = (btn.textContent || '').trim().toLowerCase();
+        const formMethod = (btn.closest('form')?.getAttribute('method') || '').toLowerCase();
+        const isCompact = btn.dataset.spinnerOnly !== undefined ||
+                          formMethod === 'get' ||
+                          btnText === 'lọc' ||
+                          btnText === 'tìm' ||
+                          btnText === 'tìm kiếm';
+
+        if (isCompact) {
+            // Nút tìm kiếm / lọc: chỉ hiển thị icon spinner tròn xoay chính giữa, tuyệt đối không tăng chiều ngang
+            btn.innerHTML = '<span class="btn-loading-spinner" style="margin: 0; display: inline-block;" aria-hidden="true"></span>';
+        } else {
+            const text = customText || getAppropriateLoadingText(btn.textContent);
+            btn.innerHTML = `<span class="btn-loading-spinner" aria-hidden="true"></span><span>${text}</span>`;
+        }
     }
 
     /**
@@ -202,7 +218,9 @@
         btn.innerHTML = btn.dataset.originalHtml;
         btn.classList.remove('btn-loading');
         btn.removeAttribute('aria-busy');
+        btn.style.width = '';
         btn.style.minWidth = '';
+        btn.style.boxSizing = '';
         delete btn.dataset.originalHtml;
 
         const form = btn.closest('form');
@@ -223,12 +241,6 @@
 
                 // Nếu form không vượt qua HTML5 validation (ví dụ ô bắt buộc bị trống)
                 if (form.checkValidity && !form.checkValidity()) {
-                    return;
-                }
-
-                // Không áp dụng hiệu ứng loading đổi chữ cho form tìm kiếm GET (tránh giật toolbar/layout)
-                const method = (form.getAttribute('method') || 'get').toLowerCase();
-                if (method === 'get') {
                     return;
                 }
 
