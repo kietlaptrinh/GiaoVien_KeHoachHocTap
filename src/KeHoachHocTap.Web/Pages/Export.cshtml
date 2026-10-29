@@ -89,12 +89,12 @@
                                         </span>
                                     </div>
                                     <div class="text-muted small">
-                                        Tự động điền đầy đủ dòng Khai giảng, 19 môn học theo đúng kết quả tính lịch, Thi tốt nghiệp và Bế giảng. Giữ nguyên font Calibri, lề văn bản và cấu trúc gộp ô theo biểu mẫu.
+                                        Điền đầy đủ các môn học theo lịch tính toán, giữ nguyên định dạng và cấu trúc bảng Word.
                                     </div>
                                 </div>
-                                <div class="text-nowrap w-100 w-sm-auto text-end">
-                                    <a asp-page="/Export" asp-page-handler="Download" asp-route-id="@exporter.Id" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100 w-sm-auto btn-action-loading" style="background-color: #1d4ed8; border-color: #1d4ed8; min-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
-                                        Tải xuống (.docx)
+                                <div class="text-nowrap">
+                                    <a asp-page="/Export" asp-page-handler="Download" asp-route-id="@exporter.Id" class="btn btn-primary btn-sm fw-bold btn-action-loading" style="background-color: #1d4ed8; border-color: #1d4ed8; width: 120px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
+                                        Xuất Word
                                     </a>
                                 </div>
                             </div>
@@ -104,19 +104,16 @@
                         <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
                             <div>
                                 <div class="d-flex align-items-center gap-2 mb-1">
-                                    <span class="badge bg-danger px-2 py-1" style="font-size: 11px;">.PDF</span>
-                                    <strong style="font-size: 14px; color: #0f172a;">Bản in Kế hoạch giảng dạy và học tập (Khổ A4 ngang)</strong>
-                                </div>
-                                <div class="text-secondary small mb-1">
-                                    <span>Quy cách: Chuẩn A4 Landscape • Căn lề in ấn • Tích hợp chữ ký 3 bên</span>
+                                    <span class="badge bg-danger px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">PDF</span>
+                                    <strong style="font-size: 14px; color: #0f172a;">Bản in PDF (.pdf)</strong>
                                 </div>
                                 <div class="text-muted small">
-                                    Định dạng hiển thị chuẩn công văn đào tạo hành chính, tự động ngắt trang A4 ngang, xem trước trực tiếp và hỗ trợ lưu file PDF sắc nét không lỗi font tiếng Việt.
+                                    Bản in A4 ngang chuẩn công văn, căn lề in ấn sắc nét, tích hợp chữ ký 3 bên và lưu file PDF.
                                 </div>
                             </div>
-                            <div class="text-nowrap w-100 w-sm-auto text-end">
-                                <a asp-page="/PrintPlan" target="_blank" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold w-100 w-sm-auto" style="min-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
-                                    Xem &amp; Xuất PDF
+                            <div class="text-nowrap">
+                                <a asp-page="/PrintPlan" target="_blank" class="btn btn-danger btn-sm fw-bold" style="width: 120px; height: 34px; display: inline-flex; align-items: center; justify-content: center;">
+                                    Xuất PDF
                                 </a>
                             </div>
                         </div>
