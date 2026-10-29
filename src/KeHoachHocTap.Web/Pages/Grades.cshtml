@@ -504,18 +504,68 @@
                 modal.show();
             });
 
-            // Inline Grade Edit: Lắng nghe phím Enter hoặc Tab để chuyển ô và lưu điểm tự động
+            // Tự động bôi đen toàn bộ số khi click hoặc tab vào ô để người dùng chỉ cần gõ là thay thế ngay
+            $('.grade-cell').on('focus', function () {
+                $(this).select();
+            });
+
+            // Inline Grade Edit: Điều hướng bàn phím linh hoạt (Enter / Mũi tên Phải, Trái, Lên, Xuống)
             $('.grade-cell').on('keydown', function (e) {
-                if (e.key === 'Enter') {
+                var currentInput = $(this);
+                var currentTd = currentInput.closest('td.cell-grade-compact');
+
+                // Enter hoặc Mũi tên phải: Lưu và nhảy sang ô kế tiếp bên phải
+                if (e.key === 'Enter' || e.key === 'ArrowRight') {
                     e.preventDefault();
-                    $(this).trigger('change');
-                    // Chuyển xuống ô hàng dưới cùng môn
-                    var currentInput = $(this);
-                    var currentTd = currentInput.closest('td');
+                    currentInput.trigger('change');
+
+                    var nextTd = currentTd.next('td.cell-grade-compact');
+                    if (nextTd.length > 0) {
+                        nextTd.find('.grade-cell').focus().select();
+                    } else {
+                        // Nếu là môn cuối của hàng, nhảy xuống môn đầu tiên của học viên hàng dưới
+                        var nextTr = currentTd.closest('tr').next('tr');
+                        if (nextTr.length > 0) {
+                            nextTr.find('td.cell-grade-compact:first .grade-cell').focus().select();
+                        }
+                    }
+                }
+                // Mũi tên trái: Lưu và nhảy sang ô trước đó bên trái
+                else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    currentInput.trigger('change');
+
+                    var prevTd = currentTd.prev('td.cell-grade-compact');
+                    if (prevTd.length > 0) {
+                        prevTd.find('.grade-cell').focus().select();
+                    } else {
+                        // Nếu là môn đầu của hàng, lùi về môn cuối của học viên hàng trên
+                        var prevTr = currentTd.closest('tr').prev('tr');
+                        if (prevTr.length > 0) {
+                            prevTr.find('td.cell-grade-compact:last .grade-cell').focus().select();
+                        }
+                    }
+                }
+                // Mũi tên xuống: Lưu và nhảy xuống cùng môn của học viên phía dưới
+                else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    currentInput.trigger('change');
+
                     var colIndex = currentTd.index();
                     var nextTr = currentTd.closest('tr').next('tr');
                     if (nextTr.length > 0) {
                         nextTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
+                    }
+                }
+                // Mũi tên lên: Lưu và nhảy lên cùng môn của học viên phía trên
+                else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    currentInput.trigger('change');
+
+                    var colIndex = currentTd.index();
+                    var prevTr = currentTd.closest('tr').prev('tr');
+                    if (prevTr.length > 0) {
+                        prevTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
                     }
                 }
             });
@@ -564,6 +614,24 @@
                         } else {
                             input.val('');
                         }
+
+                        // Cập nhật realtime các cột tổng kết của hàng học viên
+                        var row = $('#row-student-' + studentId);
+                        if (row.length > 0 && data.completedCount !== undefined) {
+                            row.find('.cell-completed').text(data.completedCount);
+                            row.find('.cell-avg').text(data.averageScore);
+                            row.find('.cell-words').text(data.averageScoreInWords).attr('title', data.averageScoreInWords);
+
+                            var rankBadgeClass = 'bg-light text-muted border';
+                            if (data.classification === 'Xuất sắc') rankBadgeClass = 'bg-primary text-white';
+                            else if (data.classification === 'Giỏi') rankBadgeClass = 'bg-success text-white';
+                            else if (data.classification === 'Khá') rankBadgeClass = 'bg-info text-dark';
+                            else if (data.classification === 'Trung bình') rankBadgeClass = 'bg-warning text-dark';
+                            else if (data.classification === 'Yếu') rankBadgeClass = 'bg-danger text-white';
+
+                            row.find('.cell-rank').html('<span class="badge ' + rankBadgeClass + '">' + data.classification + '</span>');
+                        }
+
                         if (typeof window.showToast === 'function') {
                             window.showToast('Đã lưu điểm môn thành công.', 'success', null, 2000);
                         }

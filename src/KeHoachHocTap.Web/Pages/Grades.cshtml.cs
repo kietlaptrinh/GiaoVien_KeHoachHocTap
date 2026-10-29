@@ -239,7 +239,27 @@ public class GradesModel : PageModel
             decimal? roundedScore = score.HasValue ? Math.Round(score.Value, 2, MidpointRounding.AwayFromZero) : null;
             await _repository.UpdateSingleGradeAsync(studentId, subjectId, roundedScore);
 
-            return new JsonResult(new { success = true, score = roundedScore });
+            // Tính toán lại kết quả học tập của học viên để cập nhật realtime các cột tổng kết
+            var subjects = await _repository.GetSubjectsAsync();
+            var students = await _repository.GetStudentsWithGradesAsync();
+            var targetStudent = students.FirstOrDefault(s => s.Id == studentId);
+            StudentSummary? summary = null;
+            if (targetStudent != null)
+            {
+                var sheet = _gradeService.CalculateGradeSheet(subjects, [targetStudent]);
+                summary = sheet.Students.FirstOrDefault();
+            }
+
+            return new JsonResult(new
+            {
+                success = true,
+                score = roundedScore,
+                completedCount = summary?.CompletedSubjectsCount ?? 0,
+                totalSubjects = subjects.Count,
+                averageScore = summary?.AverageScore.HasValue == true ? summary.AverageScore.Value.ToString("0.00") : "—",
+                averageScoreInWords = summary?.AverageScoreInWords ?? "Chưa có điểm",
+                classification = summary?.Classification ?? "Chưa xếp loại"
+            });
         }
         catch (Exception ex)
         {
