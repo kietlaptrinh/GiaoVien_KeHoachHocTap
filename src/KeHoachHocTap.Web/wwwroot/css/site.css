@@ -668,41 +668,42 @@ html, body {
 }
 
 /* ==========================================================================
-   Toast Notification Thả Xuống (Classic Desktop Dropdown Toast System)
+   Toast Notification Thả Xuống (Classic Desktop Compact Style)
    ========================================================================== */
 .toast-dropdown-container {
     position: fixed;
-    top: 18px;
+    top: 10px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10500; /* Nổi lên trên cả Modal Bootstrap */
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     pointer-events: none;
-    width: 100%;
-    max-width: 500px;
-    padding: 0 16px;
+    width: auto;
+    max-width: 90vw;
+    padding: 0;
 }
 
 .toast-dropdown-item {
     pointer-events: auto;
-    width: 100%;
     background: #ffffff;
-    border: 1px solid #dee2e6;
-    border-radius: 6px;
-    box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.18), 0 4px 6px -2px rgba(0, 0, 0, 0.06);
-    display: flex;
-    align-items: flex-start;
-    padding: 10px 14px;
-    gap: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    gap: 8px;
     position: relative;
-    overflow: hidden;
     opacity: 0;
-    transform: translateY(-50px) scale(0.96);
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.35s ease;
+    transform: translateY(-20px) scale(0.97);
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.22s ease;
+    cursor: pointer;
     user-select: none;
+    white-space: nowrap;
+    max-width: 600px;
 }
 
 .toast-dropdown-item.toast-show {
@@ -712,118 +713,76 @@ html, body {
 
 .toast-dropdown-item.toast-hiding {
     opacity: 0;
-    transform: translateY(-40px) scale(0.96);
-    transition: transform 0.3s ease, opacity 0.3s ease;
+    transform: translateY(-16px) scale(0.97);
+    transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-/* Biến thể màu sắc */
+/* Biến thể màu sắc đơn giản */
 .toast-dropdown-item.toast-success {
-    border-left: 5px solid #10b981;
+    border-left: 4px solid #10b981;
 }
 
 .toast-dropdown-item.toast-success .toast-dropdown-icon {
-    background-color: #ecfdf5;
     color: #059669;
 }
 
 .toast-dropdown-item.toast-error {
-    border-left: 5px solid #ef4444;
+    border-left: 4px solid #ef4444;
 }
 
 .toast-dropdown-item.toast-error .toast-dropdown-icon {
-    background-color: #fef2f2;
     color: #dc2626;
 }
 
 .toast-dropdown-item.toast-warning {
-    border-left: 5px solid #f59e0b;
+    border-left: 4px solid #f59e0b;
 }
 
 .toast-dropdown-item.toast-warning .toast-dropdown-icon {
-    background-color: #fffbeb;
     color: #d97706;
 }
 
 .toast-dropdown-item.toast-info {
-    border-left: 5px solid #0d6efd;
+    border-left: 4px solid #0d6efd;
 }
 
 .toast-dropdown-item.toast-info .toast-dropdown-icon {
-    background-color: #eff6ff;
-    color: #1d4ed8;
+    color: #0d6efd;
 }
 
-/* Icon & Content */
+/* Icon & Message */
 .toast-dropdown-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
     font-size: 14px;
-}
-
-.toast-dropdown-content {
-    flex: 1;
-    min-width: 0;
-}
-
-.toast-dropdown-title {
-    font-size: 13px;
-    font-weight: 700;
-    color: #111827;
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    flex-shrink: 0;
 }
 
 .toast-dropdown-message {
     font-size: 12.5px;
-    color: #374151;
-    line-height: 1.4;
-    word-break: break-word;
+    color: #1f2937;
+    font-weight: 500;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .toast-dropdown-close {
     background: transparent;
     border: none;
     color: #9ca3af;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1;
-    padding: 0 4px;
+    padding: 0 0 0 6px;
     cursor: pointer;
     flex-shrink: 0;
+    margin-left: auto;
     transition: color 0.15s ease;
 }
 
 .toast-dropdown-close:hover {
-    color: #1f2937;
+    color: #374151;
 }
-
-/* Thanh đếm ngược tiến độ (Progress Bar) */
-.toast-dropdown-progress {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    height: 3px;
-    width: 100%;
-    background-color: rgba(0, 0, 0, 0.08);
-}
-
-.toast-dropdown-progress-bar {
-    height: 100%;
-    width: 100%;
-    transform-origin: left;
-    transition: transform linear;
-}
-
-.toast-success .toast-dropdown-progress-bar { background-color: #10b981; }
-.toast-error .toast-dropdown-progress-bar { background-color: #ef4444; }
-.toast-warning .toast-dropdown-progress-bar { background-color: #f59e0b; }
-.toast-info .toast-dropdown-progress-bar { background-color: #0d6efd; }
 
 /* =========================================================================
    Vertical Subject Headers for Grades DataGrid (Classic Academic Style)
