@@ -1,4 +1,4 @@
-﻿@page
+@page
 @model IndexModel
 @using KeHoachHocTap.Web.Data
 @{
@@ -585,7 +585,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Ghi chú</label>
-                                <input type="text" name="Note" maxlength="100" class="desktop-input w-100" placeholder="Ghi chú thêm..." />
+                                <textarea name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm..."></textarea>
                             </div>
                         </div>
                         <div class="row" id="addCustomExamSlotGroup" style="display: none;">
@@ -641,7 +641,7 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Ghi chú</label>
-                                <input type="text" id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" />
+                                <textarea id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm..."></textarea>
                             </div>
                         </div>
                         <div class="row" id="editCustomExamSlotGroup" style="display: none;">
@@ -739,7 +739,7 @@
                         </div>
                         <div class="mb-1">
                             <label class="form-label small mb-1">Ghi chú</label>
-                            <input type="text" name="Note" maxlength="500" class="desktop-input w-100" placeholder="Ghi chú thêm (không bắt buộc)..." />
+                            <textarea name="Note" maxlength="500" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm (không bắt buộc)..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
@@ -798,7 +798,7 @@
                         </div>
                         <div class="mb-1">
                             <label class="form-label small mb-1">Ghi chú</label>
-                            <input type="text" id="editActivityNote" name="Note" maxlength="500" class="desktop-input w-100" />
+                            <textarea id="editActivityNote" name="Note" maxlength="500" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm (không bắt buộc)..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">

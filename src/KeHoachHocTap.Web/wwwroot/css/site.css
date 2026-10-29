@@ -412,6 +412,14 @@ html, body {
     color: var(--desktop-text);
 }
 
+textarea.desktop-input {
+    resize: vertical;
+    min-height: 52px;
+    line-height: 1.45;
+    padding: 5px 8px;
+    font-family: inherit;
+}
+
 .desktop-input:focus,
 .desktop-select:focus {
     border-color: var(--desktop-blue-primary);
