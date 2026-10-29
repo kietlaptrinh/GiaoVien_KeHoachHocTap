@@ -37,9 +37,6 @@
         <a asp-page="/Export" class="toolbar-btn">
             Xuất biểu mẫu
         </a>
-        <a asp-page="/Index" class="toolbar-btn">
-            Làm mới
-        </a>
         <span class="toolbar-separator"></span>
         <a asp-page="/Holidays" class="toolbar-btn">
             Ngày nghỉ (@(Model.Schedule?.Holidays.Count ?? 0))
@@ -574,19 +571,13 @@
                                 <input type="number" name="ReservePeriods" min="0" class="desktop-input w-100" placeholder="0" />
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Chế độ thi</label>
-                                <select name="ExamMode" id="addExamMode" class="desktop-input w-100">
-                                    <option value="Immediately" selected>Thi ngay sau khi kết thúc môn (Mặc định)</option>
-                                    <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
-                                    <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ghi chú</label>
-                                <textarea name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chế độ thi</label>
+                            <select name="ExamMode" id="addExamMode" class="desktop-input w-100">
+                                <option value="Immediately" selected>Thi ngay sau khi kết thúc môn (Mặc định)</option>
+                                <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
+                                <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
+                            </select>
                         </div>
                         <div class="row" id="addCustomExamSlotGroup" style="display: none;">
                             <div class="col-12 mb-3">
@@ -594,6 +585,10 @@
                                 <input type="text" name="CustomExamSlot" id="addCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
                                 <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm về môn học (không bắt buộc)..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
@@ -630,19 +625,13 @@
                                 <input type="number" id="editSubjectReserve" name="ReservePeriods" min="0" class="desktop-input w-100" />
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label fw-bold">Chế độ thi</label>
-                                <select name="ExamMode" id="editExamMode" class="desktop-input w-100">
-                                    <option value="Immediately">Thi ngay sau khi kết thúc môn (Mặc định)</option>
-                                    <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
-                                    <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
-                                </select>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">Ghi chú</label>
-                                <textarea id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm..."></textarea>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Chế độ thi</label>
+                            <select name="ExamMode" id="editExamMode" class="desktop-input w-100">
+                                <option value="Immediately">Thi ngay sau khi kết thúc môn (Mặc định)</option>
+                                <option value="Delayed">Hoãn thi (Môn kế tiếp vào học luôn, dồn thi sau)</option>
+                                <option value="Custom">Chỉ định buổi thi tùy chỉnh</option>
+                            </select>
                         </div>
                         <div class="row" id="editCustomExamSlotGroup" style="display: none;">
                             <div class="col-12 mb-3">
@@ -650,6 +639,10 @@
                                 <input type="text" name="CustomExamSlot" id="editCustomExamSlot" maxlength="100" class="desktop-input w-100" placeholder="Ví dụ: S 25/9/2025" />
                                 <span class="text-muted small">Định dạng: S d/M/yyyy hoặc C d/M/yyyy.</span>
                             </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Ghi chú</label>
+                            <textarea id="editSubjectNote" name="Note" maxlength="100" class="desktop-input w-100" rows="2" placeholder="Ghi chú thêm về môn học (không bắt buộc)..."></textarea>
                         </div>
                     </div>
                     <div class="modal-footer p-2 bg-light">
