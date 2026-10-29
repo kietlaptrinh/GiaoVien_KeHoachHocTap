@@ -1,0 +1,236 @@
+@page
+@model ImportGradesModel
+@{
+    ViewData["Title"] = "Nhập bảng điểm học viên từ Excel";
+}
+
+<div class="desktop-panel">
+    <!-- Panel Header -->
+    <div class="desktop-panel-header">
+        <div class="d-flex align-items-center gap-2">
+            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
+                <path d="M5.5 10.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1zm0-2h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1zm0-2h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1 0-1z"/>
+            </svg>
+            <span>NHẬP BẢNG ĐIỂM HỌC VIÊN TỪ FILE EXCEL (.XLSX)</span>
+        </div>
+        <div>
+            <span class="text-secondary small">Trạng thái: @(Model.IsPreview ? "Xem trước dữ liệu (Preview)" : "Chọn file tải lên")</span>
+        </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="desktop-toolbar">
+        <a asp-page="/Grades" class="toolbar-btn">
+            Bảng điểm tổng hợp
+        </a>
+        @if (Model.IsPreview)
+        {
+            <a asp-page="/ImportGrades" class="toolbar-btn">
+                Tải file khác
+            </a>
+        }
+    </div>
+
+    <!-- Panel Body -->
+    <div class="desktop-panel-body p-3">
+        <!-- Thông báo lỗi / hệ thống -->
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                <div asp-validation-summary="All"></div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger py-2 px-3 small border-1 mb-3" style="border-color: #ef4444; background-color: #fef2f2; color: #b91c1c;">
+                @Model.ErrorMessage
+            </div>
+        }
+
+        @if (!Model.IsPreview)
+        {
+            <!-- BƯỚC 1: FORM TẢI FILE EXCEL -->
+            <div class="row justify-content-center py-3">
+                <div class="col-md-7 col-lg-6">
+                    <div class="card border rounded-1 shadow-sm">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom">
+                            Bước 1: Chọn file bảng điểm Excel
+                        </div>
+                        <div class="card-body p-4">
+                            <form method="post" asp-page-handler="Preview" enctype="multipart/form-data">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small">
+                                        Chọn file Excel bảng điểm (.xlsx, .xls) <span class="text-danger">*</span>
+                                    </label>
+                                    <input type="file" asp-for="ExcelFile" accept=".xlsx,.xls" class="desktop-input w-100" required />
+                                    <div class="form-text small text-muted mt-2">
+                                        • Tương thích với file bảng điểm chuẩn lớp K56 (<code>BANG DIEM TONG K56.01.xlsx</code>) hoặc các bảng điểm có cột STT, Mã số HV, Họ và tên đệm, Tên, Ngày sinh, Giới tính và điểm các môn học.<br />
+                                        • Dung lượng tối đa: <strong>5 MB</strong>. File được đọc và xử lý an toàn trong bộ nhớ.
+                                    </div>
+                                </div>
+
+                                <div class="form-check p-2 border rounded bg-light mb-3">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" asp-for="PreserveExisting" id="chkPreserve">
+                                    <label class="form-check-label fw-bold text-dark small" for="chkPreserve">
+                                        Giữ lại danh sách học viên hiện tại trong CSDL
+                                    </label>
+                                    <div class="text-muted small ps-4">
+                                        Nếu bỏ chọn, toàn bộ học viên và điểm cũ trong hệ thống (@Model.TotalStudentsInDb học viên) sẽ được thay thế bằng danh sách mới từ file Excel.
+                                    </div>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <a asp-page="/Grades" class="toolbar-btn">Hủy</a>
+                                    <button type="submit" class="toolbar-btn btn-primary px-3 py-1 btn-action-loading">
+                                        Tải lên & Xem trước
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- BƯỚC 2: XEM TRƯỚC DỮ LIỆU (PREVIEW) -->
+            <div class="row">
+                <!-- Cột thông tin thống kê & Xác nhận -->
+                <div class="col-lg-4 mb-3">
+                    <div class="card border rounded-1 shadow-sm">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom">
+                            Bước 2: Kiểm tra dữ liệu & Xác nhận nhập
+                        </div>
+                        <div class="card-body p-3">
+                            <table class="table table-sm table-borderless small mb-3">
+                                <tr>
+                                    <td class="text-muted" style="width: 60%;">Số học viên phát hiện:</td>
+                                    <td class="fw-bold text-success">@Model.PreviewStudents.Count học viên</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Số môn học trong file:</td>
+                                    <td class="fw-bold text-primary">@Model.PreviewSubjectNames.Count môn</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Môn khớp với CSDL:</td>
+                                    <td class="fw-bold text-dark">@Model.MatchedSubjectsCount / @Model.PreviewSubjectNames.Count môn</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">Học viên hiện tại trong CSDL:</td>
+                                    <td class="fw-bold text-secondary">@Model.TotalStudentsInDb học viên</td>
+                                </tr>
+                            </table>
+
+                            @if (Model.PreviewWarnings.Count > 0)
+                            {
+                                <div class="alert alert-warning py-2 px-3 small border-1 mb-3" style="border-color: #f59e0b; background-color: #fffbeb; color: #92400e; max-height: 180px; overflow-y: auto;">
+                                    <strong>Cảnh báo khi đọc file (@Model.PreviewWarnings.Count):</strong>
+                                    <ul class="mb-0 ps-3 mt-1">
+                                        @foreach (var w in Model.PreviewWarnings)
+                                        {
+                                            <li>@w</li>
+                                        }
+                                    </ul>
+                                </div>
+                            }
+
+                            <!-- Form xác nhận thực hiện -->
+                            <form method="post" asp-page-handler="ConfirmImport">
+                                <input type="hidden" name="importTicket" value="@Model.ImportTicket" />
+
+                                <div class="form-check p-2 border rounded bg-light mb-3">
+                                    <input class="form-check-input ms-0 me-2" type="checkbox" name="preserveExistingData" value="true" @(Model.PreserveExisting ? "checked" : "") id="chkPreserveConfirm">
+                                    <label class="form-check-label fw-bold text-dark small" for="chkPreserveConfirm">
+                                        Giữ lại danh sách học viên hiện tại (chỉ thêm mới)
+                                    </label>
+                                    <div class="text-muted small ps-4">
+                                        Bỏ chọn nếu muốn thay thế toàn bộ danh sách lớp bằng file này.
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-info py-2 px-3 small mb-3 border-1">
+                                    <strong>Thông báo an toàn:</strong>
+                                    Thao tác nạp dữ liệu được thực thi trong một Giao dịch an toàn (Database Transaction). Nếu xảy ra lỗi giữa chừng, toàn bộ thay đổi sẽ được hoàn tác tự động.
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <a asp-page="/ImportGrades" class="toolbar-btn">Tải file khác</a>
+                                    <button type="submit" class="toolbar-btn btn-primary px-3 py-1 btn-action-loading" onclick="return confirm('Bạn có chắc chắn muốn nạp danh sách @Model.PreviewStudents.Count học viên và điểm từ file Excel vào cơ sở dữ liệu?');">
+                                        Xác nhận nhập bảng điểm
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảng danh sách học viên & điểm xem trước -->
+                <div class="col-lg-8 mb-3">
+                    <div class="card border rounded-1 shadow-sm h-100">
+                        <div class="card-header bg-light py-2 fw-bold text-dark border-bottom d-flex justify-content-between align-items-center">
+                            <span>Xem trước danh sách học viên (@Model.PreviewStudents.Count học viên)</span>
+                            <span class="badge bg-warning text-dark border">Chưa lưu vào CSDL</span>
+                        </div>
+                        <div class="card-body p-0" style="max-height: 540px; overflow: auto;">
+                            <table class="desktop-grid table-sm table-bordered mb-0" style="font-size: 11.5px; white-space: nowrap;">
+                                <thead style="position: sticky; top: 0; z-index: 2; background-color: #f1f5f9;">
+                                    <tr>
+                                        <th class="text-center" style="width: 40px;">STT</th>
+                                        <th style="min-width: 90px;">Mã số HV</th>
+                                        <th style="min-width: 140px;">Họ và tên đệm</th>
+                                        <th style="min-width: 75px;">Tên</th>
+                                        <th class="text-center" style="min-width: 85px;">Ngày sinh</th>
+                                        <th class="text-center" style="min-width: 50px;">Phái</th>
+                                        @foreach (var subName in Model.PreviewSubjectNames)
+                                        {
+                                            <th class="text-center px-2" style="min-width: 65px;" title="@subName">
+                                                @subName
+                                            </th>
+                                        }
+                                        <th class="text-center" style="min-width: 60px;">ĐTB</th>
+                                        <th class="text-center" style="min-width: 80px;">Xếp loại</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var st in Model.PreviewStudents)
+                                    {
+                                        <tr>
+                                            <td class="text-center text-muted">@st.Stt</td>
+                                            <td class="fw-bold font-monospace">@st.StudentCode</td>
+                                            <td>@st.LastName</td>
+                                            <td class="fw-bold">@st.FirstName</td>
+                                            <td class="text-center text-muted">@(st.DateOfBirth.HasValue ? st.DateOfBirth.Value.ToString("dd/MM/yyyy") : "—")</td>
+                                            <td class="text-center">@st.Gender</td>
+                                            @foreach (var subName in Model.PreviewSubjectNames)
+                                            {
+                                                var score = st.Grades.FirstOrDefault(g => string.Equals(g.SubjectName, subName, StringComparison.OrdinalIgnoreCase))?.Score;
+                                                <td class="text-center @(score.HasValue && score.Value < 5 ? "text-danger fw-bold" : "")">
+                                                    @(score.HasValue ? score.Value.ToString("0.0") : "—")
+                                                </td>
+                                            }
+                                            <td class="text-center fw-bold text-primary">
+                                                @(st.AverageScore.HasValue ? st.AverageScore.Value.ToString("0.00") : "—")
+                                            </td>
+                                            <td class="text-center">
+                                                @if (!string.IsNullOrEmpty(st.Classification))
+                                                {
+                                                    <span class="badge bg-light text-dark border" style="font-size: 10.5px;">@st.Classification</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
