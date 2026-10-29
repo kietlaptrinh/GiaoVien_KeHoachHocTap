@@ -162,6 +162,7 @@
     function getAppropriateLoadingText(originalText) {
         if (!originalText) return 'Đang xử lý...';
         const lower = originalText.toLowerCase().trim();
+        if (lower === 'lọc' || lower === 'tìm' || lower === 'tìm kiếm') return originalText.trim();
         if (lower.includes('xuất excel')) return 'Đang xuất Excel...';
         if (lower.includes('xuất word') || lower.includes('tải file word')) return 'Đang xuất Word...';
         if (lower.includes('xuất')) return 'Đang xuất file...';
@@ -222,6 +223,12 @@
 
                 // Nếu form không vượt qua HTML5 validation (ví dụ ô bắt buộc bị trống)
                 if (form.checkValidity && !form.checkValidity()) {
+                    return;
+                }
+
+                // Không áp dụng hiệu ứng loading đổi chữ cho form tìm kiếm GET (tránh giật toolbar/layout)
+                const method = (form.getAttribute('method') || 'get').toLowerCase();
+                if (method === 'get') {
                     return;
                 }
 
