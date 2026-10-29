@@ -60,9 +60,9 @@
     <!-- Stats Summary Ribbon -->
     @if (Model.GradeSheet != null && Model.TotalStudents > 0)
     {
-        <div class="bg-light border-bottom px-3 py-2 d-flex flex-wrap align-items-center gap-3 small">
+        <div id="stats-summary-ribbon" class="bg-light border-bottom px-3 py-2 d-flex flex-wrap align-items-center gap-3 small">
             <span class="fw-bold text-dark">Thống kê lớp học:</span>
-            <span class="badge bg-secondary text-white">Tổng số: @Model.TotalStudents</span>
+            <span class="badge bg-secondary text-white stat-total">Tổng số: @Model.TotalStudents</span>
             @foreach (var kv in Model.ClassificationStats)
             {
                 var badgeClass = kv.Key switch
@@ -74,8 +74,8 @@
                     "Yếu" => "bg-danger text-white",
                     _ => "bg-light text-muted border"
                 };
-                <span class="badge @badgeClass">
-                    @kv.Key: @kv.Value (@(((decimal)kv.Value / Model.TotalStudents * 100).ToString("0.0"))%)
+                <span class="badge @badgeClass stat-badge" data-rank="@kv.Key">
+                    @kv.Key: <span class="stat-count">@kv.Value</span> (<span class="stat-percent">@(((decimal)kv.Value / Model.TotalStudents * 100).ToString("0.0"))%</span>)
                 </span>
             }
             @if (Model.DisplayStudents.Count != Model.TotalStudents)
@@ -584,6 +584,19 @@
                             else if (data.classification === 'Yếu') rankBadgeClass = 'bg-danger text-white';
 
                             row.find('.cell-rank').html('<span class="badge ' + rankBadgeClass + '">' + data.classification + '</span>');
+                        }
+
+                        // Cập nhật realtime thanh Thống kê lớp học ở trên
+                        if (data.stats && data.totalStudents > 0) {
+                            $('#stats-summary-ribbon .stat-total').text('Tổng số: ' + data.totalStudents);
+                            $.each(data.stats, function(rankKey, count) {
+                                var badge = $('#stats-summary-ribbon .stat-badge[data-rank="' + rankKey + '"]');
+                                if (badge.length > 0) {
+                                    var percent = ((count / data.totalStudents) * 100).toFixed(1);
+                                    badge.find('.stat-count').text(count);
+                                    badge.find('.stat-percent').text(percent + '%');
+                                }
+                            });
                         }
                     }
                 })

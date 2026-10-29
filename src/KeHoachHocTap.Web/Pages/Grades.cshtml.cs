@@ -239,16 +239,11 @@ public class GradesModel : PageModel
             decimal? roundedScore = score.HasValue ? Math.Round(score.Value, 2, MidpointRounding.AwayFromZero) : null;
             await _repository.UpdateSingleGradeAsync(studentId, subjectId, roundedScore);
 
-            // Tính toán lại kết quả học tập của học viên để cập nhật realtime các cột tổng kết
+            // Tính toán lại kết quả học tập của học viên và toàn lớp để cập nhật realtime
             var subjects = await _repository.GetSubjectsAsync();
             var students = await _repository.GetStudentsWithGradesAsync();
-            var targetStudent = students.FirstOrDefault(s => s.Id == studentId);
-            StudentSummary? summary = null;
-            if (targetStudent != null)
-            {
-                var sheet = _gradeService.CalculateGradeSheet(subjects, [targetStudent]);
-                summary = sheet.Students.FirstOrDefault();
-            }
+            var sheet = _gradeService.CalculateGradeSheet(subjects, students);
+            var summary = sheet.Students.FirstOrDefault(s => s.Student.Id == studentId);
 
             return new JsonResult(new
             {
@@ -258,7 +253,9 @@ public class GradesModel : PageModel
                 totalSubjects = subjects.Count,
                 averageScore = summary?.AverageScore.HasValue == true ? summary.AverageScore.Value.ToString("0.00") : "—",
                 averageScoreInWords = summary?.AverageScoreInWords ?? "Chưa có điểm",
-                classification = summary?.Classification ?? "Chưa xếp loại"
+                classification = summary?.Classification ?? "Chưa xếp loại",
+                stats = sheet.ClassificationStats,
+                totalStudents = sheet.TotalStudents
             });
         }
         catch (Exception ex)
