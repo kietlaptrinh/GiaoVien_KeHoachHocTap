@@ -296,9 +296,26 @@
     </div>
 
     <div class="paper-container">
-        @foreach (var s in students)
+        @if (students.Count == 0)
         {
-            <div class="paper-sheet">
+            <div class="paper-sheet" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 180mm; text-align: center; color: #475569;">
+                <div style="font-size: 42px; margin-bottom: 12px;">📄</div>
+                <h4 style="font-weight: bold; color: #0f172a; margin-bottom: 8px;">CHƯA CÓ DỮ LIỆU HỌC VIÊN ĐỂ IN PHIẾU BÁO ĐIỂM</h4>
+                <p style="max-width: 520px; font-size: 12pt; line-height: 1.6; margin-bottom: 24px; color: #64748b;">
+                    Hệ thống chưa ghi nhận học viên nào trong danh sách lớp. Vui lòng nạp danh sách học viên từ file Excel hoặc thêm trực tiếp tại trang <strong>Bảng điểm tổng hợp</strong>.
+                </p>
+                <div class="no-print">
+                    <a href="/Grades" style="background-color: #2563eb; color: #fff; text-decoration: none; padding: 8px 18px; border-radius: 4px; font-size: 10.5pt; font-family: sans-serif; font-weight: 500;">
+                        ← Quay lại trang Bảng điểm
+                    </a>
+                </div>
+            </div>
+        }
+        else
+        {
+            @foreach (var s in students)
+            {
+                <div class="paper-sheet">
                 <table class="header-table">
                     <tr>
                         <td style="width: 45%;">
@@ -403,6 +420,7 @@
                     </tr>
                 </table>
             </div>
+            }
         }
     </div>
 </body>
