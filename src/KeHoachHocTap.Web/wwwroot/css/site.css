@@ -91,13 +91,18 @@ html, body {
 
 .desktop-menubar .nav-link {
     color: var(--desktop-text);
-    font-size: 12.5px;
-    padding: 4px 10px;
+    font-size: 13px;
+    font-weight: 500;
+    height: 30px;
+    line-height: 28px;
+    padding: 0 12px;
     border-radius: 2px;
     border: 1px solid transparent;
     text-decoration: none;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     transition: background-color 0.1s ease, border-color 0.1s ease;
+    box-sizing: border-box;
 }
 
 .desktop-menubar .nav-link:hover {
@@ -125,8 +130,11 @@ html, body {
 }
 
 .toolbar-btn {
-    font-size: 12px;
-    padding: 3px 8px;
+    font-size: 12.5px;
+    font-weight: 500;
+    height: 28px;
+    line-height: 26px;
+    padding: 0 10px;
     border: 1px solid var(--desktop-border-dark);
     background-color: #ffffff;
     color: var(--desktop-text-dark);
@@ -135,8 +143,11 @@ html, body {
     text-decoration: none;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 4px;
-    line-height: 1.4;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: background-color 0.1s ease, border-color 0.1s ease;
 }
 
 .toolbar-btn:hover {
@@ -153,6 +164,137 @@ html, body {
 
 .toolbar-btn.btn-primary:hover {
     background-color: var(--desktop-blue-deep);
+}
+
+/* Toolbar Inputs & Selects chuẩn chiều cao 28px bằng phẳng với nút */
+.desktop-toolbar .desktop-input,
+.desktop-toolbar .desktop-select,
+.desktop-toolbar input[type="text"],
+.desktop-toolbar select {
+    height: 28px !important;
+    line-height: 26px !important;
+    font-size: 12px !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    border-radius: 2px !important;
+}
+
+/* Modal Footer Buttons chuẩn chiều cao 32px, chiều rộng tối thiểu 80px */
+.modal-footer .toolbar-btn,
+.modal-footer .btn {
+    height: 32px !important;
+    min-width: 80px !important;
+    padding: 0 16px !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border-radius: 2px !important;
+    box-sizing: border-box !important;
+}
+
+/* Nút trong view dạng thẻ (Card Action Buttons) */
+.card-action-btn {
+    height: 26px !important;
+    line-height: 24px !important;
+    padding: 0 8px !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: 1px solid var(--desktop-border-dark);
+    background-color: #ffffff;
+    color: var(--desktop-text-dark);
+    border-radius: 2px;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.card-action-btn:hover {
+    background-color: var(--desktop-hover-bg);
+    border-color: var(--desktop-blue-primary);
+    color: var(--desktop-blue-deep);
+}
+
+/* Định dạng các mục trong Modal Xuất bảng điểm */
+.export-format-item {
+    border: 1px solid #dee2e6;
+    background-color: #f8fafc;
+    border-radius: 2px;
+    transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.export-format-item:hover {
+    background-color: #ffffff;
+    border-color: #94a3b8;
+}
+
+.export-format-badge {
+    width: 60px;
+    height: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.export-format-btn {
+    width: 115px;
+    height: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    border: 1px solid transparent;
+    box-sizing: border-box;
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: opacity 0.15s ease, filter 0.15s ease;
+}
+
+.export-format-btn:hover {
+    opacity: 0.92;
+    filter: brightness(0.96);
+}
+
+.export-format-btn.btn-xlsx {
+    background-color: #198754;
+    border-color: #146c43;
+    color: #ffffff;
+}
+
+.export-format-btn.btn-pdf {
+    background-color: #dc3545;
+    border-color: #b02a37;
+    color: #ffffff;
+}
+
+.export-format-btn.btn-docx {
+    background-color: #0d6efd;
+    border-color: #0b5ed7;
+    color: #ffffff;
+}
+
+.export-format-btn.btn-transcripts {
+    background-color: #0284c7;
+    border-color: #0369a1;
+    color: #ffffff;
+}
+
+.export-format-btn.btn-csv {
+    background-color: #475569;
+    border-color: #334155;
+    color: #ffffff;
 }
 
 /* Nút Xuất Excel không đổi màu khi hover, cố định màu xanh lá */
@@ -325,8 +467,9 @@ html, body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 22px;
-    height: 22px;
+    width: 24px;
+    height: 24px;
+    min-width: 24px;
     padding: 0;
     font-size: 11px;
     font-weight: 600;
@@ -338,6 +481,7 @@ html, body {
     cursor: pointer;
     user-select: none;
     transition: all 0.1s ease;
+    box-sizing: border-box;
 }
 
 .grid-btn:hover:not(:disabled) {

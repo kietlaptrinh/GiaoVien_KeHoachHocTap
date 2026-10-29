@@ -144,7 +144,7 @@
                             <div class="mobile-card-footer">
                                 <span class="small text-muted">ID: #@h.Id</span>
                                 <div class="d-flex align-items-center gap-1">
-                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-holiday"
+                                    <button type="button" class="card-action-btn btn-edit-holiday"
                                             data-id="@h.Id"
                                             data-name="@h.Name"
                                             data-from="@h.From.ToString("yyyy-MM-dd")"
@@ -154,7 +154,7 @@
                                     </button>
                                     @if (!h.IsOpeningDay)
                                     {
-                                        <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-holiday"
+                                        <button type="button" class="card-action-btn text-danger btn-delete-holiday"
                                                 data-id="@h.Id"
                                                 data-name="@h.Name">
                                             Xóa

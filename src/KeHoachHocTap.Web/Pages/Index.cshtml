@@ -218,7 +218,7 @@
                                     </form>
                                 </div>
                                 <div class="d-flex align-items-center gap-1">
-                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit"
+                                    <button type="button" class="card-action-btn btn-edit"
                                             data-id="@sub.Id"
                                             data-name="@sub.Name"
                                             data-periods="@sub.Periods"
@@ -229,7 +229,7 @@
                                             data-customexamslot="@sub.CustomExamSlot">
                                         Sửa
                                     </button>
-                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete"
+                                    <button type="button" class="card-action-btn text-danger btn-delete"
                                             data-id="@sub.Id"
                                             data-name="@sub.Name">
                                         Xóa
@@ -273,7 +273,7 @@
                             @if (Model.IsAdmin)
                             {
                                 <div class="mobile-card-footer">
-                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-activity"
+                                    <button type="button" class="card-action-btn btn-edit-activity"
                                             data-id="@act.Activity.Id"
                                             data-name="@act.Activity.Name"
                                             data-type="@((int)act.Activity.Type)"
@@ -283,7 +283,7 @@
                                             data-sessions="@act.Activity.Sessions"
                                             data-periods="@act.Activity.Periods"
                                             data-note="@act.Activity.Note">Sửa</button>
-                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
+                                    <button type="button" class="card-action-btn text-danger btn-delete-activity"
                                             data-id="@act.Activity.Id"
                                             data-name="@act.Activity.Name">Xóa</button>
                                 </div>
@@ -334,7 +334,7 @@
                             @if (Model.IsAdmin)
                             {
                                 <div class="mobile-card-footer">
-                                    <button type="button" class="toolbar-btn btn-sm py-1 px-2 btn-edit-activity"
+                                    <button type="button" class="card-action-btn btn-edit-activity"
                                             data-id="@act.Activity.Id"
                                             data-name="@act.Activity.Name"
                                             data-type="@((int)act.Activity.Type)"
@@ -344,7 +344,7 @@
                                             data-sessions="@act.Activity.Sessions"
                                             data-periods="@act.Activity.Periods"
                                             data-note="@act.Activity.Note">Sửa</button>
-                                    <button type="button" class="toolbar-btn btn-sm text-danger py-1 px-2 btn-delete-activity"
+                                    <button type="button" class="card-action-btn text-danger btn-delete-activity"
                                             data-id="@act.Activity.Id"
                                             data-name="@act.Activity.Name">Xóa</button>
                                 </div>

@@ -53,10 +53,10 @@
                 <option value="Yếu" selected="@(Model.RankFilter == "Yếu")">Yếu</option>
                 <option value="Chưa xếp loại" selected="@(Model.RankFilter == "Chưa xếp loại")">Chưa xếp loại</option>
             </select>
-            <button type="submit" class="toolbar-btn btn-primary py-1 px-2">Lọc</button>
+            <button type="submit" class="toolbar-btn btn-primary">Lọc</button>
             @if (!string.IsNullOrEmpty(Model.Search) || !string.IsNullOrEmpty(Model.RankFilter))
             {
-                <a asp-page="/Grades" class="toolbar-btn py-1 px-2 text-danger" title="Xóa bộ lọc">✕</a>
+                <a asp-page="/Grades" class="toolbar-btn text-danger" title="Xóa bộ lọc">✕</a>
             }
         </form>
     </div>
@@ -428,104 +428,98 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body p-3">
-                <div class="list-group">
+                <div class="d-flex flex-column gap-2">
                     <!-- 1. Excel (.xlsx) -->
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 py-2 px-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                    <div class="export-format-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-2 px-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-success px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">XLSX</span>
-                                <strong style="font-size: 13.5px; color: #0f172a;">Excel (.xlsx)</strong>
+                                <span class="export-format-badge bg-success text-white">XLSX</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Bảng điểm Excel (.xlsx)</strong>
                             </div>
                             <div class="text-muted small">
-                                Bảng điểm tổng hợp đầy đủ công thức tính điểm trung bình và xếp loại tự động.
+                                Đầy đủ công thức tính điểm trung bình và xếp loại học tập tự động.
                             </div>
                         </div>
                         <div class="text-nowrap">
-                            <a asp-page="/Grades" asp-page-handler="ExportExcel" class="btn btn-success btn-sm fw-bold btn-action-loading" style="width: 120px; height: 33px; display: inline-flex; align-items: center; justify-content: center;">
+                            <a asp-page="/Grades" asp-page-handler="ExportExcel" class="export-format-btn btn-xlsx btn-action-loading">
                                 Xuất Excel
                             </a>
                         </div>
                     </div>
 
                     <!-- 2. PDF / Bản in A4 ngang (.pdf) -->
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 py-2 px-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                    <div class="export-format-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-2 px-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-danger px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">PDF</span>
-                                <strong style="font-size: 13.5px; color: #0f172a;">Bản in PDF (.pdf)</strong>
+                                <span class="export-format-badge bg-danger text-white">PDF</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Bản in PDF (Khổ A4 ngang)</strong>
                             </div>
                             <div class="text-muted small">
-                                Bảng điểm tổng hợp in khổ A4 ngang chuẩn công văn, tích hợp khung chữ ký 3 bên.
+                                Định dạng in niêm yết chuẩn công văn, tích hợp khung chữ ký 3 bên.
                             </div>
                         </div>
                         <div class="text-nowrap">
-                            <a asp-page="/PrintGrades" target="_blank" class="btn btn-danger btn-sm fw-bold" style="width: 120px; height: 33px; display: inline-flex; align-items: center; justify-content: center;">
+                            <a asp-page="/PrintGrades" target="_blank" class="export-format-btn btn-pdf">
                                 Xuất PDF
                             </a>
                         </div>
                     </div>
 
                     <!-- 3. Word (.docx) -->
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 py-2 px-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                    <div class="export-format-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-2 px-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-primary px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">DOCX</span>
-                                <strong style="font-size: 13.5px; color: #0f172a;">Word (.docx)</strong>
+                                <span class="export-format-badge bg-primary text-white">DOCX</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Văn bản Word (.docx)</strong>
                             </div>
                             <div class="text-muted small">
-                                Bảng điểm dạng văn bản Word khổ ngang phục vụ báo cáo và biên bản xét tốt nghiệp.
+                                Văn bản Word khổ ngang phục vụ báo cáo tổng kết và lưu hồ sơ khóa đào tạo.
                             </div>
                         </div>
                         <div class="text-nowrap">
-                            <a asp-page="/Grades" asp-page-handler="ExportWord" class="btn btn-primary btn-sm fw-bold btn-action-loading" style="background-color: #1d4ed8; border-color: #1d4ed8; width: 120px; height: 33px; display: inline-flex; align-items: center; justify-content: center;">
+                            <a asp-page="/Grades" asp-page-handler="ExportWord" class="export-format-btn btn-docx btn-action-loading">
                                 Xuất Word
                             </a>
                         </div>
                     </div>
 
                     <!-- 4. Phiếu điểm cá nhân học viên (PDF / A4 đứng) -->
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 py-2 px-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                    <div class="export-format-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-2 px-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-info text-white px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">A4</span>
-                                <strong style="font-size: 13.5px; color: #0f172a;">Phiếu điểm học viên</strong>
+                                <span class="export-format-badge text-white" style="background-color: #0284c7;">A4</span>
+                                <strong style="font-size: 13.5px; color: #0f172a;">Phiếu báo điểm (Khổ A4 đứng)</strong>
                             </div>
                             <div class="text-muted small">
-                                In phiếu báo điểm cá nhân từng học viên (khổ A4 đứng) có đánh giá và chữ ký GVCN.
+                                In phiếu báo điểm cá nhân từng học viên kèm nhận xét và chữ ký GVCN.
                             </div>
                         </div>
                         <div class="text-nowrap">
-                            <a asp-page="/PrintStudentTranscripts" target="_blank" class="btn btn-info text-white btn-sm fw-bold" style="width: 120px; height: 33px; display: inline-flex; align-items: center; justify-content: center;">
+                            <a asp-page="/PrintStudentTranscripts" target="_blank" class="export-format-btn btn-transcripts">
                                 In phiếu điểm
                             </a>
                         </div>
                     </div>
 
                     <!-- 5. CSV (.csv) -->
-                    <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 py-2 px-3 border mb-0" style="border-color: #dee2e6; background-color: #f8fafc;">
+                    <div class="export-format-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-2 px-3">
                         <div>
                             <div class="d-flex align-items-center gap-2 mb-1">
-                                <span class="badge bg-secondary px-2 py-1" style="width: 55px; text-align: center; font-size: 11px;">CSV</span>
+                                <span class="export-format-badge text-white" style="background-color: #475569;">CSV</span>
                                 <strong style="font-size: 13.5px; color: #0f172a;">Dữ liệu CSV (.csv)</strong>
                             </div>
                             <div class="text-muted small">
-                                Dữ liệu điểm chuẩn mã hóa UTF-8 with BOM phục vụ đồng bộ vào phần mềm khác.
+                                Dữ liệu điểm chuẩn mã hóa UTF-8 with BOM phục vụ đồng bộ hệ thống quản lý.
                             </div>
                         </div>
                         <div class="text-nowrap">
-                            <a asp-page="/Grades" asp-page-handler="ExportCsv" class="btn btn-secondary btn-sm fw-bold btn-action-loading" style="width: 120px; height: 33px; display: inline-flex; align-items: center; justify-content: center;">
+                            <a asp-page="/Grades" asp-page-handler="ExportCsv" class="export-format-btn btn-csv btn-action-loading">
                                 Xuất CSV
                             </a>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer p-2 bg-light">
-                <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
-            </div>
-        </div>
-    </div>
-</div>
             <div class="modal-footer p-2 bg-light">
                 <button type="button" class="toolbar-btn" data-bs-dismiss="modal">Đóng</button>
             </div>
