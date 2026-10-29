@@ -205,6 +205,9 @@ namespace KeHoachHocTap.Web.Migrations
                         .HasColumnType("decimal(4,2)")
                         .HasDefaultValue(1.0m);
 
+                    b.Property<int>("CurriculumOrder")
+                        .HasColumnType("int");
+
                     b.Property<string>("CustomExamSlot")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -243,6 +246,8 @@ namespace KeHoachHocTap.Web.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CurriculumOrder");
 
                     b.HasIndex("SortOrder");
 

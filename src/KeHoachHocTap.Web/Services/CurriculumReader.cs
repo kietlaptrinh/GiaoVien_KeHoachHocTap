@@ -115,6 +115,7 @@ public class CurriculumReader : ICurriculumReader
 
             subjects.Add(new Subject
             {
+                CurriculumOrder = sortOrder,
                 SortOrder = sortOrder,
                 Name = name,
                 Periods = periods,
@@ -126,12 +127,14 @@ public class CurriculumReader : ICurriculumReader
             currentSortOrder++;
         }
 
-        // Đảm bảo SortOrder liên tục 1..n
+        // Đảm bảo CurriculumOrder và SortOrder liên tục 1..n
         for (int i = 0; i < subjects.Count; i++)
         {
+            subjects[i].CurriculumOrder = i + 1;
             subjects[i].SortOrder = i + 1;
         }
 
         return new CurriculumReadResult(subjects, warnings);
     }
 }
+

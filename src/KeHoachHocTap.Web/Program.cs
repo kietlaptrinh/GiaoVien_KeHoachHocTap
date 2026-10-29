@@ -123,6 +123,19 @@ using (var scope = app.Services.CreateScope())
                 logger.LogWarning("Không tìm thấy file nạp dữ liệu ban đầu tại đường dẫn: '{SeedPath}'.", seedPath);
             }
         }
+        else
+        {
+            // Cập nhật CurriculumOrder cho các môn học hiện có nếu chưa được gán
+            var unassignedSubjects = await context.Subjects.Where(s => s.CurriculumOrder <= 0).ToListAsync();
+            if (unassignedSubjects.Count > 0)
+            {
+                foreach (var s in unassignedSubjects)
+                {
+                    s.CurriculumOrder = s.SortOrder;
+                }
+                await context.SaveChangesAsync();
+            }
+        }
 
         // Tự động Seed học viên và bảng điểm từ Excel nếu bảng Student đang trống lúc khởi động (SPEC mục 5, 6.4)
         var hasStudents = await context.Students.AnyAsync();

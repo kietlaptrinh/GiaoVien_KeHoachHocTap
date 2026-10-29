@@ -21,6 +21,11 @@
                     ⚡ Nạp 24 môn mẫu
                 </button>
             </form>
+            <form method="post" asp-page-handler="SyncPlanOrder" class="d-inline" onsubmit="return confirm('Đồng bộ thứ tự dạy trong Kế hoạch giảng dạy theo đúng thứ tự 1..n của Khung chương trình?');">
+                <button type="submit" class="toolbar-btn" title="Đặt lại thứ tự giảng dạy theo đúng thứ tự Khung chương trình">
+                    🔄 Đồng bộ sang Kế hoạch
+                </button>
+            </form>
             <div class="toolbar-separator"></div>
         }
 
@@ -130,7 +135,13 @@
                             };
 
                             <tr>
-                                <td class="text-center fw-bold">@s.SortOrder</td>
+                                <td class="text-center fw-bold">
+                                    @(s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder)
+                                    @if (s.CurriculumOrder > 0 && s.SortOrder != s.CurriculumOrder)
+                                    {
+                                        <div class="text-muted" style="font-size: 10px; font-weight: normal;" title="Thứ tự giảng dạy thực tế trong Kế hoạch">Dạy #@s.SortOrder</div>
+                                    }
+                                </td>
                                 <td class="fw-semibold text-primary">@s.Name</td>
                                 <td class="text-center text-muted">@(s.KnowledgeBlock ?? "—")</td>
                                 <td class="text-center fw-bold">@s.Periods</td>

@@ -43,6 +43,7 @@ public class PlanDbContext : DbContext
                 .HasDefaultValue(1.0m);
             entity.Property(e => e.KnowledgeBlock)
                 .HasMaxLength(150);
+            entity.HasIndex(e => e.CurriculumOrder);
             entity.HasIndex(e => e.SortOrder);
         });
 

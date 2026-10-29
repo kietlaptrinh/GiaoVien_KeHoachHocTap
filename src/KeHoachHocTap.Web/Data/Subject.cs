@@ -8,7 +8,12 @@ public class Subject
     public int Id { get; set; }
 
     /// <summary>
-    /// Thứ tự sắp xếp của môn học (1..n).
+    /// Thứ tự chuẩn của học phần trong Khung chương trình và Bảng điểm (1..n, thống nhất giữa các lớp).
+    /// </summary>
+    public int CurriculumOrder { get; set; }
+
+    /// <summary>
+    /// Thứ tự sắp xếp giảng dạy thực tế trong Kế hoạch học tập (1..n, linh hoạt theo từng lớp).
     /// </summary>
     public int SortOrder { get; set; }
 

@@ -16,3 +16,4 @@ public interface ICurriculumReader
 {
     CurriculumReadResult Read(Stream stream);
 }
+

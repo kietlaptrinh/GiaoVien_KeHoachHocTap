@@ -75,7 +75,7 @@ public class CurriculumModel : PageModel
 
     public async Task OnGetAsync()
     {
-        var query = _context.Subjects.AsNoTracking().OrderBy(s => s.SortOrder).AsQueryable();
+        var query = _context.Subjects.AsNoTracking().OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder).AsQueryable();
 
         var allSubjects = await query.ToListAsync();
 
@@ -138,9 +138,11 @@ public class CurriculumModel : PageModel
             }
             else
             {
+                var maxCurr = await _context.Subjects.MaxAsync(s => (int?)s.CurriculumOrder) ?? 0;
                 var maxSort = await _context.Subjects.MaxAsync(s => (int?)s.SortOrder) ?? 0;
                 var subject = new Subject
                 {
+                    CurriculumOrder = maxCurr + 1,
                     SortOrder = maxSort + 1,
                     Name = input.Name.Trim(),
                     Periods = input.Periods,
@@ -177,11 +179,11 @@ public class CurriculumModel : PageModel
                 _context.Subjects.Remove(subject);
                 await _context.SaveChangesAsync();
 
-                // Đánh lại STT liên tục 1..n
-                var remaining = await _context.Subjects.OrderBy(s => s.SortOrder).ToListAsync();
+                // Đánh lại STT liên tục 1..n cho Khung chương trình
+                var remaining = await _context.Subjects.OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder).ToListAsync();
                 for (int i = 0; i < remaining.Count; i++)
                 {
-                    remaining[i].SortOrder = i + 1;
+                    remaining[i].CurriculumOrder = i + 1;
                 }
                 await _context.SaveChangesAsync();
 
@@ -204,16 +206,16 @@ public class CurriculumModel : PageModel
 
         try
         {
-            var subjects = await _context.Subjects.OrderBy(s => s.SortOrder).ToListAsync();
+            var subjects = await _context.Subjects.OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder).ToListAsync();
             var index = subjects.FindIndex(s => s.Id == id);
             if (index >= 0)
             {
                 var targetIndex = index + direction;
                 if (targetIndex >= 0 && targetIndex < subjects.Count)
                 {
-                    var temp = subjects[index].SortOrder;
-                    subjects[index].SortOrder = subjects[targetIndex].SortOrder;
-                    subjects[targetIndex].SortOrder = temp;
+                    var temp = subjects[index].CurriculumOrder;
+                    subjects[index].CurriculumOrder = subjects[targetIndex].CurriculumOrder;
+                    subjects[targetIndex].CurriculumOrder = temp;
 
                     await _context.SaveChangesAsync();
                 }
@@ -223,6 +225,31 @@ public class CurriculumModel : PageModel
         {
             _logger.LogError(ex, "Lỗi khi đổi thứ tự học phần.");
             ErrorMessage = "Lỗi đổi vị trí: " + ex.Message;
+        }
+
+        return RedirectToPage();
+    }
+
+    public async Task<IActionResult> OnPostSyncPlanOrderAsync()
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded) return Forbid();
+
+        try
+        {
+            var subjects = await _context.Subjects.OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder).ToListAsync();
+            for (int i = 0; i < subjects.Count; i++)
+            {
+                subjects[i].CurriculumOrder = i + 1;
+                subjects[i].SortOrder = i + 1;
+            }
+            await _context.SaveChangesAsync();
+            SuccessMessage = "Đã đồng bộ thứ tự giảng dạy trong Kế hoạch học tập theo đúng Khung chương trình chuẩn.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi đồng bộ thứ tự kế hoạch.");
+            ErrorMessage = "Lỗi đồng bộ: " + ex.Message;
         }
 
         return RedirectToPage();

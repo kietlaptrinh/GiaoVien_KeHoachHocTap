@@ -29,6 +29,11 @@
             <button type="button" class="toolbar-btn" data-bs-toggle="modal" data-bs-target="#addActivityModal" title="Thêm hoạt động kế hoạch">
                 Thêm hoạt động
             </button>
+            <form method="post" asp-page-handler="ResetOrderFromCurriculum" class="d-inline m-0 p-0" onsubmit="return confirm('Đặt lại thứ tự các môn học theo đúng thứ tự 1..n của Khung chương trình chuẩn?');">
+                <button type="submit" class="toolbar-btn" title="Khôi phục thứ tự dạy theo đúng thứ tự Khung chương trình chuẩn">
+                    🔄 Đặt theo Khung CT
+                </button>
+            </form>
             <a asp-page="/Import" class="toolbar-btn">
                 Nhập từ Excel
             </a>

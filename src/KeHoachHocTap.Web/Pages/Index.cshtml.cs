@@ -459,4 +459,29 @@ public class IndexModel : PageModel
         errorMessage = string.Empty;
         return true;
     }
+
+    public async Task<IActionResult> OnPostResetOrderFromCurriculumAsync(CancellationToken cancellationToken)
+    {
+        var auth = await _authorizationService.AuthorizeAsync(User, "Admin");
+        if (!auth.Succeeded) return Forbid();
+
+        try
+        {
+            var subjects = await _planRepository.GetSubjectsAsync(cancellationToken);
+            var sortedByCurriculum = subjects.OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder).ToList();
+            for (int i = 0; i < sortedByCurriculum.Count; i++)
+            {
+                sortedByCurriculum[i].SortOrder = i + 1;
+                await _planRepository.UpdateSubjectAsync(sortedByCurriculum[i], cancellationToken);
+            }
+            SuccessMessage = "Đã đặt lại thứ tự môn học trong Kế hoạch giảng dạy theo đúng Khung chương trình chuẩn.";
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lỗi khi đồng bộ thứ tự giảng dạy theo Khung CT.");
+            ErrorMessage = "Lỗi khi đồng bộ thứ tự: " + ex.Message;
+        }
+
+        return RedirectToPage();
+    }
 }

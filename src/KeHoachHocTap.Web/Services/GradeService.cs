@@ -21,8 +21,10 @@ public class GradeService : IGradeService
 
     public GradeSheetResult CalculateGradeSheet(IReadOnlyList<Subject> subjects, IReadOnlyList<Student> students)
     {
+        // Bảng điểm tổng hợp luôn thống nhất sắp xếp theo Khung chương trình (CurriculumOrder)
         var sortedSubjects = (subjects ?? Array.Empty<Subject>())
-            .OrderBy(s => s.SortOrder)
+            .OrderBy(s => s.CurriculumOrder > 0 ? s.CurriculumOrder : s.SortOrder)
+            .ThenBy(s => s.Id)
             .ToList();
 
         var sortedStudents = (students ?? Array.Empty<Student>())
