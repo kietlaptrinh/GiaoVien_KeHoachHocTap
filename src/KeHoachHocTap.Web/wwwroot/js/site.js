@@ -182,3 +182,117 @@
         return div.innerHTML;
     }
 })();
+
+// =========================================================================
+// Functional Buttons: Loading State & Anti-Double-Click Protection
+// =========================================================================
+(function () {
+    /**
+     * Xác định nhãn loading tương ứng theo văn bản gốc của nút
+     */
+    function getAppropriateLoadingText(originalText) {
+        if (!originalText) return 'Đang xử lý...';
+        const lower = originalText.toLowerCase().trim();
+        if (lower.includes('xuất excel')) return 'Đang xuất Excel...';
+        if (lower.includes('xuất word') || lower.includes('tải file word')) return 'Đang xuất Word...';
+        if (lower.includes('xuất')) return 'Đang xuất file...';
+        if (lower.includes('nạp lại') || lower.includes('nạp') || lower.includes('nhập')) return 'Đang nạp...';
+        if (lower.includes('xóa')) return 'Đang xóa...';
+        if (lower.includes('cập nhật')) return 'Đang cập nhật...';
+        if (lower.includes('lưu')) return 'Đang lưu...';
+        if (lower.includes('đăng nhập')) return 'Đang đăng nhập...';
+        return 'Đang xử lý...';
+    }
+
+    /**
+     * Áp dụng trạng thái loading cho button
+     */
+    function applyButtonLoading(btn, customText) {
+        if (!btn || btn.classList.contains('btn-loading')) return;
+
+        // Lưu trạng thái và kích thước hiện tại để tránh giật layout
+        btn.dataset.originalHtml = btn.innerHTML;
+        const currentWidth = btn.offsetWidth;
+        if (currentWidth > 0) {
+            btn.style.minWidth = currentWidth + 'px';
+        }
+
+        const text = customText || getAppropriateLoadingText(btn.textContent);
+        btn.classList.add('btn-loading');
+        btn.setAttribute('aria-busy', 'true');
+        btn.innerHTML = `<span class="btn-loading-spinner" aria-hidden="true"></span><span>${text}</span>`;
+    }
+
+    /**
+     * Phục hồi trạng thái ban đầu của button
+     */
+    function restoreButtonLoading(btn) {
+        if (!btn || !btn.dataset.originalHtml) return;
+
+        btn.innerHTML = btn.dataset.originalHtml;
+        btn.classList.remove('btn-loading');
+        btn.removeAttribute('aria-busy');
+        btn.style.minWidth = '';
+        delete btn.dataset.originalHtml;
+
+        const form = btn.closest('form');
+        if (form) {
+            delete form.dataset.submitting;
+        }
+    }
+
+    // Đăng ký sự kiện khi DOM sẵn sàng
+    document.addEventListener('DOMContentLoaded', function () {
+        // 1. Tự động bảo vệ tất cả Form submit: chống click đúp & hiển thị loading
+        document.querySelectorAll('form').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                // Nếu bị hủy bởi hàm kiểm tra inline (ví dụ confirm() trả về false)
+                if (e.defaultPrevented) {
+                    return;
+                }
+
+                // Nếu form không vượt qua HTML5 validation (ví dụ ô bắt buộc bị trống)
+                if (form.checkValidity && !form.checkValidity()) {
+                    return;
+                }
+
+                // Chống gửi lặp nếu form đang trong quá trình submit
+                if (form.dataset.submitting === 'true') {
+                    e.preventDefault();
+                    return false;
+                }
+
+                // Tìm nút submit chính
+                const submitBtn = form.querySelector('button[type="submit"]:not([data-no-loading]), input[type="submit"]:not([data-no-loading])');
+                if (submitBtn) {
+                    form.dataset.submitting = 'true';
+                    applyButtonLoading(submitBtn);
+                }
+            });
+        });
+
+        // 2. Tự động gắn loading cho các nút Action Link tải file / xuất báo cáo (Excel, Word, v.v.)
+        const exportSelector = 'a.btn-excel-export, a[href*="ExportExcel"], a[href*="handler=Export"], a[href*="handler=Download"], [data-loading]';
+        document.querySelectorAll(exportSelector).forEach(function (btn) {
+            btn.addEventListener('click', function (e) {
+                if (btn.classList.contains('btn-loading')) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                applyButtonLoading(btn);
+
+                // File download qua trình duyệt không gây unload trang,
+                // do đó tự động hồi phục trạng thái nút sau 3.5 giây để sẵn sàng thao tác tiếp
+                setTimeout(function () {
+                    restoreButtonLoading(btn);
+                }, 3500);
+            });
+        });
+    });
+
+    // Xuất hàm công khai để tái sử dụng ở bất kỳ component nào
+    window.setButtonLoading = applyButtonLoading;
+    window.resetButtonLoading = restoreButtonLoading;
+})();
+
