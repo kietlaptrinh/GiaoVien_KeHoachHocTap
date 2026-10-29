@@ -1,0 +1,508 @@
+@page
+@model PrintPlanModel
+@using KeHoachHocTap.Web.Domain
+@using KeHoachHocTap.Web.Export
+@using KeHoachHocTap.Web.Data
+@{
+    Layout = null;
+    var schedule = Model.Schedule;
+    var options = Model.Options ?? new ExportOptions();
+    int currentTt = 1;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>In &amp; Lưu PDF - Kế hoạch giảng dạy và học tập</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f1f5f9;
+            font-family: "Times New Roman", Times, serif;
+            font-size: 11pt;
+            color: #000;
+        }
+
+        /* Thanh điều khiển nổi trên màn hình (không in) */
+        .print-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background-color: #1e293b;
+            color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        .print-toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-print {
+            background-color: #2563eb;
+            color: #fff;
+            border: 1px solid #1d4ed8;
+            padding: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-print:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-back {
+            background-color: #475569;
+            color: #fff;
+            border: 1px solid #334155;
+            padding: 6px 14px;
+            font-size: 13px;
+            border-radius: 4px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .btn-back:hover {
+            background-color: #334155;
+            color: #fff;
+        }
+
+        /* Khung hiển thị trang giấy A4 */
+        .paper-container {
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .paper-sheet {
+            background-color: #fff;
+            width: 297mm;
+            min-height: 210mm;
+            padding: 15mm 15mm;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            margin: 0 auto;
+        }
+
+        /* Định dạng in ấn khổ A4 ngang */
+        @@page {
+            size: A4 landscape;
+            margin: 10mm 12mm 10mm 12mm;
+        }
+
+        @@media print {
+            body {
+                background-color: #fff;
+            }
+
+            .print-toolbar {
+                display: none !important;
+            }
+
+            .paper-container {
+                padding: 0 !important;
+            }
+
+            .paper-sheet {
+                width: 100% !important;
+                min-height: auto !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                margin: 0 !important;
+            }
+
+            table {
+                page-break-inside: auto;
+            }
+
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+
+            thead {
+                display: table-header-group;
+            }
+
+            tfoot {
+                display: table-footer-group;
+            }
+        }
+
+        /* Header công văn */
+        .header-section {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+
+        .header-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+        }
+
+        .header-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+        }
+
+        .org-name {
+            font-size: 10.5pt;
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+
+        .motto {
+            font-size: 10.5pt;
+            text-align: center;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+
+        .underline-solid {
+            width: 100px;
+            height: 1px;
+            background-color: #000;
+            margin: 4px auto 0 auto;
+        }
+
+        .title-section {
+            text-align: center;
+            margin: 14px 0 16px 0;
+        }
+
+        .doc-title {
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin: 0 0 4px 0;
+        }
+
+        .doc-subtitle {
+            font-size: 11pt;
+            font-style: italic;
+            margin: 0;
+        }
+
+        /* Bảng dữ liệu */
+        .plan-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 10pt;
+            margin-bottom: 20px;
+        }
+
+        .plan-table th,
+        .plan-table td {
+            border: 1px solid #000;
+            padding: 4px 5px;
+            line-height: 1.25;
+        }
+
+        .plan-table th {
+            font-weight: bold;
+            text-align: center;
+            background-color: #f8fafc;
+        }
+
+        .text-center { text-align: center; }
+        .text-start { text-align: left; }
+        .text-end { text-align: right; }
+        .fw-bold { font-weight: bold; }
+
+        /* Chữ ký */
+        .signature-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: none;
+            margin-top: 15px;
+            page-break-inside: avoid;
+        }
+
+        .signature-table td {
+            border: none;
+            padding: 0;
+            vertical-align: top;
+            text-align: center;
+            width: 33.33%;
+            line-height: 1.35;
+        }
+
+        .sign-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 10.5pt;
+        }
+
+        .sign-space {
+            height: 65px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Thanh điều khiển hiển thị trên màn hình -->
+    <div class="print-toolbar no-print">
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <strong style="color: #93c5fd;">KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP</strong>
+            <span style="color: #94a3b8;">|</span>
+            <span style="color: #cbd5e1;">Khổ A4 ngang (Landscape)</span>
+        </div>
+        <div class="print-toolbar-actions">
+            <span style="font-size: 11.5px; color: #94a3b8; margin-right: 10px;">
+                Mẹo: Chọn "Lưu dưới dạng PDF" (Save as PDF) trong hộp thoại in để xuất file PDF.
+            </span>
+            <button type="button" class="btn-print" onclick="window.print()">
+                In / Lưu PDF
+            </button>
+            <a href="javascript:window.close()" class="btn-back">
+                Đóng
+            </a>
+        </div>
+    </div>
+
+    <!-- Tờ giấy A4 hiển thị -->
+    <div class="paper-container">
+        <div class="paper-sheet">
+            <!-- Header chuẩn thể thức công văn -->
+            <div class="header-section">
+                <table class="header-table">
+                    <tr>
+                        <td style="width: 45%;">
+                            <div class="org-name">
+                                CƠ QUAN CHỦ QUẢN<br />
+                                <strong>KHOA / ĐƠN VỊ ĐÀO TẠO</strong>
+                                <div class="underline-solid"></div>
+                            </div>
+                        </td>
+                        <td style="width: 55%;">
+                            <div class="motto">
+                                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM<br />
+                                <span>Độc lập - Tự do - Hạnh phúc</span>
+                                <div class="underline-solid"></div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Tiêu đề văn bản -->
+            <div class="title-section">
+                <div class="doc-title">KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP</div>
+                <div class="doc-subtitle">
+                    @(schedule != null ? $"Ngày khai giảng: S {schedule.OpeningDay.Day}/{schedule.OpeningDay.Month}/{schedule.OpeningDay.Year} • Tổng số: {schedule.Items.Count} môn học" : "")
+                </div>
+            </div>
+
+            <!-- Bảng dữ liệu 10 cột chuẩn -->
+            <table class="plan-table">
+                <thead>
+                    <tr>
+                        <th rowspan="2" style="width: 35px;">TT</th>
+                        <th rowspan="2" style="width: 200px;">Tên môn học / Nhiệm vụ</th>
+                        <th colspan="4">Số tiết</th>
+                        <th colspan="3">Thời gian thực hiện</th>
+                        <th rowspan="2" style="width: 90px;">Ghi chú</th>
+                    </tr>
+                    <tr>
+                        <th style="width: 50px;">Tiết giảng</th>
+                        <th style="width: 50px;">Tự học</th>
+                        <th style="width: 50px;">Ôn/thi</th>
+                        <th style="width: 50px;">Dự phòng</th>
+                        <th style="width: 85px;">Từ ngày</th>
+                        <th style="width: 85px;">Đến ngày</th>
+                        <th style="width: 85px;">Ngày thi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (schedule != null)
+                    {
+                        var openingHoliday = schedule.Holidays?.FirstOrDefault(h => h.IsOpeningDay);
+                        var openingStartDay = openingHoliday?.From ?? schedule.OpeningDay;
+                        var openingEndDay = (openingHoliday != null && openingHoliday.To >= openingHoliday.From)
+                            ? openingHoliday.To
+                            : openingStartDay;
+                        var openingStart = $"S {openingStartDay.Day}/{openingStartDay.Month}/{openingStartDay.Year}";
+                        var openingEnd = $"C {openingEndDay.Day}/{openingEndDay.Month}/{openingEndDay.Year}";
+
+                        <!-- Dòng 1: Khai giảng -->
+                        <tr>
+                            <td class="text-center fw-bold">@(currentTt++)</td>
+                            <td class="fw-bold">Khai giảng</td>
+                            <td class="text-center">10</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">—</td>
+                            <td class="text-center">@openingStart</td>
+                            <td class="text-center">@openingEnd</td>
+                            <td class="text-center">—</td>
+                            <td></td>
+                        </tr>
+
+                        <!-- Dòng các môn học và hoạt động xen kẽ -->
+                        @for (int i = 0; i < schedule.Items.Count; i++)
+                        {
+                            var item = schedule.Items[i];
+                            var teachingPeriods = Math.Max(0, item.Subject.Periods - options.SelfStudyPeriods);
+                            var reserveStr = item.Subject.ReservePeriods.HasValue && item.Subject.ReservePeriods.Value > 0
+                                ? item.Subject.ReservePeriods.Value.ToString()
+                                : "—";
+
+                            <tr>
+                                <td class="text-center">@(currentTt++)</td>
+                                <td>@item.Subject.Name</td>
+                                <td class="text-center">@teachingPeriods</td>
+                                <td class="text-center">@options.SelfStudyPeriods</td>
+                                <td class="text-center">@options.ExamPeriods</td>
+                                <td class="text-center">@reserveStr</td>
+                                <td class="text-center">@item.Start.ToString()</td>
+                                <td class="text-center">@item.End.ToString()</td>
+                                <td class="text-center">@item.Exam.ToString()</td>
+                                <td>@(item.Subject.Note ?? "")</td>
+                            </tr>
+
+                            <!-- Hoạt động xen kẽ -->
+                            if (schedule.Activities != null)
+                            {
+                                var interimActivities = schedule.Activities
+                                    .Where(a => a.Activity.Type == PlanActivityType.Interim &&
+                                                (a.Activity.AfterSubjectId == item.Subject.Id || (item.Subject.Id == 0 && a.Activity.AfterSubjectId == item.Subject.SortOrder)))
+                                    .OrderBy(a => a.Activity.SortOrder)
+                                    .ToList();
+
+                                foreach (var act in interimActivities)
+                                {
+                                    var periodsOrSessions = act.Activity.Periods.HasValue
+                                        ? act.Activity.Periods.Value.ToString()
+                                        : (act.Activity.Sessions.HasValue ? act.Activity.Sessions.Value.ToString() : "—");
+
+                                    var startStr = act.Start.HasValue ? act.Start.Value.ToString() : "—";
+                                    var endStr = act.End.HasValue ? act.End.Value.ToString() : "—";
+
+                                    <tr>
+                                        <td class="text-center">@(currentTt++)</td>
+                                        <td class="fw-bold">@act.Activity.Name</td>
+                                        <td class="text-center">@periodsOrSessions</td>
+                                        <td class="text-center">—</td>
+                                        <td class="text-center">—</td>
+                                        <td class="text-center">—</td>
+                                        <td class="text-center">@startStr</td>
+                                        <td class="text-center">@endStr</td>
+                                        <td class="text-center">—</td>
+                                        <td>@(act.Activity.Note ?? "")</td>
+                                    </tr>
+                                }
+                            }
+                        }
+
+                        <!-- Chuỗi hoạt động sau môn cuối -->
+                        var closingActivities = schedule.Activities?
+                            .Where(a => a.Activity.Type == PlanActivityType.Closing)
+                            .OrderBy(a => a.Activity.SortOrder)
+                            .ToList();
+
+                        if (closingActivities != null && closingActivities.Any())
+                        {
+                            foreach (var act in closingActivities)
+                            {
+                                var periodsOrSessions = act.Activity.Periods.HasValue
+                                    ? act.Activity.Periods.Value.ToString()
+                                    : (act.Activity.Sessions.HasValue ? act.Activity.Sessions.Value.ToString() : "—");
+
+                                var startStr = act.Start.HasValue ? act.Start.Value.ToString() : "—";
+                                var endStr = act.End.HasValue ? act.End.Value.ToString() : "—";
+
+                                <tr>
+                                    <td class="text-center">@(currentTt++)</td>
+                                    <td class="fw-bold">@act.Activity.Name</td>
+                                    <td class="text-center">@periodsOrSessions</td>
+                                    <td class="text-center">—</td>
+                                    <td class="text-center">—</td>
+                                    <td class="text-center">—</td>
+                                    <td class="text-center">@startStr</td>
+                                    <td class="text-center">@endStr</td>
+                                    <td class="text-center">—</td>
+                                    <td>@(act.Activity.Note ?? "")</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Mặc định: Thi tốt nghiệp & Bế giảng nếu chưa có hoạt động Closing tùy biến -->
+                            <tr>
+                                <td class="text-center">@(currentTt++)</td>
+                                <td class="fw-bold">@(options.Graduation.Name)</td>
+                                <td class="text-center">@(options.Graduation.Periods)</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">@(options.Graduation.Start)</td>
+                                <td class="text-center">@(options.Graduation.End)</td>
+                                <td class="text-center">—</td>
+                                <td></td>
+                            </tr>
+                            <tr>
+                                <td class="text-center">@(currentTt++)</td>
+                                <td class="fw-bold">@(options.Closing.Name)</td>
+                                <td class="text-center">@(options.Closing.Periods)</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">—</td>
+                                <td class="text-center">@(options.Closing.Start)</td>
+                                <td class="text-center">@(options.Closing.End)</td>
+                                <td class="text-center">—</td>
+                                <td></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="10" class="text-center" style="padding: 20px;">Chưa có dữ liệu kế hoạch giảng dạy.</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <!-- Chữ ký 3 bên -->
+            <table class="signature-table">
+                <tr>
+                    <td>
+                        <div class="sign-title">NGƯỜI LẬP KẾ HOẠCH</div>
+                        <div style="font-style: italic; font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
+                        <div class="sign-space"></div>
+                    </td>
+                    <td>
+                        <div class="sign-title">PHỤ TRÁCH ĐÀO TẠO</div>
+                        <div style="font-style: italic; font-size: 10pt;">(Ký, ghi rõ họ tên)</div>
+                        <div class="sign-space"></div>
+                    </td>
+                    <td>
+                        <div style="font-style: italic; font-size: 10pt; margin-bottom: 2px;">@Model.PrintDateText</div>
+                        <div class="sign-title">BAN GIÁM HIỆU</div>
+                        <div style="font-style: italic; font-size: 10pt;">(Ký, đóng dấu)</div>
+                        <div class="sign-space"></div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

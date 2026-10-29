@@ -1,44 +1,29 @@
 @page
 @model ExportModel
 @{
-    ViewData["Title"] = "Biểu mẫu Word & Xuất file";
+    ViewData["Title"] = "Xuất biểu mẫu";
 }
 
 <div class="desktop-panel">
     <!-- Panel Header -->
     <div class="desktop-panel-header">
         <div class="d-flex align-items-center gap-2">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z"/>
-                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V5.5a.5.5 0 0 0-1 0v4.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-            </svg>
-            <span>XUẤT BIỂU MẪU KẾ HOẠCH GIẢNG DẠY VÀ HỌC TẬP</span>
+            <span>XUẤT BIỂU MẪU KẾ HOẠCH GIẢNG DẠY</span>
         </div>
         <div>
-            <span class="text-secondary small">Hỗ trợ: Microsoft Word (.docx)</span>
+            <span class="text-secondary small">Định dạng: Word (.docx), In / PDF (.pdf)</span>
         </div>
     </div>
 
     <!-- Toolbar -->
     <div class="desktop-toolbar">
         <a asp-page="/Index" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
-            Quay lại Môn học
+            Kế hoạch giảng dạy
         </a>
         <a asp-page="/Templates" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
-                <path d="M4 4h8v2H4V4zm0 3h8v2H4V7zm0 3h5v2H4v-2z"/>
-            </svg>
-            Quản lý Mẫu biểu Word
+            Mẫu biểu
         </a>
         <a asp-page="/Export" class="toolbar-btn">
-            <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-            </svg>
             Làm mới
         </a>
     </div>
@@ -49,9 +34,7 @@
         @if (Model.ExtraTaskWarnings.Count > 0)
         {
             <div class="alert alert-warning py-2 px-3 small border-1 mb-3" style="border-color: #f59e0b; background-color: #fffbeb; color: #92400e;">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <strong>⚠️ Lưu ý về lịch nhiệm vụ đặc biệt:</strong>
-                </div>
+                <div class="fw-bold mb-1">Lưu ý về lịch nhiệm vụ đặc biệt:</div>
                 <ul class="mb-0 ps-3">
                     @foreach (var warning in Model.ExtraTaskWarnings)
                     {
@@ -65,7 +48,7 @@
         @if (Model.Schedule?.Warnings.Count > 0)
         {
             <div class="alert alert-warning py-2 px-3 small border-1 mb-3" style="border-color: #f59e0b; background-color: #fffbeb; color: #92400e;">
-                <strong>⚠️ Cảnh báo kế hoạch học tập:</strong>
+                <div class="fw-bold mb-1">Cảnh báo kế hoạch học tập:</div>
                 <ul class="mb-0 ps-3">
                     @foreach (var w in Model.Schedule.Warnings)
                     {
@@ -83,52 +66,61 @@
                         Danh sách định dạng biểu mẫu sẵn sàng xuất
                     </h6>
 
-                    @if (Model.Exporters.Count == 0)
-                    {
-                        <p class="text-muted small">Chưa có bộ xuất file nào được đăng ký trong hệ thống.</p>
-                    }
-                    else
-                    {
-                        <div class="list-group">
-                            @foreach (var exporter in Model.Exporters)
-                            {
-                                <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #e2e8f0; background-color: #f8fafc;">
-                                    <div>
-                                        <div class="d-flex align-items-center gap-2 mb-1">
-                                            <span class="badge bg-primary px-2 py-1" style="font-size: 11px;">@exporter.Extension.ToUpperInvariant()</span>
-                                            <strong style="font-size: 14px; color: #0f172a;">@exporter.DisplayName</strong>
-                                        </div>
-                                        <div class="text-secondary small">
-                                            <span>Mã định danh: <code>@exporter.Id</code></span>
-                                            <span class="mx-2">•</span>
-                                            <span>Template áp dụng: 
-                                                @if (Model.CurrentTemplate?.IsCustom == true)
-                                                {
-                                                    <span class="badge bg-success" style="font-size: 10px;">Tùy biến của trường</span>
-                                                }
-                                                else
-                                                {
-                                                    <span class="badge bg-secondary" style="font-size: 10px;">Mẫu gốc chuẩn</span>
-                                                }
-                                            </span>
-                                        </div>
-                                        <div class="text-muted small mt-1">
-                                            Tự động điền đầy đủ dòng Khai giảng, 19 môn học theo đúng kết quả tính lịch, Thi tốt nghiệp và Bế giảng. Giữ nguyên font Calibri, lề văn bản và cấu trúc gộp ô.
-                                        </div>
+                    <div class="list-group">
+                        <!-- 1. Định dạng Word (.docx) -->
+                        @foreach (var exporter in Model.Exporters)
+                        {
+                            <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-3" style="border-color: #dee2e6; background-color: #f8fafc;">
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-primary px-2 py-1" style="font-size: 11px;">@exporter.Extension.ToUpperInvariant()</span>
+                                        <strong style="font-size: 14px; color: #0f172a;">@exporter.DisplayName</strong>
                                     </div>
-                                    <div class="text-nowrap w-100 w-sm-auto text-end">
-                                        <a asp-page="/Export" asp-page-handler="Download" asp-route-id="@exporter.Id" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100 w-sm-auto" style="background-color: #1d4ed8; border-color: #1d4ed8; min-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
-                                            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                                            </svg>
-                                            Tải xuống (.docx)
-                                        </a>
+                                    <div class="text-secondary small mb-1">
+                                        <span>Mẫu áp dụng: 
+                                            @if (Model.CurrentTemplate?.IsCustom == true)
+                                            {
+                                                <span class="badge bg-success" style="font-size: 10px;">Tùy biến của trường</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-secondary" style="font-size: 10px;">Mẫu gốc chuẩn</span>
+                                            }
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small">
+                                        Tự động điền đầy đủ dòng Khai giảng, 19 môn học theo đúng kết quả tính lịch, Thi tốt nghiệp và Bế giảng. Giữ nguyên font Calibri, lề văn bản và cấu trúc gộp ô theo biểu mẫu.
                                     </div>
                                 </div>
-                            }
+                                <div class="text-nowrap w-100 w-sm-auto text-end">
+                                    <a asp-page="/Export" asp-page-handler="Download" asp-route-id="@exporter.Id" class="btn btn-primary btn-sm px-3 py-2 fw-bold w-100 w-sm-auto btn-action-loading" style="background-color: #1d4ed8; border-color: #1d4ed8; min-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
+                                        Tải xuống (.docx)
+                                    </a>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- 2. Định dạng Bản in & Lưu PDF (.pdf) -->
+                        <div class="list-group-item d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 p-3 border mb-2" style="border-color: #dee2e6; background-color: #f8fafc;">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-1">
+                                    <span class="badge bg-danger px-2 py-1" style="font-size: 11px;">.PDF</span>
+                                    <strong style="font-size: 14px; color: #0f172a;">Bản in Kế hoạch giảng dạy và học tập (Khổ A4 ngang)</strong>
+                                </div>
+                                <div class="text-secondary small mb-1">
+                                    <span>Quy cách: Chuẩn A4 Landscape • Căn lề in ấn • Tích hợp chữ ký 3 bên</span>
+                                </div>
+                                <div class="text-muted small">
+                                    Định dạng hiển thị chuẩn công văn đào tạo hành chính, tự động ngắt trang A4 ngang, xem trước trực tiếp và hỗ trợ lưu file PDF sắc nét không lỗi font tiếng Việt.
+                                </div>
+                            </div>
+                            <div class="text-nowrap w-100 w-sm-auto text-end">
+                                <a asp-page="/PrintPlan" target="_blank" class="btn btn-outline-danger btn-sm px-3 py-2 fw-bold w-100 w-sm-auto" style="min-height: 38px; display: inline-flex; align-items: center; justify-content: center;">
+                                    Xem &amp; Xuất PDF
+                                </a>
+                            </div>
                         </div>
-                    }
+                    </div>
                 </div>
             </div>
 
@@ -178,7 +170,7 @@
 
                     <div class="d-grid gap-2">
                         <a asp-page="/Templates" class="btn btn-outline-secondary btn-sm text-start">
-                            ⚙️ Chỉnh sửa thông số &amp; Template biểu mẫu
+                            Cấu hình thông số &amp; Mẫu biểu
                         </a>
                     </div>
                 </div>
