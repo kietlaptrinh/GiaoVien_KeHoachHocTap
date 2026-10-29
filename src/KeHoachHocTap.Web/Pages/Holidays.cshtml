@@ -8,10 +8,7 @@
     <!-- Panel Header -->
     <div class="desktop-panel-header">
         <div class="d-flex align-items-center gap-2">
-            <svg width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
-                <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5zM1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4H1z"/>
-            </svg>
-            <span>DANH SÁCH NGÀY NGHỈ VÀ NGÀY KHAI GIẢNG KHÓA HỌC</span>
+            <span>NGÀY NGHỈ VÀ KHAI GIẢNG</span>
         </div>
         <div>
             <span class="text-secondary small">Tổng cộng: <strong>@Model.Holidays.Count</strong> khoảng thời gian</span>
@@ -23,9 +20,6 @@
         @if (Model.IsAdmin)
         {
             <button type="button" class="toolbar-btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHolidayModal">
-                <svg width="12" height="12" fill="currentColor" viewBox="0 0 16 16" class="me-1">
-                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
-                </svg>
                 Thêm ngày nghỉ / sự kiện
             </button>
             <span class="toolbar-separator"></span>
