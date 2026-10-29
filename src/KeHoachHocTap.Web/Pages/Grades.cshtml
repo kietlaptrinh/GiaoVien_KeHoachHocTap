@@ -179,10 +179,11 @@
                                             <input type="text"
                                                    class="grade-cell text-center desktop-input p-0 m-0 w-100"
                                                    value="@(gItem.Score.HasValue ? gItem.Score.Value.ToString("0.00") : "")"
+                                                   data-last-committed-val="@(gItem.Score.HasValue ? gItem.Score.Value.ToString("0.00") : "")"
                                                    placeholder="—"
                                                    data-student-id="@st.Id"
                                                    data-subject-id="@gItem.SubjectId"
-                                                   title="@Model.Subjects[j].Name: Nhấn Tab/Enter để lưu và chuyển ô" />
+                                                   title="@Model.Subjects[j].Name: Nhấn Enter hoặc Mũi tên để lưu và chuyển ô" />
                                         }
                                         else
                                         {
@@ -509,74 +510,21 @@
                 $(this).select();
             });
 
-            // Inline Grade Edit: Điều hướng bàn phím linh hoạt (Enter / Mũi tên Phải, Trái, Lên, Xuống)
-            $('.grade-cell').on('keydown', function (e) {
-                var currentInput = $(this);
-                var currentTd = currentInput.closest('td.cell-grade-compact');
+            // Hàm lưu điểm an toàn: chống gửi trùng lặp (deduplication) & cập nhật realtime
+            function commitGrade(input) {
+                if (!input || input.length === 0) return;
 
-                // Enter hoặc Mũi tên phải: Lưu và nhảy sang ô kế tiếp bên phải
-                if (e.key === 'Enter' || e.key === 'ArrowRight') {
-                    e.preventDefault();
-                    currentInput.trigger('change');
-
-                    var nextTd = currentTd.next('td.cell-grade-compact');
-                    if (nextTd.length > 0) {
-                        nextTd.find('.grade-cell').focus().select();
-                    } else {
-                        // Nếu là môn cuối của hàng, nhảy xuống môn đầu tiên của học viên hàng dưới
-                        var nextTr = currentTd.closest('tr').next('tr');
-                        if (nextTr.length > 0) {
-                            nextTr.find('td.cell-grade-compact:first .grade-cell').focus().select();
-                        }
-                    }
-                }
-                // Mũi tên trái: Lưu và nhảy sang ô trước đó bên trái
-                else if (e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    currentInput.trigger('change');
-
-                    var prevTd = currentTd.prev('td.cell-grade-compact');
-                    if (prevTd.length > 0) {
-                        prevTd.find('.grade-cell').focus().select();
-                    } else {
-                        // Nếu là môn đầu của hàng, lùi về môn cuối của học viên hàng trên
-                        var prevTr = currentTd.closest('tr').prev('tr');
-                        if (prevTr.length > 0) {
-                            prevTr.find('td.cell-grade-compact:last .grade-cell').focus().select();
-                        }
-                    }
-                }
-                // Mũi tên xuống: Lưu và nhảy xuống cùng môn của học viên phía dưới
-                else if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    currentInput.trigger('change');
-
-                    var colIndex = currentTd.index();
-                    var nextTr = currentTd.closest('tr').next('tr');
-                    if (nextTr.length > 0) {
-                        nextTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
-                    }
-                }
-                // Mũi tên lên: Lưu và nhảy lên cùng môn của học viên phía trên
-                else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    currentInput.trigger('change');
-
-                    var colIndex = currentTd.index();
-                    var prevTr = currentTd.closest('tr').prev('tr');
-                    if (prevTr.length > 0) {
-                        prevTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
-                    }
-                }
-            });
-
-            $('.grade-cell').on('change', function () {
-                var input = $(this);
                 var studentId = input.data('student-id');
                 var subjectId = input.data('subject-id');
                 var rawVal = input.val().trim();
-                var score = rawVal === '' ? null : parseFloat(rawVal.replace(',', '.'));
 
+                // So sánh với giá trị đã lưu gần nhất để không gửi request trùng lặp
+                var lastCommitted = input.data('last-committed-val');
+                if (lastCommitted !== undefined && String(lastCommitted) === rawVal) {
+                    return;
+                }
+
+                var score = rawVal === '' ? null : parseFloat(rawVal.replace(',', '.'));
                 if (score !== null && (isNaN(score) || score < 0 || score > 10)) {
                     if (typeof window.showToast === 'function') {
                         window.showToast('Điểm số phải là số hợp lệ từ 0.00 đến 10.00', 'warning');
@@ -585,6 +533,8 @@
                     return;
                 }
 
+                // Cập nhật ngay last-committed-val để ngăn các event đồng thời theo sau (như change/blur khi nhảy ô)
+                input.data('last-committed-val', rawVal);
                 input.removeClass('border-danger').addClass('border-warning');
 
                 var formData = new FormData();
@@ -607,12 +557,16 @@
                 })
                 .then(function (data) {
                     if (data.success) {
-                        input.removeClass('border-warning').addClass('border-success');
+                        input.removeClass('border-warning border-danger').addClass('border-success');
                         setTimeout(function () { input.removeClass('border-success'); }, 1200);
+
                         if (data.score !== null && data.score !== undefined) {
-                            input.val(parseFloat(data.score).toFixed(2));
+                            var formattedScore = parseFloat(data.score).toFixed(2);
+                            input.val(formattedScore);
+                            input.data('last-committed-val', formattedScore);
                         } else {
                             input.val('');
+                            input.data('last-committed-val', '');
                         }
 
                         // Cập nhật realtime các cột tổng kết của hàng học viên
@@ -631,18 +585,81 @@
 
                             row.find('.cell-rank').html('<span class="badge ' + rankBadgeClass + '">' + data.classification + '</span>');
                         }
-
-                        if (typeof window.showToast === 'function') {
-                            window.showToast('Đã lưu điểm môn thành công.', 'success', null, 2000);
-                        }
                     }
                 })
                 .catch(function (err) {
                     input.removeClass('border-warning').addClass('border-danger');
+                    input.removeData('last-committed-val');
                     if (typeof window.showToast === 'function') {
                         window.showToast('Không thể cập nhật điểm: ' + err.message, 'error');
                     }
                 });
+            }
+
+            // Inline Grade Edit: Điều hướng bàn phím linh hoạt (Enter / Mũi tên Phải, Trái, Lên, Xuống)
+            $('.grade-cell').on('keydown', function (e) {
+                var currentInput = $(this);
+                var currentTd = currentInput.closest('td.cell-grade-compact');
+
+                // Enter hoặc Mũi tên phải: Lưu và nhảy sang ô kế tiếp bên phải
+                if (e.key === 'Enter' || e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    commitGrade(currentInput);
+
+                    var nextTd = currentTd.next('td.cell-grade-compact');
+                    if (nextTd.length > 0) {
+                        nextTd.find('.grade-cell').focus().select();
+                    } else {
+                        // Nếu là môn cuối của hàng, nhảy xuống môn đầu tiên của học viên hàng dưới
+                        var nextTr = currentTd.closest('tr').next('tr');
+                        if (nextTr.length > 0) {
+                            nextTr.find('td.cell-grade-compact:first .grade-cell').focus().select();
+                        }
+                    }
+                }
+                // Mũi tên trái: Lưu và nhảy sang ô trước đó bên trái
+                else if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    commitGrade(currentInput);
+
+                    var prevTd = currentTd.prev('td.cell-grade-compact');
+                    if (prevTd.length > 0) {
+                        prevTd.find('.grade-cell').focus().select();
+                    } else {
+                        // Nếu là môn đầu của hàng, lùi về môn cuối của học viên hàng trên
+                        var prevTr = currentTd.closest('tr').prev('tr');
+                        if (prevTr.length > 0) {
+                            prevTr.find('td.cell-grade-compact:last .grade-cell').focus().select();
+                        }
+                    }
+                }
+                // Mũi tên xuống: Lưu và nhảy xuống cùng môn của học viên phía dưới
+                else if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    commitGrade(currentInput);
+
+                    var colIndex = currentTd.index();
+                    var nextTr = currentTd.closest('tr').next('tr');
+                    if (nextTr.length > 0) {
+                        nextTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
+                    }
+                }
+                // Mũi tên lên: Lưu và nhảy lên cùng môn của học viên phía trên
+                else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    commitGrade(currentInput);
+
+                    var colIndex = currentTd.index();
+                    var prevTr = currentTd.closest('tr').prev('tr');
+                    if (prevTr.length > 0) {
+                        prevTr.children('td').eq(colIndex).find('.grade-cell').focus().select();
+                    }
+                }
+            });
+
+            // Khi click chuột ra ngoài hoặc rời ô
+            $('.grade-cell').on('change', function () {
+                commitGrade($(this));
             });
         });
     </script>

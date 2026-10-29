@@ -462,29 +462,53 @@ public class PlanRepository : IPlanRepository
 
     public async Task UpdateSingleGradeAsync(int studentId, int subjectId, decimal? score, string? note = null, CancellationToken cancellationToken = default)
     {
-        var grade = await _context.StudentGrades
-            .FirstOrDefaultAsync(g => g.StudentId == studentId && g.SubjectId == subjectId, cancellationToken);
-
-        if (grade != null)
+        try
         {
-            grade.Score = score;
-            if (note != null)
+            var grade = await _context.StudentGrades
+                .FirstOrDefaultAsync(g => g.StudentId == studentId && g.SubjectId == subjectId, cancellationToken);
+
+            if (grade != null)
             {
-                grade.Note = note;
+                grade.Score = score;
+                if (note != null)
+                {
+                    grade.Note = note;
+                }
+            }
+            else
+            {
+                _context.StudentGrades.Add(new StudentGrade
+                {
+                    StudentId = studentId,
+                    SubjectId = subjectId,
+                    Score = score,
+                    Note = note
+                });
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException)
+        {
+            // Phòng ngừa race condition nếu có 2 request cập nhật cùng lúc khi bản ghi chưa tồn tại
+            _context.ChangeTracker.Clear();
+            var existing = await _context.StudentGrades
+                .FirstOrDefaultAsync(g => g.StudentId == studentId && g.SubjectId == subjectId, cancellationToken);
+
+            if (existing != null)
+            {
+                existing.Score = score;
+                if (note != null)
+                {
+                    existing.Note = note;
+                }
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                throw;
             }
         }
-        else
-        {
-            _context.StudentGrades.Add(new StudentGrade
-            {
-                StudentId = studentId,
-                SubjectId = subjectId,
-                Score = score,
-                Note = note
-            });
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task SaveGradesAsync(IEnumerable<StudentGrade> grades, CancellationToken cancellationToken = default)
