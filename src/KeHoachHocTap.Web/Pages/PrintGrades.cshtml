@@ -326,7 +326,6 @@
                         <th rowspan="2" style="width: 100px;">Họ và tên đệm</th>
                         <th rowspan="2" style="width: 45px;">Tên</th>
                         <th rowspan="2" style="width: 55px;">Ngày sinh</th>
-                        <th rowspan="2" style="width: 30px;">Phái</th>
                         <th colspan="@(subjects.Count)">Điểm môn học</th>
                         <th rowspan="2" style="width: 35px;">Môn hoàn thành</th>
                         <th rowspan="2" style="width: 40px;">Điểm TB</th>
@@ -353,7 +352,6 @@
                                 <td class="text-start" style="padding-left: 4px;">@s.Student.LastName</td>
                                 <td class="text-start fw-bold" style="padding-left: 4px;">@s.Student.FirstName</td>
                                 <td class="text-center">@(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "")</td>
-                                <td class="text-center">@(s.Student.Gender ?? "")</td>
 
                                 @foreach (var g in s.SubjectGrades)
                                 {

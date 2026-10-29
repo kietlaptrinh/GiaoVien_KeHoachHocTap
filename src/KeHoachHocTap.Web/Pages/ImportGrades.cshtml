@@ -182,7 +182,6 @@
                                         <th style="min-width: 140px;">Họ và tên đệm</th>
                                         <th style="min-width: 75px;">Tên</th>
                                         <th class="text-center" style="min-width: 85px;">Ngày sinh</th>
-                                        <th class="text-center" style="min-width: 50px;">Phái</th>
                                         @foreach (var subName in Model.PreviewSubjectNames)
                                         {
                                             <th class="text-center px-2" style="min-width: 65px;" title="@subName">
@@ -202,7 +201,6 @@
                                             <td>@st.LastName</td>
                                             <td class="fw-bold">@st.FirstName</td>
                                             <td class="text-center text-muted">@(st.DateOfBirth.HasValue ? st.DateOfBirth.Value.ToString("dd/MM/yyyy") : "—")</td>
-                                            <td class="text-center">@st.Gender</td>
                                             @foreach (var subName in Model.PreviewSubjectNames)
                                             {
                                                 var score = st.Grades.FirstOrDefault(g => string.Equals(g.SubjectName, subName, StringComparison.OrdinalIgnoreCase))?.Score;

@@ -129,7 +129,6 @@
                         <th class="sticky-col" style="left: 140px; width: 140px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Họ lót</th>
                         <th class="sticky-col" style="left: 280px; width: 75px; z-index: 11; background-color: #EBF3FC; vertical-align: bottom; padding-bottom: 10px;">Tên</th>
                         <th class="text-center" style="width: 85px; vertical-align: bottom; padding-bottom: 10px;">Ngày sinh</th>
-                        <th class="text-center" style="width: 45px; vertical-align: bottom; padding-bottom: 10px;">Phái</th>
 
                         <!-- Dynamic Subjects Columns (Vertical Header - Classic Academic Style) -->
                         @for (int j = 0; j < Model.Subjects.Count; j++)
@@ -155,7 +154,7 @@
                     @if (Model.DisplayStudents.Count == 0)
                     {
                         <tr>
-                            <td colspan="@(6 + Model.Subjects.Count + (Model.IsAdmin ? 5 : 4))" class="text-center py-4 text-muted">
+                            <td colspan="@(5 + Model.Subjects.Count + (Model.IsAdmin ? 5 : 4))" class="text-center py-4 text-muted">
                                 <em>Không có dữ liệu học viên phù hợp với điều kiện tìm kiếm.</em>
                             </td>
                         </tr>
@@ -173,7 +172,6 @@
                                 <td class="sticky-col" style="left: 140px; background-color: #fff;">@st.LastName</td>
                                 <td class="sticky-col fw-bold text-primary" style="left: 280px; background-color: #fff;">@st.FirstName</td>
                                 <td class="text-center text-muted">@(st.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</td>
-                                <td class="text-center text-muted">@(st.Gender ?? "—")</td>
 
                                 <!-- Subject Scores -->
                                 @for (int j = 0; j < summary.SubjectGrades.Count; j++)

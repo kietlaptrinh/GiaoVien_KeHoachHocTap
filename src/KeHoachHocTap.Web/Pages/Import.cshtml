@@ -65,8 +65,8 @@
                         <div class="card-body p-4">
                             <form method="post" enctype="multipart/form-data" asp-page-handler="Preview">
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Chọn file Excel (.xlsx):</label>
-                                    <input type="file" asp-for="ExcelFile" accept=".xlsx" class="form-control form-control-sm" required />
+                                    <label class="form-label fw-bold">Chọn file Excel (.xlsx): <span class="text-danger">*</span></label>
+                                    <input type="file" asp-for="ExcelFile" accept=".xlsx" class="desktop-input w-100" required />
                                     <span class="text-muted small d-block mt-1">
                                         Giới hạn dung lượng tối đa <strong>5 MB</strong>. File được đọc hoàn toàn trong bộ nhớ (RAM), không lưu lên đĩa cứng.
                                     </span>
@@ -81,10 +81,10 @@
                                     </ul>
                                 </div>
 
-                                <div class="d-flex justify-content-end gap-2">
-                                    <a asp-page="/Index" class="toolbar-btn">Kế hoạch giảng dạy</a>
-                                    <button type="submit" class="toolbar-btn btn-primary px-3">
-                                        Kiểm tra dữ liệu
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <a asp-page="/Index" class="toolbar-btn">Hủy</a>
+                                    <button type="submit" class="toolbar-btn btn-primary px-3 py-1 btn-action-loading">
+                                        Tải lên & Xem trước
                                     </button>
                                 </div>
                             </form>
@@ -157,8 +157,8 @@
 
                                 <div class="d-flex justify-content-between align-items-center pt-2 border-top">
                                     <a asp-page="/Import" class="toolbar-btn">Tải file khác</a>
-                                    <button type="submit" class="toolbar-btn btn-danger px-3 py-1" onclick="return confirm('Bạn có chắc chắn muốn thay thế toàn bộ dữ liệu môn học và ngày nghỉ hiện tại bằng file Excel này?');">
-                                        Xác nhận nhập
+                                    <button type="submit" class="toolbar-btn btn-primary px-3 py-1 btn-action-loading" onclick="return confirm('Bạn có chắc chắn muốn thay thế toàn bộ dữ liệu môn học và ngày nghỉ hiện tại bằng file Excel này?');">
+                                        Xác nhận nhập kế hoạch
                                     </button>
                                 </div>
                             </form>
