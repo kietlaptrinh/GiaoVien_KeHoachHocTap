@@ -329,8 +329,7 @@
                         <td style="width: 40%;">Mã số học viên: <strong>@s.Student.StudentCode</strong></td>
                     </tr>
                     <tr>
-                        <td>Ngày sinh: <strong>@(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</strong></td>
-                        <td>Giới tính: <strong>@(s.Student.Gender ?? "—")</strong></td>
+                        <td colspan="2">Ngày sinh: <strong>@(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "—")</strong></td>
                     </tr>
                 </table>
 

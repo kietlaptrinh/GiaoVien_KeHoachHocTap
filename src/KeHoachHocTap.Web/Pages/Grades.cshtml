@@ -259,17 +259,13 @@
                     </div>
                     <div class="modal-body p-3">
                         <div class="row">
-                            <div class="col-md-5 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mã số HV <span class="text-danger">*</span></label>
                                 <input type="text" name="StudentCode" class="desktop-input w-100" placeholder="K75A56.0149" required maxlength="50" />
                             </div>
-                            <div class="col-md-7 mb-3">
-                                <label class="form-label fw-bold">Giới tính</label>
-                                <select name="Gender" class="desktop-input w-100">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" name="DateOfBirth" class="desktop-input w-100" />
                             </div>
                         </div>
                         <div class="row">
@@ -281,10 +277,6 @@
                                 <label class="form-label fw-bold">Tên học viên <span class="text-danger">*</span></label>
                                 <input type="text" name="FirstName" class="desktop-input w-100" placeholder="An" required maxlength="50" />
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ngày sinh</label>
-                            <input type="date" name="DateOfBirth" class="desktop-input w-100" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Ghi chú</label>
@@ -314,17 +306,13 @@
                     </div>
                     <div class="modal-body p-3">
                         <div class="row">
-                            <div class="col-md-5 mb-3">
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Mã số HV <span class="text-danger">*</span></label>
                                 <input type="text" id="editStudentCode" name="StudentCode" class="desktop-input w-100" required maxlength="50" />
                             </div>
-                            <div class="col-md-7 mb-3">
-                                <label class="form-label fw-bold">Giới tính</label>
-                                <select id="editStudentGender" name="Gender" class="desktop-input w-100">
-                                    <option value="">-- Chọn giới tính --</option>
-                                    <option value="Nam">Nam</option>
-                                    <option value="Nữ">Nữ</option>
-                                </select>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" id="editStudentDob" name="DateOfBirth" class="desktop-input w-100" />
                             </div>
                         </div>
                         <div class="row">
@@ -336,10 +324,6 @@
                                 <label class="form-label fw-bold">Tên học viên <span class="text-danger">*</span></label>
                                 <input type="text" id="editStudentFirstName" name="FirstName" class="desktop-input w-100" required maxlength="50" />
                             </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">Ngày sinh</label>
-                            <input type="date" id="editStudentDob" name="DateOfBirth" class="desktop-input w-100" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">Ghi chú</label>
@@ -504,7 +488,6 @@
                 $('#editStudentLastName').val(btn.data('lastname'));
                 $('#editStudentFirstName').val(btn.data('firstname'));
                 $('#editStudentDob').val(btn.data('dob') || '');
-                $('#editStudentGender').val(btn.data('gender') || '');
                 $('#editStudentNote').val(btn.data('note') || '');
 
                 var modal = new bootstrap.Modal(document.getElementById('editStudentModal'));

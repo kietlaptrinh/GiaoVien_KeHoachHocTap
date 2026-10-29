@@ -344,9 +344,8 @@ public class GradesModel : PageModel
             worksheet.Cell(r, 3).Value = "Họ và tên đệm";
             worksheet.Cell(r, 4).Value = "Tên";
             worksheet.Cell(r, 5).Value = "Ngày sinh";
-            worksheet.Cell(r, 6).Value = "Phái";
 
-            int c = 7;
+            int c = 6;
             foreach (var sub in gradeSheet.Subjects)
             {
                 worksheet.Cell(r, c).Value = sub.Name;
@@ -394,10 +393,7 @@ public class GradesModel : PageModel
                 worksheet.Cell(r, 5).Value = st.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
                 worksheet.Cell(r, 5).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
-                worksheet.Cell(r, 6).Value = st.Gender ?? "";
-                worksheet.Cell(r, 6).Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
-                int sc = 7;
+                int sc = 6;
                 foreach (var gItem in summary.SubjectGrades)
                 {
                     if (gItem.Score.HasValue)
@@ -483,7 +479,7 @@ public class GradesModel : PageModel
             var gradeSheet = _gradeService.CalculateGradeSheet(subjects, students);
 
             var sb = new StringBuilder();
-            sb.Append("STT,Mã HV,Họ và tên đệm,Tên,Ngày sinh,Giới tính");
+            sb.Append("STT,Mã HV,Họ và tên đệm,Tên,Ngày sinh");
             foreach (var sub in gradeSheet.Subjects)
             {
                 sb.Append($",\"{sub.Name.Replace("\"", "\"\"")}\"");
@@ -493,7 +489,7 @@ public class GradesModel : PageModel
             foreach (var s in gradeSheet.Students)
             {
                 var dob = s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "";
-                sb.Append($"{s.Stt},\"{s.Student.StudentCode}\",\"{s.Student.LastName.Replace("\"", "\"\"")}\",\"{s.Student.FirstName.Replace("\"", "\"\"")}\",{dob},\"{s.Student.Gender}\"");
+                sb.Append($"{s.Stt},\"{s.Student.StudentCode}\",\"{s.Student.LastName.Replace("\"", "\"\"")}\",\"{s.Student.FirstName.Replace("\"", "\"\"")}\",{dob}");
                 foreach (var g in s.SubjectGrades)
                 {
                     sb.Append($",{(g.Score.HasValue ? g.Score.Value.ToString("0.00") : "")}");
@@ -562,7 +558,6 @@ public class GradesModel : PageModel
                 headerRow.AppendChild(CreateWordCell("Họ và tên đệm", true, false));
                 headerRow.AppendChild(CreateWordCell("Tên", true, false));
                 headerRow.AppendChild(CreateWordCell("Ngày sinh", true, true));
-                headerRow.AppendChild(CreateWordCell("Phái", true, true));
                 foreach (var sub in gradeSheet.Subjects)
                 {
                     headerRow.AppendChild(CreateWordCell(sub.Name, true, true));
@@ -580,7 +575,6 @@ public class GradesModel : PageModel
                     row.AppendChild(CreateWordCell(s.Student.LastName, false, false));
                     row.AppendChild(CreateWordCell(s.Student.FirstName, true, false));
                     row.AppendChild(CreateWordCell(s.Student.DateOfBirth?.ToString("dd/MM/yyyy") ?? "", false, true));
-                    row.AppendChild(CreateWordCell(s.Student.Gender ?? "", false, true));
                     foreach (var g in s.SubjectGrades)
                     {
                         var scoreStr = g.Score.HasValue ? g.Score.Value.ToString("0.00") : "";
